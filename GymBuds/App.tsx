@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import { fetchFunction } from './api/auth';
 export default function LoginMockup() {
   const [secureText, setSecureText] = useState(true);
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput,setPasswordInput] = useState('');
+  const logInUser = async (email: String, password: String)=>{
+    console.log('hi')
+    const response = await fetchFunction("users",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: email,
+        }),
+      })
+      console.log(response)
+  }
+  
 
   return (
     <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={styles.container}>
@@ -17,7 +32,7 @@ export default function LoginMockup() {
 
       <View style={styles.inputContainer}>
         <Icon name="envelope" size={20} color="#B5B0B0" />
-        <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#B5B0B0" />
+        <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor="#B5B0B0" onChangeText={setEmailInput}/>
       </View>
 
       <View style={styles.inputContainer}>
@@ -27,6 +42,7 @@ export default function LoginMockup() {
           placeholder="Enter your password"
           placeholderTextColor="#B5B0B0"
           secureTextEntry={secureText}
+          onChangeText={setPasswordInput}
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)}>
           <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
@@ -37,7 +53,7 @@ export default function LoginMockup() {
         <Text style={styles.forgotPassword}>Forgot password?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity  style={styles.loginButton} onPress={()=>logInUser(emailInput,passwordInput)}>
         <Icon name="arrow-right" size={20} color="white" />
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
