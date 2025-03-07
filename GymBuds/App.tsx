@@ -19,6 +19,9 @@ export default function LoginMockup() {
       })
       console.log(response)
   }
+  useEffect(()=>{
+    console.log(emailInput)
+  },[emailInput])
   
 
   return (
