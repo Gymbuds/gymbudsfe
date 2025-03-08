@@ -9,12 +9,14 @@ export default function LoginMockup() {
   const [passwordInput,setPasswordInput] = useState('');
   const logInUser = async (email: String, password: String)=>{
     console.log('hi')
-    const response = await fetchFunction("users",
+    const response = await fetchFunction("users/register",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: email,
+          name: "Victor",
+          email: email,
+          password: password
         }),
       })
       console.log(response)
