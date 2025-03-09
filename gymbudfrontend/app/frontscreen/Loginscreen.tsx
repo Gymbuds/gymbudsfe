@@ -5,29 +5,43 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { fetchFunction } from '@/api/auth';
 import tw from 'twrnc'; // Import twrnc
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
+  Home: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export default function Loginscreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('test@example.com');
+  const [password, setPassword] = useState('password123');
   const [secureText, setSecureText] = useState(true);
 
-  const registerUser = async () => {
-    const response = await fetchFunction('users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    console.log(response);
-  };
+  // const loginUser = async () => {
+  //   const response = await fetchFunction('users/login', {  // Fix API endpoint
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ email, password }),
+  //   });
+  
+  //   if (response.success) {
+  //     await AsyncStorage.setItem('userToken', response.token);
+  //     navigation.replace('Home');
+  //   }
+  // };
 
+  // dummy login function
+  const loginUser = async () => {
+    // Simulate successful login and save token
+    await AsyncStorage.setItem('userToken', 'dummy_token');
+    navigation.replace('Home'); // Navigate to Home
+  };
+  
   return (
     <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={tw`flex-1 justify-center items-center px-8`}>
       <Text style={tw`text-4xl font-bold text-purple-500`}>Gym<Text style={tw`'text-gray-700`}>Buds</Text></Text>
@@ -60,7 +74,7 @@ export default function Loginscreen({ navigation }: Props) {
       
       <TouchableOpacity
         style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`}
-        onPress={registerUser}
+        onPress={loginUser}
       >
         <Icon name="check" size={20} color="white" />
         <Text style={tw`text-white text-lg font-bold ml-2`}>Log in</Text>
