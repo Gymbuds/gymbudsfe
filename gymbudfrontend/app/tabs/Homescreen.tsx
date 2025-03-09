@@ -184,7 +184,7 @@ export default function MainTabs() {
       <Tab.Screen 
         name="Workouts" 
         component={HomeScreen} 
-        options={{ tabBarIcon: ({ color }) => <Icon name="dumbbell" size={24} color={color} /> }} 
+        options={{ tabBarIcon: ({ color }) => <Icon name="calendar" size={24} color={color} /> }} 
       />
       <Tab.Screen 
         name="Map" 
