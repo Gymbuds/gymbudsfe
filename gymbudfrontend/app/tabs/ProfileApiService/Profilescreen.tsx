@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import * as ImagePicker from 'expo-image-picker';  // For selecting profile picture
+// Fetch user's profile data
+import { fetchUserProfile, uploadProfilePicture } from './ProfileApiService';
 import tw from 'twrnc';
 
 // Define navigation types
@@ -17,12 +21,65 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
+  // state for username and profilepicture
+  const [userName, setUserName] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
+
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
   const [preferredGym, setPreferredGym] = useState("Fitness Hub, Downtown");
   const [preferredTime, setPreferredTime] = useState("6:00 PM - 8:00 PM");
   const [preferredDays, setPreferredDays] = useState("Mon, Wed, Fri");
   const [fitnessGoals, setFitnessGoals] = useState(["Build Muscle", "Improve Strength", "Better Endurance"]);
+
+  // Fetch user profile data from backend
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const data = await fetchUserProfile();
+        setUserName(data.name);
+        setProfilePicture(data.profilePicture); // URL for profile picture
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
+
+  // Select and upload profile picture
+  const handleProfilePictureUpdate = async () => {
+    // Request permission for accessing the user's photo library
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert('Permission to access camera roll is required!');
+      return;
+    }
+
+    // Launch image picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const selectedImage = result.assets[0];  // Get the selected image
+
+      try {
+        const uploadResponse = await uploadProfilePicture({
+          uri: selectedImage.uri,
+          name: selectedImage.fileName || 'profile.jpg',
+          type: selectedImage.type || 'image/jpeg',
+        });
+
+        setProfilePicture(uploadResponse.profilePicture);  // Update profile picture URL
+      } catch (error) {
+        console.error('Error uploading profile picture:', error);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>

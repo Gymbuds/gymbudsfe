@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to change your profile picture."
     },
     "android": {
       "adaptiveIcon": {

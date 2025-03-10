@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loginscreen from './frontscreen/Loginscreen';
 import Signupscreen from './frontscreen/Signupscreen';
 import Homescreen from './tabs/Homescreen';
-import Profilescreen from './tabs/Profilescreen';
+import Profilescreen from './tabs/ProfileApiService/Profilescreen';
 
 // Define the types for the screens
 type RootStackParamList = {

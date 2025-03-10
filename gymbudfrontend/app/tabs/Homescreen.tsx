@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
-import ProfileScreen from './Profilescreen';
+import ProfileScreen from './ProfileApiService/Profilescreen';
 
 
 const Tab = createBottomTabNavigator();
