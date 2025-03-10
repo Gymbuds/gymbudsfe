@@ -13,6 +13,7 @@ type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
   Home: undefined;
+  Profile: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;

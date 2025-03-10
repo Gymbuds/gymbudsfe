@@ -13,9 +13,10 @@ type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
   Home: undefined;
+  Profile: undefined;
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function Loginscreen({ navigation }: Props) {
   const [email, setEmail] = useState('test@example.com');
@@ -82,7 +83,7 @@ export default function Loginscreen({ navigation }: Props) {
       
       <TouchableOpacity>
         <Text style={tw`text-gray-700 text-sm`}>
-          Don't have an account? <Text style={tw`text-purple-500`} onPress={() => navigation.goBack()}>Sign Up</Text>
+          Don't have an account? <Text style={tw`text-purple-500`} onPress={() => navigation.navigate('Signup')}>Sign Up</Text>
         </Text>
       </TouchableOpacity>
     </LinearGradient>

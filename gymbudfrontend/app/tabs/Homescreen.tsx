@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
+import ProfileScreen from './Profilescreen';
+
 
 const Tab = createBottomTabNavigator();
 const HomeScreen = () => {
@@ -198,8 +200,9 @@ export default function MainTabs() {
       />
       <Tab.Screen 
         name="Profile" 
-        component={HomeScreen} 
+        component={ProfileScreen as React.FC} 
         options={{ tabBarIcon: ({ color }) => <Icon name="user" size={24} color={color} /> }} 
+        
       />
     </Tab.Navigator>
   );
