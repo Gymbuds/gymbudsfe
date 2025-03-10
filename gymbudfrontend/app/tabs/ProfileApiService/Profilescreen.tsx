@@ -23,6 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState('');
+  const [userLevel, setUserLevel] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
 
   // State for Modal and Form Inputs
@@ -38,6 +39,7 @@ export default function ProfileScreen({ navigation }: Props) {
       try {
         const data = await fetchUserProfile();
         setUserName(data.name);
+        setUserLevel(data.level);  // Level of fitness (e.g., beginner, intermediate, advanced)
         setProfilePicture(data.profilePicture); // URL for profile picture
       } catch (error) {
         console.error('Error fetching profile data:', error);
@@ -99,8 +101,8 @@ export default function ProfileScreen({ navigation }: Props) {
               <Icon name="pencil" size={14} color="gray" />
             </TouchableOpacity>
           </View>
-          <Text style={tw`text-xl font-bold mt-2`}>User Example, 21</Text>
-          <Text style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}>Intermediate</Text>
+          <Text style={tw`text-xl font-bold mt-2`}>{userName}</Text>
+          <Text style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}>{userLevel}</Text>
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>8</Text>
