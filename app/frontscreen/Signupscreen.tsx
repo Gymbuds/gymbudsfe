@@ -18,9 +18,9 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export default function SignupScreen({ navigation }: Props) {
-  const [name, setName] = useState('Test User');
-  const [email, setEmail] = useState('test@example.com');
-  const [password, setPassword] = useState('password123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
 
   const registerUser = async () => {
