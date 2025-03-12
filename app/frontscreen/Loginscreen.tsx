@@ -84,9 +84,19 @@ export default function Loginscreen({ navigation }: Props) {
           />
         </TouchableOpacity>
       </View>
+      <View style={tw`w-full items-end mt-[-10]`}>
+        <TouchableOpacity>
+          <Text
+            style={tw`text-purple-500`}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            Forgot password?
+        </Text>
+      </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
-        style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`}
+        style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4 mt-[20]`}
         onPress={loginUser}
       >
         <Icon name="check" size={20} color="white" />
@@ -104,14 +114,7 @@ export default function Loginscreen({ navigation }: Props) {
           </Text>
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity>
-          <Text
-            style={tw`text-purple-500`}
-            onPress={() => navigation.navigate("ForgotPassword")}
-          >
-            Forgot Your Password?
-        </Text>
-      </TouchableOpacity>
+      
     </LinearGradient>
   );
 }
