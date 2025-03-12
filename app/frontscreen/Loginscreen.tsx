@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { fetchFunction } from '@/api/auth';
-import tw from 'twrnc'; // Import twrnc
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { fetchFunction } from "@/api/auth";
+import tw from "twrnc"; // Import twrnc
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define navigation types
 type RootStackParamList = {
@@ -16,40 +15,47 @@ type RootStackParamList = {
   Profile: undefined;
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function Loginscreen({ navigation }: Props) {
-  const [email, setEmail] = useState('test@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
 
-  // const loginUser = async () => {
-  //   const response = await fetchFunction('users/login', {  // Fix API endpoint
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ email, password }),
-  //   });
-  
-  //   if (response.success) {
-  //     await AsyncStorage.setItem('userToken', response.token);
-  //     navigation.replace('Home');
-  //   }
-  // };
-
-  // dummy login function
   const loginUser = async () => {
-    // Simulate successful login and save token
-    await AsyncStorage.setItem('userToken', 'dummy_token');
-    navigation.replace('Home'); // Navigate to Home
+    const response = await fetchFunction("auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    console.log("Login Response:", response);
+
+    if (response.access_token) {
+      // Adjust based on your API response
+      await AsyncStorage.setItem("userToken", response.access_token);
+      navigation.replace("Home"); // Redirect to home page
+    } else {
+      alert("Invalid login credentials.");
+    }
   };
-  
+
   return (
-    <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={tw`flex-1 justify-center items-center px-8`}>
-      <Text style={tw`text-4xl font-bold text-purple-500`}>Gym<Text style={tw`'text-gray-700`}>Buds</Text></Text>
+    <LinearGradient
+      colors={["#F2ECFF", "#E5D4FF"]}
+      style={tw`flex-1 justify-center items-center px-8`}
+    >
+      <Text style={tw`text-4xl font-bold text-purple-500`}>
+        Gym<Text style={tw`'text-gray-700`}>Buds</Text>
+      </Text>
       <Text style={tw`text-xl font-semibold mt-4`}>Welcome Back</Text>
-      <Text style={tw`text-gray-600 mb-4`}>Login to continue your fitness journey</Text>
-      
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
+      <Text style={tw`text-gray-600 mb-4`}>
+        Login to continue your fitness journey
+      </Text>
+
+      <View
+        style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}
+      >
         <Icon name="envelope" size={20} color="#B5B0B0" />
         <TextInput
           style={tw`flex-1 pl-3 text-base text-black`}
@@ -58,8 +64,10 @@ export default function Loginscreen({ navigation }: Props) {
           onChangeText={setEmail}
         />
       </View>
-      
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
+
+      <View
+        style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}
+      >
         <Icon name="lock" size={20} color="#B5B0B0" />
         <TextInput
           style={tw`flex-1 pl-3 text-base text-black`}
@@ -69,10 +77,14 @@ export default function Loginscreen({ navigation }: Props) {
           onChangeText={setPassword}
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-          <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
+          <Icon
+            name={secureText ? "eye-slash" : "eye"}
+            size={20}
+            color="#B5B0B0"
+          />
         </TouchableOpacity>
       </View>
-      
+
       <TouchableOpacity
         style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`}
         onPress={loginUser}
@@ -80,10 +92,16 @@ export default function Loginscreen({ navigation }: Props) {
         <Icon name="check" size={20} color="white" />
         <Text style={tw`text-white text-lg font-bold ml-2`}>Log in</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity>
         <Text style={tw`text-gray-700 text-sm`}>
-          Don't have an account? <Text style={tw`text-purple-500`} onPress={() => navigation.navigate('Signup')}>Sign Up</Text>
+          Don't have an account?{" "}
+          <Text
+            style={tw`text-purple-500`}
+            onPress={() => navigation.navigate("Signup")}
+          >
+            Sign Up
+          </Text>
         </Text>
       </TouchableOpacity>
     </LinearGradient>
