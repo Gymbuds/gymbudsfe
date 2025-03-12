@@ -13,65 +13,56 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Profile: undefined;
-  ForgotPassword: undefined;
   ChangePassword: undefined;
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ChangePassword'>;
 
 export default function SignupScreen({ navigation }: Props) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
 
-  const registerUser = async () => {
-    const response = await fetchFunction('users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
+//   const registerUser = async () => {
+//     const response = await fetchFunction('users/register', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ name, email, password }),
+//     });
   
-    if (response.success) {
-      // await AsyncStorage.setItem('userToken', response.token); // Store token
-      navigation.replace('Home'); // Replace stack to prevent going back
-    }
-  };
+//     if (response.success) {
+//       // await AsyncStorage.setItem('userToken', response.token); // Store token
+//       navigation.replace('Home'); // Replace stack to prevent going back
+//     }
+//   };
 
   return (
     <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={tw`flex-1 justify-center items-center px-8`}>
       <Text style={tw`text-4xl font-bold text-purple-500`}>GymBuds</Text>
-      <Text style={tw`text-xl font-semibold mt-4`}>Create an Account</Text>
-      <Text style={tw`text-gray-600 mb-4`}>Join us to start your fitness journey</Text>
-      
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
-        <Icon name="user" size={20} color="#B5B0B0" />
-        <TextInput 
-          style={tw`flex-1 pl-3 text-base text-black`} 
-          placeholder="Enter your name" 
-          placeholderTextColor="#B5B0B0" 
-          onChangeText={setName} 
-        />
-      </View>
-      
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
-        <Icon name="envelope" size={20} color="#B5B0B0" />
-        <TextInput 
-          style={tw`flex-1 pl-3 text-base text-black`} 
-          placeholder="Enter your email" 
-          placeholderTextColor="#B5B0B0" 
-          onChangeText={setEmail} 
-        />
-      </View>
+      <Text style={tw`text-xl font-semibold mt-4`}>Create a New Password</Text>
+      <Text style={tw`text-gray-600 mb-4`}>Set a new password for your Gymbuds account:</Text>
       
       <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
         <Icon name="lock" size={20} color="#B5B0B0" />
         <TextInput 
           style={tw`flex-1 pl-3 text-base text-black`} 
-          placeholder="Enter your password" 
+          placeholder="Enter your new password" 
           placeholderTextColor="#B5B0B0" 
           secureTextEntry={secureText} 
-          onChangeText={setPassword} 
+        //   onChangeText={setPassword} 
+        />
+        <TouchableOpacity onPress={() => setSecureText(!secureText)}>
+          <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
+        <Icon name="lock" size={20} color="#B5B0B0" />
+        <TextInput 
+          style={tw`flex-1 pl-3 text-base text-black`} 
+          placeholder="Confirm your new password" 
+          placeholderTextColor="#B5B0B0" 
+          secureTextEntry={secureText} 
+        //   onChangeText={setPassword} 
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)}>
           <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
@@ -80,15 +71,16 @@ export default function SignupScreen({ navigation }: Props) {
       
       <TouchableOpacity 
         style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`} 
-        onPress={registerUser}
+        // onPress={registerUser}
+        onPress={() => navigation.navigate('Login')}
       >
         <Icon name="check" size={20} color="white" />
-        <Text style={tw`text-white text-lg font-bold ml-2`}>Sign Up</Text>
+        <Text style={tw`text-white text-lg font-bold ml-2`}>Change Password</Text>
       </TouchableOpacity>
       
       <TouchableOpacity>
         <Text style={tw`text-gray-700 text-sm`}>
-          Already have an account?<Text 
+          Remembered your password?<Text 
             style={tw`text-purple-500`} 
             onPress={() => navigation.navigate('Login')}
           > Login
