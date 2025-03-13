@@ -33,6 +33,7 @@ export default function Loginscreen({ navigation }: Props) {
 
     if (response.access_token) {
       // Adjust based on your API response
+      console.log(response.access_token)
       await AsyncStorage.setItem("userToken", response.access_token);
       navigation.replace("Home"); // Redirect to home page
     } else {

@@ -1,7 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
 
-export const fetchFunction = async(endpoint:string,options) => {
-    const accessToken =  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiZXhwIjoxNzQxODM4NzYwfQ.CvC2qM27klGWe4diLSgkpYIpgk60WZim_WK3kCxhSsI' // WE need to make a function 
+export const fetchFunctionWithAuth = async(endpoint:string,options) => {
+    const accessToken =  await AsyncStorage.getItem('userToken')
     const headers = {
         'Content-Type':'application/json',
         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
@@ -11,6 +13,14 @@ export const fetchFunction = async(endpoint:string,options) => {
         ...options,
         headers,
     });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return response.json();
+};
+export const fetchFunction = async(endpoint: string, options: any) => {
+    const response = await fetch(`${BASE_URL}/${endpoint}`, options);
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
