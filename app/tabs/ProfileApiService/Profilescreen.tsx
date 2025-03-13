@@ -16,6 +16,7 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Profile: undefined;
+  Schedule: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
@@ -164,7 +165,9 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-
+        <TouchableOpacity onPress={() => navigation.navigate('Schedule')}>
+              <Text style={tw`text-purple-500 text-sm`}>Schedule</Text>
+            </TouchableOpacity>
         {/* Achievements */}
         <View style={tw`bg-white p-4 mt-6 rounded-lg shadow`}>
           <Text style={tw`text-lg font-bold`}>Achievements</Text>
