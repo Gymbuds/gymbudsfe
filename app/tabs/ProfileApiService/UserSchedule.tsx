@@ -194,64 +194,64 @@ export default function ScheduleScreen({ navigation }: Props) {
               <Text style={tw`text-lg font-bold mb-4`}>Add Time Range</Text>
 
               <Text style={tw`text-s text-gray-500 mb-2`}>Start Time</Text>
-<View style={tw`flex-row items-center mb-4`}>
-  <TextInput
-    style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
-    placeholder="7:00"
-    value={startTimeAdd}
-    onChangeText={setStartTimeAdd}
-  />
-  <DropDownPicker
-    placeholder='AM/PM'
-    open={startOpen}
-    setOpen={handleStartOpen}
-    containerStyle={tw`h-10 flex-1`}  
-    style={tw`border p-2 rounded bg-white text-black text-base h-10`}  
-    items={items}
-    setItems={setItems}
-    value={startValue}
-    setValue={setStartValue}
-    onChangeValue={setStartTimePeriod}
-  />
-</View>
+            <View style={tw`flex-row items-center mb-4`}>
+              <TextInput
+                style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
+                placeholder="7:00"
+                value={startTimeAdd}
+                onChangeText={setStartTimeAdd}
+              />
+              <DropDownPicker
+                placeholder='AM/PM'
+                open={startOpen}
+                setOpen={handleStartOpen}
+                containerStyle={tw`h-10 flex-1`}  
+                style={tw`border p-2 rounded bg-white text-black text-base h-10`}  
+                items={items}
+                setItems={setItems}
+                value={startValue}
+                setValue={setStartValue}
+                onChangeValue={setStartTimePeriod}
+              />
+            </View>
 
-<Text style={tw`text-s text-gray-500 mb-2`}>End Time</Text>
-<View style={tw`flex-row items-center mb-4`}>
-  <TextInput
-    style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
-    placeholder="9:00"
-    value={endTimeAdd}
-    onChangeText={setEndTimeAdd}
-  />
-  {!startOpen && (
-    <DropDownPicker
-      placeholder='AM/PM'
-      open={endOpen}
-      setOpen={handleEndOpen}
-      containerStyle={tw`h-10 flex-1`}  
-      style={tw`border  rounded bg-white text-black text-base`}  
-      items={items}
-      setItems={setItems}
-      value={endValue}
-      setValue={setEndValue}
-      onChangeValue={setEndTimePeriod}
-    />
-  )}
-</View>
+          <Text style={tw`text-s text-gray-500 mb-2`}>End Time</Text>
+          <View style={tw`flex-row items-center mb-4`}>
+            <TextInput
+              style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
+              placeholder="9:00"
+              value={endTimeAdd}
+              onChangeText={setEndTimeAdd}
+            />
+            {!startOpen && (
+              <DropDownPicker
+                placeholder='AM/PM'
+                open={endOpen}
+                setOpen={handleEndOpen}
+                containerStyle={tw`h-10 flex-1`}  
+                style={tw`border  rounded bg-white text-black text-base`}  
+                items={items}
+                setItems={setItems}
+                value={endValue}
+                setValue={setEndValue}
+                onChangeValue={setEndTimePeriod}
+              />
+            )}
+          </View>
 
-              <View style={tw`flex-row justify-between`}>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={tw`text-red-500`}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    {handleAddTimeRange({
-                      day: selectedDay,
-                      start: `${startTimeAdd} ${startTimePeriod}`,
-                      end: `${endTimeAdd} ${endTimePeriod}`,
-                    })}
-                  }
-                >
+          <View style={tw`flex-row justify-between`}>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={tw`text-red-500`}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                {handleAddTimeRange({
+                  day: selectedDay,
+                  start: `${startTimeAdd} ${startTimePeriod}`,
+                  end: `${endTimeAdd} ${endTimePeriod}`,
+                })}
+              }
+            >
                   <Text style={tw`text-green-500 font-bold`}>Confirm</Text>
                 </TouchableOpacity>
               </View>

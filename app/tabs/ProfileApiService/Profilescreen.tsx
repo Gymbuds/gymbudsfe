@@ -184,9 +184,6 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={tw`text-xs text-gray-500`}>Workout Schedule</Text>
               {renderSchedule()}
             </View> 
-          <TouchableOpacity onPress={() => navigation.navigate('Schedule')}>
-              <Text style={tw`text-purple-500 text-sm`}>Schedule</Text>
-            </TouchableOpacity>
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-gray-500`}>Fitness Goals</Text>
             <View style={tw`flex-row items-center mt-1`}>
