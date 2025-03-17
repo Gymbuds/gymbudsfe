@@ -17,7 +17,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function ProfileNavigator() {
   return (
-    <Stack.Navigator initialRouteName={'Profile'} >
+    <Stack.Navigator initialRouteName={'Profile'} screenOptions={{ headerShown: false }}>
       <Stack.Screen name='Profile' component={Profilescreen} />
       <Stack.Screen name="Schedule" component={UserSchedule} />
       

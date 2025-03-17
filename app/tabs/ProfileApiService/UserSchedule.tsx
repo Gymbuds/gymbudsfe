@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput,Alert} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput,Alert, Touchable} from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchFunctionWithAuth } from '@/api/auth';
+import {ChevronLeft} from 'lucide-react-native';
 import { formatTime, validateTime,convertTo24Hour,padTime} from '@/app/utils/util';
 import tw from 'twrnc';
 
@@ -138,6 +139,13 @@ export default function ScheduleScreen({ navigation }: Props) {
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       <ScrollView style={tw`p-4`} >
         {/* Header Section */}
+        <View style={tw`mb-3 flex-1`}>
+        <TouchableOpacity style={tw`mb-3 flex-row items-center`} onPress={() => navigation.navigate("Profile")}>
+        <ChevronLeft size={24} color="#1447e6" /> 
+        <Text style={tw` text-lg text-blue-700`}>Profile</Text> 
+        </TouchableOpacity>
+        
+        </View>
         <View style={tw`flex-row justify-between items-center mb-6`}>
           <Text style={tw`text-xl font-bold`}>Edit Schedule</Text>
         </View>
