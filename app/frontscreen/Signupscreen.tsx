@@ -13,6 +13,8 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Profile: undefined;
+  ForgotPassword: undefined;
+  ChangePassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
@@ -31,14 +33,14 @@ export default function SignupScreen({ navigation }: Props) {
     });
   
     if (response.success) {
-      // await AsyncStorage.setItem('userToken', response.token); // Store token
+      await AsyncStorage.setItem('userToken', response.access_token); // Store token
       navigation.replace('Home'); // Replace stack to prevent going back
     }
   };
 
   return (
     <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={tw`flex-1 justify-center items-center px-8`}>
-      <Text style={tw`text-4xl font-bold text-purple-500`}>Gym<Text style={tw`text-gray-700`}>Buds</Text></Text>
+      <Text style={tw`text-4xl font-bold text-purple-500`}>GymBuds</Text>
       <Text style={tw`text-xl font-semibold mt-4`}>Create an Account</Text>
       <Text style={tw`text-gray-600 mb-4`}>Join us to start your fitness journey</Text>
       

@@ -13,6 +13,8 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Profile: undefined;
+  ForgotPassword: undefined;
+  ChangePassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -45,9 +47,7 @@ export default function Loginscreen({ navigation }: Props) {
       colors={["#F2ECFF", "#E5D4FF"]}
       style={tw`flex-1 justify-center items-center px-8`}
     >
-      <Text style={tw`text-4xl font-bold text-purple-500`}>
-        Gym<Text style={tw`'text-gray-700`}>Buds</Text>
-      </Text>
+      <Text style={tw`text-4xl font-bold text-purple-500`}>GymBuds</Text>
       <Text style={tw`text-xl font-semibold mt-4`}>Welcome Back</Text>
       <Text style={tw`text-gray-600 mb-4`}>
         Login to continue your fitness journey
@@ -84,9 +84,19 @@ export default function Loginscreen({ navigation }: Props) {
           />
         </TouchableOpacity>
       </View>
+      <View style={tw`w-full items-end mt-[-10]`}>
+        <TouchableOpacity>
+          <Text
+            style={tw`text-purple-500`}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            Forgot password?
+        </Text>
+      </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
-        style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`}
+        style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4 mt-[20]`}
         onPress={loginUser}
       >
         <Icon name="check" size={20} color="white" />
@@ -104,6 +114,7 @@ export default function Loginscreen({ navigation }: Props) {
           </Text>
         </Text>
       </TouchableOpacity>
+      
     </LinearGradient>
   );
 }
