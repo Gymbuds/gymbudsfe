@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loginscreen from './frontscreen/Loginscreen';
 import Signupscreen from './frontscreen/Signupscreen';
 import Homescreen from './tabs/Homescreen';
-import Profilescreen from './tabs/ProfileApiService/Profilescreen';
+import ProfileNavigator from './profile-navigation';
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -12,6 +12,7 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Profile: undefined;
+  ProfileNavigator: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -34,8 +35,7 @@ export default function AppNavigation() {
       <Stack.Screen name="Signup" component={Signupscreen} />
       <Stack.Screen name="Login" component={Loginscreen} />
       <Stack.Screen name="Home" component={Homescreen} />
-      <Stack.Screen name="Profile" component={Profilescreen} />
+      <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
     </Stack.Navigator>
   );
 }
-
