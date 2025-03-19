@@ -1,5 +1,6 @@
 import React, { useState, useEffect,useCallback} from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Image } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -29,29 +30,38 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState('');
+  const [userAge, setUserAge] = useState<string>('');
+  const [userSkillLevel, setUserSkillLevel,] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
+  // const [dayStreak, setDayStreak] = useState(0);
+  // const [workouts, setWorkouts] = useState(0);
+  // const [buddies, setBuddies] = useState(0);
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
   const [preferredGym, setPreferredGym] = useState("Fitness Hub, Downtown");
-  const [preferredTime, setPreferredTime] = useState("6:00 PM - 8:00 PM");
-  const [preferredDays, setPreferredDays] = useState("Mon, Wed, Fri");
-  const [fitnessGoals, setFitnessGoals] = useState(["Build Muscle", "Improve Strength", "Better Endurance"]);
+  // const [preferredTime, setPreferredTime] = useState("6:00 PM - 8:00 PM");
+  // const [preferredDays, setPreferredDays] = useState("Mon, Wed, Fri");
+  const [fitnessGoals, setFitnessGoals] = useState(["Build Muscle","Improve Strength","Better Endurance",]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
         const data = await fetchUserProfile();
-        setUserName(data.name);
-        setProfilePicture(data.profilePicture); // URL for profile picture
+        setUserName(data.name); // set user name
+        setUserAge(data.age); // User's age
+        setUserSkillLevel(data.skill_level); // User's skill level
+        setProfilePicture(data.profile_picture); // URL for profile picture
+        // setDayStreak(data.dayStreak); // User's day streak
+        // setWorkouts(data.workouts); // User's workout count
+        // setBuddies(data.buddies); // User's buddy count
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }
     };
     
     loadUserProfile();
-    
   }, []);
   useFocusEffect(
     useCallback(() => {
@@ -72,6 +82,11 @@ export default function ProfileScreen({ navigation }: Props) {
       };
     }, [])
   );
+  const handleAgeChange = (text: string) => {
+    // Convert the input to a number if needed
+    setUserAge(text);
+  };
+
   // Select and upload profile picture
   const handleProfilePictureUpdate = async () => {
     // Request permission for accessing the user's photo library
@@ -105,6 +120,7 @@ export default function ProfileScreen({ navigation }: Props) {
       }
     }
   };
+
   const renderSchedule = () => {
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     return daysOfWeek.map((day, index) => {
@@ -162,13 +178,22 @@ export default function ProfileScreen({ navigation }: Props) {
         {/* User Profile */}
         <View style={tw`items-center mt-4`}>
           <View style={tw`w-24 h-24 bg-purple-200 rounded-full flex items-center justify-center relative`}>
-            <Text style={tw`text-3xl font-bold text-purple-600`}>U</Text>
-            <TouchableOpacity style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`}>
+            {profilePicture ? (
+              <Image
+                source={{ uri: profilePicture }}
+                style={tw`w-full h-full rounded-full`}
+              />
+            ) : (<Text style={tw`text-3xl font-bold text-purple-600`}>U</Text>)}
+            <TouchableOpacity style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`} onPress={handleProfilePictureUpdate}>
               <Icon name="pencil" size={14} color="gray" />
             </TouchableOpacity>
           </View>
-          <Text style={tw`text-xl font-bold mt-2`}>User Example, 21</Text>
-          <Text style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}>Intermediate</Text>
+          <Text style={tw`text-xl font-bold mt-2`}>{userName},{userAge}</Text>
+          <Text
+            style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}
+          >
+            {userSkillLevel}
+          </Text>
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>8</Text>
@@ -192,6 +217,30 @@ export default function ProfileScreen({ navigation }: Props) {
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Text style={tw`text-purple-500 text-sm`}>Edit</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={tw`mt-3`}>
+            <Text style={tw`text-xs text-gray-500`}>Age</Text>
+            <TextInput
+              style={tw`bg-gray-100 p-2 mt-1 rounded-md text-sm`}
+              keyboardType="numeric"
+              placeholder="Enter your age"
+              value={userAge}
+              onChangeText={handleAgeChange} // Ensure you have state handling for age
+            />
+          </View>
+
+          <View style={tw`mt-3`}>
+          <Text style={tw`text-xs text-gray-500`}>Skill Level</Text>
+            <Picker
+              selectedValue={userSkillLevel}
+              onValueChange={setUserSkillLevel} // Ensure you have state handling for skill level
+              style={tw`bg-gray-100 p-2 mt-1 rounded-md`}
+            >
+              <Picker.Item label="Beginner" value="beginner" />
+              <Picker.Item label="Intermediate" value="intermediate" />
+              <Picker.Item label="Advanced" value="advanced" />
+            </Picker>
           </View>
 
           <View style={tw`mt-3`}>
