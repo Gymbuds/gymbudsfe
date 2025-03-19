@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loginscreen from './frontscreen/Loginscreen';
 import Signupscreen from './frontscreen/Signupscreen';
 import ForgotPasswordscreen from './frontscreen/ForgotPasswordscreen';
+import ResetCodescreen from './frontscreen/ResetCodescreen';
 import ChangePasswordscreen from './frontscreen/ChangePasswordscreen';
 import Homescreen from './tabs/Homescreen';
 import Profilescreen from './tabs/ProfileApiService/Profilescreen';
@@ -15,7 +16,8 @@ type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
   ForgotPassword: undefined;
-  ChangePassword: undefined;
+  ResetCode: undefined;
+  ChangePassword: { token: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -40,6 +42,7 @@ export default function AppNavigation() {
       <Stack.Screen name="Home" component={Homescreen} />
       <Stack.Screen name="Profile" component={Profilescreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordscreen} />
+      <Stack.Screen name="ResetCode" component={ResetCodescreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
     </Stack.Navigator>
   );

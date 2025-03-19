@@ -33,7 +33,7 @@ export default function SignupScreen({ navigation }: Props) {
     });
   
     if (response.success) {
-      // await AsyncStorage.setItem('userToken', response.token); // Store token
+      await AsyncStorage.setItem('userToken', response.access_token); // Store token
       navigation.replace('Home'); // Replace stack to prevent going back
     }
   };

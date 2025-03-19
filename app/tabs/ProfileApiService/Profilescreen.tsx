@@ -4,8 +4,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { fetchFunction } from '@/api/auth';
 import * as ImagePicker from 'expo-image-picker';  // For selecting profile picture
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Fetch user's profile data
 import { fetchUserProfile, uploadProfilePicture } from './ProfileApiService';
 import tw from 'twrnc';
@@ -83,13 +84,32 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
+  const logoutUser = async () => {
+    const userToken = await AsyncStorage.getItem('userToken');
+    const response = await fetchFunction('auth/logout', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`
+      },
+    });
+    
+    console.log('Logout response:', response);
+    if (response.message === "Logged out successfully") {
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Login');
+    } else {
+      alert("Error logging out. Please try again.");
+    }
+  };
+
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       <ScrollView style={tw`p-4`}>
         {/* Header Section */}
         <View style={tw`flex-row justify-end items-center`}>
           <TouchableOpacity>
-            <Icon name="sign-out" size={22} color="red" onPress={() => navigation.navigate('Login')} />
+            <Icon name="sign-out" size={22} color="red" onPress={logoutUser} />
           </TouchableOpacity>
         </View>
 

@@ -14,13 +14,26 @@ type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
   ForgotPassword: undefined;
+  ResetCode: undefined;
   ChangePassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
 
 export default function Loginscreen({ navigation }: Props) {
-//   const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');
+
+  const requestPasswordReset = async () => {
+      const response = await fetchFunction('auth/request-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.success) {
+        navigation.replace("ResetCode");
+      }
+    };
 
   return (
     <LinearGradient
@@ -41,13 +54,13 @@ export default function Loginscreen({ navigation }: Props) {
           style={tw`flex-1 pl-3 text-base text-black`}
           placeholder="Enter your current email"
           placeholderTextColor="#B5B0B0"
-        //   onChangeText={setEmail}
+          onChangeText={setEmail}
         />
       </View>
 
       <TouchableOpacity
         style={tw`bg-purple-500 flex-row items-center justify-center rounded-full w-full py-3 shadow-md mb-4`}
-        onPress={() => navigation.navigate('ChangePassword')}
+        onPress={requestPasswordReset}
       >
         <Icon name="check" size={20} color="white" />
         <Text style={tw`text-white text-lg font-bold ml-2`}>Confirm email</Text>
