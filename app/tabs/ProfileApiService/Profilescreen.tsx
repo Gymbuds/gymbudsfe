@@ -106,7 +106,7 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
   const renderSchedule = () => {
-    const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const daysOfWeek = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
     return daysOfWeek.map((day, index) => {
       const dayRanges = timeRanges.filter(range => range.day_of_week === day);
       return (
