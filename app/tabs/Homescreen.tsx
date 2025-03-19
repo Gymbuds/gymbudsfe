@@ -6,7 +6,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import ProfileScreen from './ProfileApiService/Profilescreen';
-
+import UserSchedule from './ProfileApiService/UserSchedule';
+import ProfileNavigator from '../profile-navigation';
 
 const Tab = createBottomTabNavigator();
 const HomeScreen = () => {
@@ -199,8 +200,8 @@ export default function MainTabs() {
         options={{ tabBarIcon: ({ color }) => <Icon name="users" size={24} color={color} /> }} 
       />
       <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen as React.FC} 
+        name="ProfileNavigator" 
+        component={ProfileNavigator} 
         options={{ tabBarIcon: ({ color }) => <Icon name="user" size={24} color={color} /> }} 
         
       />

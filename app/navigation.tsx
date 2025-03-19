@@ -7,7 +7,7 @@ import ForgotPasswordscreen from './frontscreen/ForgotPasswordscreen';
 import ResetCodescreen from './frontscreen/ResetCodescreen';
 import ChangePasswordscreen from './frontscreen/ChangePasswordscreen';
 import Homescreen from './tabs/Homescreen';
-import Profilescreen from './tabs/ProfileApiService/Profilescreen';
+import ProfileNavigator from './profile-navigation';
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -18,6 +18,7 @@ type RootStackParamList = {
   ForgotPassword: undefined;
   ResetCode: undefined;
   ChangePassword: { token: string };
+  ProfileNavigator: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -40,11 +41,10 @@ export default function AppNavigation() {
       <Stack.Screen name="Signup" component={Signupscreen} />
       <Stack.Screen name="Login" component={Loginscreen} />
       <Stack.Screen name="Home" component={Homescreen} />
-      <Stack.Screen name="Profile" component={Profilescreen} />
+      <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordscreen} />
       <Stack.Screen name="ResetCode" component={ResetCodescreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
     </Stack.Navigator>
   );
 }
-
