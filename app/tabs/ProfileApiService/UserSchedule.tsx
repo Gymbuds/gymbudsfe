@@ -28,7 +28,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Schedule'>;
 
 export default function ScheduleScreen({ navigation }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedDay, setSelectedDay] = useState('Monday');
+  const [selectedDay, setSelectedDay] = useState('MONDAY');
   const [startTimeAdd, setStartTimeAdd] = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [endTimeAdd, setEndTimeAdd] = useState('');
@@ -43,7 +43,7 @@ export default function ScheduleScreen({ navigation }: Props) {
   const [endValue, setEndValue] = useState(null);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
 
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
   const postUserTimeRange = async (day:string,start_hour:number,start_minutes:number,end_hour:number,end_minutes:number) => {
     const start_time = padTime(start_hour, start_minutes);
