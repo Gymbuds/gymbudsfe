@@ -3,10 +3,7 @@ import { fetchFunctionWithAuth } from '@/api/auth';
 // Fetch user profile data
 export const fetchUserProfile = async () => {
   try {
-    const response = await fetchFunctionWithAuth('user/profile', {
-      method: 'GET',
-    });
-    return response;
+    return await fetchFunctionWithAuth("users/profile", { method: "GET" });
   } catch (error) {
     console.error('Error fetching profile data:', error);
     throw error;

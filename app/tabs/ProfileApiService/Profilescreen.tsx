@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import DropDownPicker from "react-native-dropdown-picker";
 import Icon from "react-native-vector-icons/FontAwesome";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -40,7 +40,13 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userSkillLevel, setUserSkillLevel] = useState("");
+  const [userSkillLevel, setUserSkillLevel] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: "Beginner", value: "Beginner" },
+    { label: "Intermediate", value: "Intermediate" },
+    { label: "Advanced", value: "Advanced" },
+  ]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   // const [dayStreak, setDayStreak] = useState(0);
   // const [workouts, setWorkouts] = useState(0);
@@ -48,29 +54,34 @@ export default function ProfileScreen({ navigation }: Props) {
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
-  const [preferredGym, setPreferredGym] = useState("Fitness Hub, Downtown");
-  // const [preferredTime, setPreferredTime] = useState("6:00 PM - 8:00 PM");
-  // const [preferredDays, setPreferredDays] = useState("Mon, Wed, Fri");
-  const [fitnessGoals, setFitnessGoals] = useState([
-    "Build Muscle",
-    "Improve Strength",
-    "Better Endurance",
-  ]);
+  const [preferredGym, setPreferredGym] = useState("");
+  const [fitnessGoals, setFitnessGoals] = useState([]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
-        const data = await fetchUserProfile();
-        setUserName(data.name); // set user name
-        setUserAge(data.age); // User's age
-        setUserSkillLevel(data.skill_level); // User's skill level
-        setProfilePicture(data.profile_picture); // URL for profile picture
-        // setDayStreak(data.dayStreak); // User's day streak
-        // setWorkouts(data.workouts); // User's workout count
-        // setBuddies(data.buddies); // User's buddy count
+        const userProfile = await fetchUserProfile();
+
+        // Ensure the fetched data updates the state
+        if (userProfile && userProfile.user) {
+          setUserName(userProfile.user.name || ""); // Ensure there's no undefined value
+          setUserAge(
+            userProfile.user.age ? userProfile.user.age.toString() : ""
+          ); // Convert number to string
+          setUserSkillLevel(userProfile.user.skill_level || null);
+          setProfilePicture(userProfile.user.profile_picture || null);
+
+          // Separate preferred workout goals by commas and set them
+          const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
+            ? userProfile.user.preferred_workout_goals
+                .split(",")
+                .map((goal) => goal.trim()) // Split and trim any extra spaces
+            : [];
+          setFitnessGoals(preferredWorkoutGoals); // Update state with fetched goals
+        }
       } catch (error) {
-        console.error("Error fetching profile data:", error);
+        console.error("Error loading user profile:", error);
       }
     };
 
@@ -165,7 +176,6 @@ export default function ProfileScreen({ navigation }: Props) {
       console.error("Error saving profile picture:", error);
     }
   };
-  
 
   const renderSchedule = () => {
     const daysOfWeek = [
@@ -251,7 +261,7 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
           <Text style={tw`text-xl font-bold mt-2`}>
-            {userName},{userAge}
+            {userName}, {userAge}
           </Text>
           <Text
             style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}
@@ -355,59 +365,96 @@ export default function ProfileScreen({ navigation }: Props) {
                 Edit Workout Preferences
               </Text>
 
-              <View style={tw`mt-3`}>
-                <Text style={tw`text-xs text-gray-500`}>Age</Text>
-                <TextInput
-                  style={tw`border p-2 rounded mb-2`}
-                  keyboardType="numeric"
-                  placeholder="Enter your age"
-                  value={userAge}
-                  onChangeText={handleAgeChange} // Ensure you have state handling for age
-                />
-              </View>
+              <View style={tw`gap-y-4`}>
+                {/* Name */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Name</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    placeholder="Enter your name"
+                    value={userName}
+                    onChangeText={setUserName}
+                  />
+                </View>
 
-              <View>
-                <Text style={tw`text-xs text-gray-500`}>Skill Level</Text>
-                <TextInput
-                  style={tw`border p-2 rounded mb-2`}
-                  placeholder="Enter your skillLevel"
-                  value={userSkillLevel}
-                  onChangeText={setUserSkillLevel} // Ensure you have state handling for age
-                />
-              </View>
+                {/* Age */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Age</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    keyboardType="numeric"
+                    placeholder="Enter your age"
+                    value={userAge}
+                    onChangeText={handleAgeChange}
+                  />
+                </View>
 
-              <Text style={tw`text-xs text-gray-500`}>Preferred Gym</Text>
-              <TextInput
-                style={tw`border p-2 rounded mb-2`}
-                value={preferredGym}
-                onChangeText={setPreferredGym}
-              />
+                {/* Skill Level Dropdown */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Skill Level
+                  </Text>
+                  <DropDownPicker
+                    open={open}
+                    value={userSkillLevel}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setUserSkillLevel}
+                    setItems={setItems}
+                    placeholder="Select Skill Level"
+                    style={tw`border p-2 rounded bg-white`}
+                    dropDownContainerStyle={tw`bg-white border`}
+                    zIndex={3000} // Prevents overlap issues
+                  />
+                </View>
 
-              <Text style={tw`text-xs text-gray-500`}>
-                Fitness Goals (Comma Separated)
-              </Text>
-              <TextInput
-                style={tw`border p-2 rounded mb-4`}
-                value={fitnessGoals.join(", ")}
-                onChangeText={(text) =>
-                  setFitnessGoals(text.split(", ").map((goal) => goal.trim()))
-                }
-              />
-              <TouchableOpacity
-                style={tw`mb-4 bg-purple-500 p-4 rounded-lg items-center`}
-                onPress={() => handleClickSchedule()}
-              >
-                <Text style={tw`text-white font-bold`}>
-                  Edit Workout Schedule
-                </Text>
-              </TouchableOpacity>
-              <View style={tw`flex-row justify-between`}>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={tw`text-red-500`}>Cancel</Text>
+                {/* Preferred Gym */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Preferred Gym
+                  </Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    value={preferredGym}
+                    onChangeText={setPreferredGym}
+                  />
+                </View>
+
+                {/* Fitness Goals */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Fitness Goals (Comma Separated)
+                  </Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    value={fitnessGoals.join(", ")}
+                    onChangeText={(text) =>
+                      setFitnessGoals(
+                        text.split(", ").map((goal) => goal.trim())
+                      )
+                    }
+                  />
+                </View>
+
+                {/* Edit Workout Schedule Button */}
+                <TouchableOpacity
+                  style={tw`bg-purple-500 p-4 rounded-lg items-center`}
+                  onPress={() => handleClickSchedule()}
+                >
+                  <Text style={tw`text-white font-bold`}>
+                    Edit Workout Schedule
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={tw`text-green-500 font-bold`}>Save</Text>
-                </TouchableOpacity>
+
+                {/* Action Buttons */}
+                <View style={tw`flex-row justify-between`}>
+                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                    <Text style={tw`text-red-500`}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                    <Text style={tw`text-green-500 font-bold`}>Save</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
