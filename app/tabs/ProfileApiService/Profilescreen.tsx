@@ -219,29 +219,6 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-gray-500`}>Age</Text>
-            <TextInput
-              style={tw`bg-gray-100 p-2 mt-1 rounded-md text-sm`}
-              keyboardType="numeric"
-              placeholder="Enter your age"
-              value={userAge}
-              onChangeText={handleAgeChange} // Ensure you have state handling for age
-            />
-          </View>
-
-          <View style={tw`mt-3`}>
-          <Text style={tw`text-xs text-gray-500`}>Skill Level</Text>
-            <Picker
-              selectedValue={userSkillLevel}
-              onValueChange={setUserSkillLevel} // Ensure you have state handling for skill level
-              style={tw`bg-gray-100 p-2 mt-1 rounded-md`}
-            >
-              <Picker.Item label="Beginner" value="beginner" />
-              <Picker.Item label="Intermediate" value="intermediate" />
-              <Picker.Item label="Advanced" value="advanced" />
-            </Picker>
-          </View>
 
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-gray-500`}>Preferred Gym</Text>
@@ -303,6 +280,29 @@ export default function ProfileScreen({ navigation }: Props) {
           <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
             <View style={tw`bg-white p-6 rounded-lg w-80`}>
               <Text style={tw`text-lg font-bold mb-4`}>Edit Workout Preferences</Text>
+
+              <View style={tw`mt-3`}>
+            <Text style={tw`text-xs text-gray-500`}>Age</Text>
+            <TextInput
+              style={tw`border p-2 rounded mb-2`}
+              keyboardType="numeric"
+              placeholder="Enter your age"
+              value={userAge}
+              onChangeText={handleAgeChange} // Ensure you have state handling for age
+            />
+          </View>
+
+          <View >
+            <Text style={tw`text-xs text-gray-500`}>Skill Level</Text>
+            <TextInput
+              style={tw`border p-2 rounded mb-2`}
+             
+              placeholder="Enter your skillLevel"
+              value={userSkillLevel}
+              onChangeText={setUserSkillLevel} // Ensure you have state handling for age
+            />
+          </View>
+
 
               <Text style={tw`text-xs text-gray-500`}>Preferred Gym</Text>
               <TextInput
