@@ -219,7 +219,7 @@ export default function ProfileScreen({ navigation }: Props) {
         {/* User Profile */}
         <View style={tw`items-center mt-4`}>
           <View
-            style={tw`w-40 h-40 bg-purple-200 rounded-full flex items-center justify-center relative`}
+            style={tw`w-30 h-30 bg-purple-200 rounded-full flex items-center justify-center relative`}
           >
             {profilePicture ? (
               <Image
