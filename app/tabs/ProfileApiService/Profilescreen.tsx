@@ -111,7 +111,7 @@ export default function ProfileScreen({ navigation }: Props) {
       const dayRanges = timeRanges.filter(range => range.day_of_week === day);
       return (
         <View key={index} style={tw`mt-1`}>
-          <Text style={tw`text-xs text-gray-500`}>{day}</Text>
+          <Text style={tw`text-xs text-gray-500`}>{day.substring(0,1)+day.substring(1,day.length).toLowerCase()}</Text>
           {dayRanges.length > 0 ? (
             dayRanges.map((range, idx) => (
               <Text key={idx} style={tw`ml-2 text-xs text-gray-700`}>
@@ -195,7 +195,7 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-gray-500`}>Preferred Gym</Text>
+            <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
               <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
@@ -203,11 +203,11 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
             <View style={tw`mt-3`}>
-              <Text style={tw`text-xs text-gray-500`}>Workout Schedule</Text>
+              <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
               {renderSchedule()}
             </View> 
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-gray-500`}>Fitness Goals</Text>
+            <Text style={tw`text-xs text-black-500`}>Fitness Goals</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
