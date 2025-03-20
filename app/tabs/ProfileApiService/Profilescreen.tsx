@@ -146,13 +146,26 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
+  // const saveProfilePicture = async (uri: string) => {
+  //   try {
+  //     setProfilePicture(uri);
+  //   } catch (error) {
+  //     console.error("Error saving profile picture:", error);
+  //   }
+  // };
   const saveProfilePicture = async (uri: string) => {
     try {
-      setProfilePicture(uri);
+      const response = await uploadProfilePicture(uri);
+      if (response.success) {
+        setProfilePicture(response.profile_picture_url); // Assuming backend returns the URL
+      } else {
+        console.error("Failed to upload profile picture");
+      }
     } catch (error) {
       console.error("Error saving profile picture:", error);
     }
   };
+  
 
   const renderSchedule = () => {
     const daysOfWeek = [
