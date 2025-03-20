@@ -22,10 +22,8 @@ export const uploadProfilePicture = async (imageData: any) => {
     const response = await fetchFunctionWithAuth('user/profile_picture', {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data', // Necessary to handle form data
-      },
     });
+    
     return response; // Returns the updated profile picture URL
   } catch (error) {
     console.error('Error uploading profile picture:', error);
