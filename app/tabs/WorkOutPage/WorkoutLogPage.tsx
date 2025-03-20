@@ -11,14 +11,21 @@ import { AntDesign, SimpleLineIcons } from "@expo/vector-icons";
 import tw from "twrnc";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-type Workout = {
-  title: string;
-  exercise: string;
+type WorkoutLog = {
+  exercise_name: string; // ✅ Ensure correct property name
   reps: number;
   sets: number;
   weight: number;
-  mood: string;
   date: string;
+  exercise_id: number;
+};
+
+type WorkoutGroup = {
+  title: string;
+  type: string; // ✅ Ensure "type" is always included
+  mood: string;
+  logs: WorkoutLog[];
+  workout_id: number;
 };
 
 type RootStackParamList = {
@@ -32,18 +39,14 @@ type RootStackParamList = {
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "WorkoutLogPage"> & {
-  workouts: Workout[];
-  setWorkouts: React.Dispatch<React.SetStateAction<Workout[]>>;
-  selectedWorkout: Workout | null;
-  setSelectedWorkout: React.Dispatch<React.SetStateAction<Workout | null>>;
+  workouts: WorkoutGroup[];
+  setWorkouts: React.Dispatch<React.SetStateAction<WorkoutGroup[]>>;
 };
 
 export default function WorkoutLogPage({
   navigation,
   workouts,
   setWorkouts,
-  selectedWorkout,
-  setSelectedWorkout,
 }: Props) {
   const [title, setTitle] = useState("");
   const [exercise, setExercise] = useState("");
@@ -54,47 +57,59 @@ export default function WorkoutLogPage({
   const [selectedMood, setSelectedMood] = useState<string>("Excited");
 
   const logWorkout = () => {
-    const newWorkout: Workout = {
-      title,
-      exercise,
+    if (!title || !exercise) return;
+
+    const newLog: WorkoutLog = {
+      exercise_name: exercise, // Corrected property name
       reps,
       sets,
       weight,
-      mood,
       date: new Date().toDateString(),
+      exercise_id: Date.now(), // Generating unique ID
     };
 
-    if (selectedWorkout) {
-      // Update existing workout
-      const updatedWorkouts = workouts.map((w) =>
-        w.exercise === selectedWorkout.exercise ? newWorkout : w
-      );
-      setWorkouts(updatedWorkouts);
-      setSelectedWorkout(null);
-    } else {
-      // Add new workout at the top (stack behavior)
-      setWorkouts([newWorkout, ...workouts]); // Adding new workout at the beginning
-    }
+    setWorkouts((prevWorkouts) => {
+      const existingWorkout = prevWorkouts.find((w) => w.title === title);
+    
+      if (existingWorkout) {
+        return prevWorkouts.map((w) =>
+          w.title === title ? { ...w, logs: [...w.logs, newLog] } : w
+        );
+      } else {
+        return [
+          ...prevWorkouts,
+          { title, type: "Strength", mood, logs: [newLog], workout_id: 0 }, // logs is initialized as an empty array
+        ];
+      }
+    });
+    
 
-    // Reset form
-    setTitle("");
+    // Reset fields
     setExercise("");
     setReps(0);
     setSets(0);
     setWeight(0);
-    setMood("Excited");
-    setSelectedMood("Excited");
   };
 
-  const deleteWorkout = (index: number) => {
-    const updatedWorkouts = workouts.filter((_, i) => i !== index);
-    setWorkouts(updatedWorkouts);
+
+  const deleteWorkout = (titleIndex: number, logIndex: number) => {
+    setWorkouts((prevWorkouts) => {
+      const updatedWorkouts = [...prevWorkouts];
+  
+      // Ensure 'logs' is defined and an array before accessing length
+      if (updatedWorkouts[titleIndex] && Array.isArray(updatedWorkouts[titleIndex].logs)) {
+        updatedWorkouts[titleIndex].logs = updatedWorkouts[titleIndex].logs.filter((_, i) => i !== logIndex);
+      }
+  
+      // Remove the workout if it has no logs
+      return updatedWorkouts.filter((w) => w.logs && w.logs.length > 0);
+    });
   };
+  
 
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <View style={tw`flex-1 p-4 bg-gray-100`}>
-        {/* Back Button */}
         <TouchableOpacity
           style={{ padding: 10, flexDirection: "row", alignItems: "center" }}
           onPress={() => navigation.navigate("Workoutscreen")}
@@ -117,109 +132,9 @@ export default function WorkoutLogPage({
           />
         </View>
 
-        <Text style={tw`text font-bold mb-4 mt-2`}>Log your Workouts</Text>
-        {/* Exercise Input */}
-        <TextInput
-          style={tw`border p-3 mb-4 rounded-lg bg-white`}
-          placeholder="Add exercise..."
-          placeholderTextColor="gray"
-          value={exercise}
-          onChangeText={setExercise}
-        />
-
-        {/* Reps, Sets, Weight */}
-        <View style={tw`flex-row justify-between mb-4`}>
-          {/* Reps */}
-          <View>
-            <Text style={tw`text-center`}>Reps</Text>
-            <View style={tw`flex-row justify-center items-center`}>
-              {/* Decrement Button */}
-              <TouchableOpacity
-                onPress={() => reps > 0 && setReps(reps - 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>-</Text>
-              </TouchableOpacity>
-
-              {/* Display Rep Count */}
-              <View
-                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
-              >
-                <Text>{reps}</Text>
-              </View>
-
-              {/* Increment Button */}
-              <TouchableOpacity
-                onPress={() => setReps(reps + 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Sets */}
-          <View>
-            <Text style={tw`text-center`}>Sets</Text>
-            <View style={tw`flex-row justify-center items-center`}>
-              {/* Decrement Button */}
-              <TouchableOpacity
-                onPress={() => sets > 0 && setSets(sets - 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>-</Text>
-              </TouchableOpacity>
-
-              {/* Display Set Count */}
-              <View
-                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
-              >
-                <Text>{sets}</Text>
-              </View>
-
-              {/* Increment Button */}
-              <TouchableOpacity
-                onPress={() => setSets(sets + 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Weight */}
-          <View>
-            <Text style={tw`text-center`}>Weight</Text>
-            <View style={tw`flex-row justify-center items-center`}>
-              {/* Decrement Button */}
-              <TouchableOpacity
-                onPress={() => weight > 0 && setWeight(weight - 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>-</Text>
-              </TouchableOpacity>
-
-              {/* Display Weight */}
-              <View
-                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
-              >
-                <Text>{weight}</Text>
-              </View>
-
-              {/* Increment Button */}
-              <TouchableOpacity
-                onPress={() => setWeight(weight + 1)}
-                style={tw`rounded-full justify-center items-center p-2`}
-              >
-                <Text style={tw`text-xl`}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
         {/* Mood Selection */}
         <Text style={tw`mb-2 text-lg font-semibold`}>Add Mood</Text>
-        <View style={tw`flex-row justify-center mb-7 w-55`}>
+        <View style={tw`flex-row justify-center mb-2 w-100`}>
           {[
             { mood: "Excited", emoji: "😁" },
             { mood: "Stressed", emoji: "😓" },
@@ -228,8 +143,8 @@ export default function WorkoutLogPage({
             <TouchableOpacity
               key={mood}
               onPress={() => {
-                setSelectedMood(mood); // Set the selected mood
-                setMood(mood); // Set the mood state
+                setSelectedMood(mood);
+                setMood(mood);
               }}
               style={tw`p-3 border rounded-lg mx-1 justify-center items-center ${
                 mood === selectedMood
@@ -242,55 +157,140 @@ export default function WorkoutLogPage({
           ))}
         </View>
 
-          
-          <TouchableOpacity
-            style={[
-              tw`p-3 rounded-lg mb-4`,
-              exercise ? tw`bg-purple-500` : tw`bg-gray-300`, // Button color changes based on exercise input
-            ]}
-            onPress={logWorkout}
-            disabled={!exercise} // Disable button if no exercise entered
-          >
-            <Text style={tw`text-white text-center font-bold`}>
-              {exercise ? "Log Workout" : "Enter Exercise to Log"}
-            </Text>
-          </TouchableOpacity>
+        <Text style={tw`text font-bold mb-4 mt-2`}>Log your Workouts</Text>
+        {/* Exercise Input */}
+        <TextInput
+          style={tw`border p-3 mb-4 rounded-lg bg-white`}
+          placeholder="Add exercise..."
+          placeholderTextColor="gray"
+          value={exercise} // ✅ Updated state reference
+          onChangeText={setExercise}
+        />
 
+        <View style={tw`flex-row justify-between mb-4`}>
+          {/* Reps */}
+          <View>
+            <Text style={tw`text-center font-semibold`}>Reps</Text>
+            <View style={tw`flex-row justify-center items-center`}>
+              <TouchableOpacity
+                onPress={() => reps > 0 && setReps(reps - 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>-</Text>
+              </TouchableOpacity>
 
+              <View
+                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
+              >
+                <Text>{reps}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setReps(reps + 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Sets */}
+          <View>
+            <Text style={tw`text-center font-semibold`}>Sets</Text>
+            <View style={tw`flex-row justify-center items-center`}>
+              <TouchableOpacity
+                onPress={() => sets > 0 && setSets(sets - 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>-</Text>
+              </TouchableOpacity>
+              <View
+                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
+              >
+                <Text>{sets}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSets(sets + 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Weight */}
+          <View>
+            <Text style={tw`text-center font-semibold`}>Weight</Text>
+            <View style={tw`flex-row justify-center items-center`}>
+              <TouchableOpacity
+                onPress={() => weight > 0 && setWeight(weight - 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>-</Text>
+              </TouchableOpacity>
+              <View
+                style={tw`flex-row justify-center items-center border p-2 mx-2 rounded-lg bg-white w-14`}
+              >
+                <Text>{weight}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setWeight(weight + 1)}
+                style={tw`rounded-full justify-center items-center p-2`}
+              >
+                <Text style={tw`text-xl`}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Log Workout Button */}
+        <TouchableOpacity
+          style={[
+            tw`p-3 rounded-lg mb-4`,
+            exercise ? tw`bg-purple-500` : tw`bg-gray-300`,
+          ]}
+          onPress={logWorkout}
+          disabled={!exercise}
+        >
+          <Text style={tw`text-white text-center font-bold`}>
+            {exercise ? "Log Workout" : "Enter Exercise to Log"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Workout List */}
         <View style={[tw`border p-4 rounded-lg`, { height: 300 }]}>
           <ScrollView>
-            {workouts
-              .sort(
-                (a, b) =>
-                  new Date(a.date).getTime() - new Date(b.date).getTime()
-              ) // Sort by date ascending
-              .map((workout, index) => (
-                <View
-                  key={index}
-                  style={[
-                    tw`flex-row justify-between items-start p-2 mb-2 bg-gray-100 rounded-lg`,
-                    { borderBottomWidth: 1, borderBottomColor: "#ccc" }, // Adding horizontal line
-                  ]}
-                >
-                  <View style={tw`flex-1`}>
-                    <Text style={[tw`font-bold`, { fontSize: 20 }]}>
-                      {workout.exercise}
-                    </Text>
-                    <Text style={tw`text-sm`}>
-                      {workout.sets} sets x {workout.reps} reps
-                      {workout.weight > 0 && ` x ${workout.weight} kg`}
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => deleteWorkout(index)}>
-                    <AntDesign
-                      name="close"
-                      size={24}
-                      color="red"
-                      style={tw`font-bold`}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ))}
+            {workouts.map((workoutGroup, index) => (
+              <View key={index} style={tw`mb-4 p-4 bg-gray-200 rounded-lg`}>
+                <Text style={tw`text-xl font-bold mb-2`}>
+                  {workoutGroup.title}
+                </Text>
+                {workoutGroup.logs?.length > 0 ? (
+                  workoutGroup.logs.map((log, logIndex) => (
+                    <View
+                      key={logIndex}
+                      style={tw`flex-row justify-between items-center p-2 bg-gray-100 rounded-lg mb-2`}
+                    >
+                      <View>
+                        <Text style={tw`font-semibold`}>
+                          {log.exercise_name}
+                        </Text>
+                        <Text>
+                          {log.sets} sets x {log.reps} reps{" "}
+                          {log.weight > 0 ? `x ${log.weight} kg` : ""}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => deleteWorkout(index, logIndex)}
+                      >
+                        <AntDesign name="close" size={20} color="red" />
+                      </TouchableOpacity>
+                    </View>
+                  ))
+                ) : (
+                  <Text>No workouts logged yet.</Text>
+                )}
+              </View>
+            ))}
           </ScrollView>
         </View>
       </View>
