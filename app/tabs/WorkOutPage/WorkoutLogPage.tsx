@@ -12,6 +12,7 @@ import tw from "twrnc";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type Workout = {
+  title: string;
   exercise: string;
   reps: number;
   sets: number;
@@ -44,6 +45,7 @@ export default function WorkoutLogPage({
   selectedWorkout,
   setSelectedWorkout,
 }: Props) {
+  const [title, setTitle] = useState("");
   const [exercise, setExercise] = useState("");
   const [reps, setReps] = useState(0);
   const [sets, setSets] = useState(0);
@@ -53,6 +55,7 @@ export default function WorkoutLogPage({
 
   const logWorkout = () => {
     const newWorkout: Workout = {
+      title,
       exercise,
       reps,
       sets,
@@ -74,6 +77,7 @@ export default function WorkoutLogPage({
     }
 
     // Reset form
+    setTitle("");
     setExercise("");
     setReps(0);
     setSets(0);
@@ -100,6 +104,18 @@ export default function WorkoutLogPage({
             Workout Log
           </Text>
         </TouchableOpacity>
+
+        {/* Title Input */}
+        <View style={tw`mb-4`}>
+          <Text style={tw`text-lg font-semibold mb-2`}>Title:</Text>
+          <TextInput
+            style={tw`border p-3 rounded-lg bg-white`}
+            placeholder="Enter workout title..."
+            placeholderTextColor="gray"
+            value={title}
+            onChangeText={setTitle}
+          />
+        </View>
 
         <Text style={tw`text font-bold mb-4 mt-2`}>Log your Workouts</Text>
         {/* Exercise Input */}
