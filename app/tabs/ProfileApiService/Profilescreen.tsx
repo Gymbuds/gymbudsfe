@@ -40,13 +40,9 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userSkillLevel, setUserSkillLevel] = useState(null);
+  const [userSkillLevel, setUserSkillLevel] = useState("");
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState([
-    { label: "Beginner", value: "Beginner" },
-    { label: "Intermediate", value: "Intermediate" },
-    { label: "Advanced", value: "Advanced" },
-  ]);
+
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   // const [dayStreak, setDayStreak] = useState(0);
   // const [workouts, setWorkouts] = useState(0);
@@ -157,13 +153,6 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
-  // const saveProfilePicture = async (uri: string) => {
-  //   try {
-  //     setProfilePicture(uri);
-  //   } catch (error) {
-  //     console.error("Error saving profile picture:", error);
-  //   }
-  // };
   const saveProfilePicture = async (uri: string) => {
     try {
       const response = await uploadProfilePicture(uri);
@@ -381,24 +370,18 @@ export default function ProfileScreen({ navigation }: Props) {
                   />
                 </View>
 
-                {/* Skill Level Dropdown */}
+                {/* Skill Level */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>
-                    Skill Level
-                  </Text>
-                  <DropDownPicker
-                    open={open}
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Skill Level</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    placeholder="Enter your skill level"
                     value={userSkillLevel}
-                    items={items}
-                    setOpen={setOpen}
-                    setValue={setUserSkillLevel}
-                    setItems={setItems}
-                    placeholder="Select Skill Level"
-                    style={tw`border p-2 rounded bg-white`}
-                    dropDownContainerStyle={tw`bg-white border`}
-                    zIndex={3000} // Prevents overlap issues
+                    onChangeText={setUserSkillLevel}
                   />
                 </View>
+
+                
 
                 {/* Preferred Gym */}
                 <View>
