@@ -9,7 +9,6 @@ import {
   Image,
   Alert,
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 import Icon from "react-native-vector-icons/FontAwesome";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -20,7 +19,7 @@ import { TimeRange } from "@/app/tabs/ProfileApiService/UserSchedule";
 import * as ImagePicker from "expo-image-picker"; // For selecting profile picture
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // Fetch user's profile data
-import { fetchUserProfile, uploadProfilePicture } from "./ProfileApiService";
+import { fetchUserProfile } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
 // Define navigation types
@@ -44,9 +43,6 @@ export default function ProfileScreen({ navigation }: Props) {
   const [open, setOpen] = useState(false);
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  // const [dayStreak, setDayStreak] = useState(0);
-  // const [workouts, setWorkouts] = useState(0);
-  // const [buddies, setBuddies] = useState(0);
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
@@ -106,65 +102,92 @@ export default function ProfileScreen({ navigation }: Props) {
     setUserAge(text);
   };
 
-  // Select and upload profile picture
-  const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
-    try {
-      let result: ImagePicker.ImagePickerResult;
+const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
+  try {
+    let result: ImagePicker.ImagePickerResult;
 
-      if (mode === "gallery") {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Please enable gallery permissions to continue."
-          );
-          return;
-        }
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
-      } else {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Please enable camera permissions to continue."
-          );
-          return;
-        }
-        result = await ImagePicker.launchCameraAsync({
-          cameraType: ImagePicker.CameraType.front,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
+    if (mode === "gallery") {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please enable gallery permissions to continue."
+        );
+        return;
       }
-
-      // Ensure assets exist and handle properly
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        await saveProfilePicture(result.assets[0].uri);
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+    } else {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please enable camera permissions to continue."
+        );
+        return;
       }
-    } catch (error) {
-      console.error("Error uploading profile picture:", error);
+      result = await ImagePicker.launchCameraAsync({
+        cameraType: ImagePicker.CameraType.front,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
     }
-  };
 
-  const saveProfilePicture = async (uri: string) => {
-    try {
-      const response = await uploadProfilePicture(uri);
-      if (response.success) {
-        setProfilePicture(response.profile_picture_url); // Assuming backend returns the URL
-      } else {
-        console.error("Failed to upload profile picture");
-      }
-    } catch (error) {
-      console.error("Error saving profile picture:", error);
+    // Ensure assets exist and handle properly
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const selectedUri = result.assets[0].uri;
+      setProfilePicture(selectedUri); // Update profile picture UI immediately
+      await updateProfilePictureString(selectedUri); // updating the profile picture string in the backend
     }
-  };
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+  }
+};
+
+const updateProfile = async (profilePictureUrl: string) => {
+  try {
+    const userUpdate = { profile_picture: profilePictureUrl };
+
+    const response = await fetchFunctionWithAuth("users/profile/update", {
+      method: "PATCH",
+      body: JSON.stringify(userUpdate),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.success) {
+      console.log("✅ Profile updated successfully:", response.user);
+
+      // Check if the profile picture was successfully updated
+      if (response.user?.profile_picture === profilePictureUrl) {
+      } else {
+        console.log("❌ Profile picture update: false");
+      }
+    } else {
+      console.error("❌ Failed to update profile:", response);
+    }
+  } catch (error) {
+    console.error("❌ Error updating profile:", error);
+  }
+};
+
+
+
+const updateProfilePictureString = async (uri: string) => {
+  try {
+    await updateProfile(uri); // Directly update the profile with the new image URL
+    setProfilePicture(uri);  // Set the updated profile picture in the UI
+  } catch (error) {
+    console.error("Error updating profile picture URL:", error);
+  }
+};
+
 
   const renderSchedule = () => {
     const daysOfWeek = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
