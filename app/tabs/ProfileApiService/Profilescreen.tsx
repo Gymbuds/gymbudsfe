@@ -47,7 +47,7 @@ export default function ProfileScreen({ navigation }: Props) {
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
   const [preferredGym, setPreferredGym] = useState("");
-  const [fitnessGoals, setFitnessGoals] = useState([]);
+  const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function ProfileScreen({ navigation }: Props) {
           const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
             ? userProfile.user.preferred_workout_goals
                 .split(",")
-                .map((goal) => goal.trim()) // Split and trim any extra spaces
+                .map((goal: string) => goal.trim()) // Split and trim any extra spaces
             : [];
           setFitnessGoals(preferredWorkoutGoals); // Update state with fetched goals
         }
@@ -102,100 +102,140 @@ export default function ProfileScreen({ navigation }: Props) {
     setUserAge(text);
   };
 
-const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
-  try {
-    let result: ImagePicker.ImagePickerResult;
+  const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
+    try {
+      let result: ImagePicker.ImagePickerResult;
 
-    if (mode === "gallery") {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Please enable gallery permissions to continue."
-        );
-        return;
-      }
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-    } else {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Please enable camera permissions to continue."
-        );
-        return;
-      }
-      result = await ImagePicker.launchCameraAsync({
-        cameraType: ImagePicker.CameraType.front,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-    }
-
-    // Ensure assets exist and handle properly
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const selectedUri = result.assets[0].uri;
-      setProfilePicture(selectedUri); // Update profile picture UI immediately
-      await updateProfilePictureString(selectedUri); // updating the profile picture string in the backend
-    }
-  } catch (error) {
-    console.error("Error uploading profile picture:", error);
-  }
-};
-
-const updateProfile = async (profilePictureUrl: string) => {
-  try {
-    const userUpdate = { profile_picture: profilePictureUrl };
-
-    const response = await fetchFunctionWithAuth("users/profile/update", {
-      method: "PATCH",
-      body: JSON.stringify(userUpdate),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.success) {
-      console.log("✅ Profile updated successfully:", response.user);
-
-      // Check if the profile picture was successfully updated
-      if (response.user?.profile_picture === profilePictureUrl) {
+      if (mode === "gallery") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable gallery permissions to continue."
+          );
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
       } else {
-        console.log("❌ Profile picture update: false");
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable camera permissions to continue."
+          );
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          cameraType: ImagePicker.CameraType.front,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
       }
-    } else {
-      console.error("❌ Failed to update profile:", response);
+
+      // Ensure assets exist and handle properly
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        setProfilePicture(selectedUri); // Update profile picture UI immediately
+        await updateProfileString(selectedUri);
+      }
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
     }
-  } catch (error) {
-    console.error("❌ Error updating profile:", error);
-  }
-};
+  };
 
+  const updateProfile = async (profilePictureUrl: string | null) => {
+    try {
+      const userUpdate = {
+        profile_picture: profilePictureUrl,
+      };
 
+      const response = await fetchFunctionWithAuth("users/profile/update", {
+        method: "PATCH",
+        body: JSON.stringify(userUpdate),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-const updateProfilePictureString = async (uri: string) => {
-  try {
-    await updateProfile(uri); // Directly update the profile with the new image URL
-    setProfilePicture(uri);  // Set the updated profile picture in the UI
-  } catch (error) {
-    console.error("Error updating profile picture URL:", error);
-  }
-};
+      if (response.success) {
+        console.log("✅ Profile updated successfully:", response.user);
 
+        // Check if the profile picture was successfully updated
+        if (response.user?.profile_picture === profilePictureUrl) {
+          console.log("�� Profile picture update: true");
+        } else {
+          console.log("❌ Profile picture update: false");
+        }
+      } else {
+        console.error("❌ Failed to update profile:", response);
+      }
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+    }
+  };
+
+  const updateUserInfo = async () => {
+    try {
+      const userUpdate = {
+        name: userName,
+        age: userAge,
+        preferred_workout_goals: fitnessGoals.join(","),
+        skill_level: userSkillLevel, // Ensure this is included
+      };
+
+      // Send the PATCH request
+      const response = await fetchFunctionWithAuth("users/profile/update", {
+        method: "PATCH",
+        body: JSON.stringify(userUpdate),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("Preferred Workout: ",response.user?.preferred_workout_goals);
+      console.log("Preferred Workout: ",typeof response.user?.preferred_workout_goals);
+
+      setUserName(response.user?.name);
+      setUserAge(response.user?.age);
+      setUserSkillLevel(response.user?.skill_level);
+    } catch (error) {
+      console.error("❌ Error updating info:", error);
+    }
+  };
+
+  // Wrapper function to update both profile picture and name
+  const updateProfileString = async (profilePictureUrl: string | null) => {
+    try {
+      // Update profile picture first
+      await updateProfile(profilePictureUrl);
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+    }
+  };
 
   const renderSchedule = () => {
-    const daysOfWeek = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    const daysOfWeek = [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+      "SUNDAY",
+    ];
     return daysOfWeek.map((day, index) => {
       const dayRanges = timeRanges.filter((range) => range.day_of_week === day);
       return (
         <View key={index} style={tw`mt-1`}>
-          <Text style={tw`text-xs text-gray-500`}>{day.substring(0,1)+day.substring(1,day.length).toLowerCase()}</Text>
+          <Text style={tw`text-xs text-gray-500`}>
+            {day.substring(0, 1) + day.substring(1, day.length).toLowerCase()}
+          </Text>
           {dayRanges.length > 0 ? (
             dayRanges.map((range, idx) => (
               <Text key={idx} style={tw`ml-2 text-xs text-gray-700`}>
@@ -305,10 +345,10 @@ const updateProfilePictureString = async (uri: string) => {
             </View>
           </View>
 
-            <View style={tw`mt-3`}>
-              <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
-              {renderSchedule()}
-            </View> 
+          <View style={tw`mt-3`}>
+            <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
+            {renderSchedule()}
+          </View>
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Fitness Goals</Text>
             <View style={tw`flex-row items-center mt-1`}>
@@ -395,16 +435,29 @@ const updateProfilePictureString = async (uri: string) => {
 
                 {/* Skill Level */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>Skill Level</Text>
-                  <TextInput
-                    style={tw`border p-2 rounded w-full`}
-                    placeholder="Enter your skill level"
-                    value={userSkillLevel}
-                    onChangeText={setUserSkillLevel}
-                  />
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Skill Level
+                  </Text>
+                  <View style={tw`flex-row justify-center mb-1`}>
+                    {[
+                      { level: "BEGINNER", label: "BEGINNER" },
+                      { level: "INTERMEDIATE", label: "INTERMEDIATE" },
+                      { level: "ADVANCED", label: "ADVANCED" },
+                    ].map(({ level, label }) => (
+                      <TouchableOpacity
+                        key={level}
+                        onPress={() => setUserSkillLevel(level)}
+                        style={tw`p-1.5 border rounded-lg mx-1 justify-center items-center ${
+                          level === userSkillLevel
+                            ? "bg-purple-300"
+                            : "bg-gray-100 border-black-300"
+                        }`}
+                      >
+                        <Text style={tw`text-xs`}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
-
-                
 
                 {/* Preferred Gym */}
                 <View>
@@ -449,7 +502,12 @@ const updateProfilePictureString = async (uri: string) => {
                   <TouchableOpacity onPress={() => setModalVisible(false)}>
                     <Text style={tw`text-red-500`}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      updateUserInfo();
+                      setModalVisible(false);
+                    }}
+                  >
                     <Text style={tw`text-green-500 font-bold`}>Save</Text>
                   </TouchableOpacity>
                 </View>
