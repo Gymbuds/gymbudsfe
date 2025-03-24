@@ -1,18 +1,27 @@
-import React, { useState, useEffect,useCallback} from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchFunction,fetchFunctionWithAuth} from '@/api/auth';
-import {TimeRange} from '@/app/tabs/ProfileApiService/UserSchedule'
-import * as ImagePicker from 'expo-image-picker';  // For selecting profile picture
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Image,
+  Alert,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { fetchFunction, fetchFunctionWithAuth } from "@/api/auth";
+import { TimeRange } from "@/app/tabs/ProfileApiService/UserSchedule";
+import * as ImagePicker from "expo-image-picker"; // For selecting profile picture
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // Fetch user's profile data
-import { fetchUserProfile, uploadProfilePicture } from './ProfileApiService';
-import tw from 'twrnc';
-import { formatTime } from '@/app/utils/util';
+import { fetchUserProfile } from "./ProfileApiService";
+import tw from "twrnc";
+import { formatTime } from "@/app/utils/util";
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
@@ -24,94 +33,221 @@ type RootStackParamList = {
   Schedule: undefined;
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+type Props = NativeStackScreenProps<RootStackParamList, "Profile">;
 
 export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
-  const [userName, setUserName] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [userAge, setUserAge] = useState<string>("");
+  const [userWeight, setUserWeight] = useState<string>("");
+  const [userSkillLevel, setUserSkillLevel] = useState("");
+
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
-  const [preferredGym, setPreferredGym] = useState("Fitness Hub, Downtown");
-  const [preferredTime, setPreferredTime] = useState("6:00 PM - 8:00 PM");
-  const [preferredDays, setPreferredDays] = useState("Mon, Wed, Fri");
-  const [fitnessGoals, setFitnessGoals] = useState(["Build Muscle", "Improve Strength", "Better Endurance"]);
+  const [preferredGym, setPreferredGym] = useState("");
+  const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
+  const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const data = await fetchUserProfile();
-        setUserName(data.name);
-        setProfilePicture(data.profilePicture); // URL for profile picture
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
+  const loadUserProfile = async () => {
+    try {
+      const userProfile = await fetchUserProfile();
+
+      if (userProfile && userProfile.user) {
+        setUserName(userProfile.user.name || "");
+        setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
+        setUserWeight(userProfile.user.weight ? userProfile.user.weight.toString() : "");
+        setUserSkillLevel(userProfile.user.skill_level || null);
+        setProfilePicture(userProfile.user.profile_picture || null);
+
+        const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
+          ? userProfile.user.preferred_workout_goals
+              .split(",")
+              .map((goal: string) => goal.trim())
+          : [];
+        setFitnessGoals(preferredWorkoutGoals);
+        setFitnessGoalsInput(preferredWorkoutGoals.join(", ")); // Update input field
       }
-    };
-    
-    loadUserProfile();
-    
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserProfile(); // Load user data on component mount
   }, []);
+
+  useEffect(() => {
+    if (modalVisible) {
+      loadUserProfile(); // Fetch user data when modal opens
+    }
+  }, [modalVisible]); // Runs when modalVisible changes
+
   useFocusEffect(
     useCallback(() => {
       const getUserTimeRanges = async () => {
         try {
-          const data = await fetchFunctionWithAuth('avalrange', {
-            method: 'GET',
+          const data = await fetchFunctionWithAuth("avalrange", {
+            method: "GET",
           });
           setTimeRanges(data);
         } catch (error) {
-          console.error('Failed to fetch user time ranges', error);
+          console.error("Failed to fetch user time ranges", error);
         }
       };
-  
+
       getUserTimeRanges();
-  
-      return () => {
-      };
+
+      return () => {};
     }, [])
   );
-  // Select and upload profile picture
-  const handleProfilePictureUpdate = async () => {
-    // Request permission for accessing the user's photo library
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert('Permission to access camera roll is required!');
-      return;
-    }
 
-    // Launch image picker
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+  const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
+    try {
+      let result: ImagePicker.ImagePickerResult;
 
-    if (!result.canceled) {
-      const selectedImage = result.assets[0];  // Get the selected image
-
-      try {
-        const uploadResponse = await uploadProfilePicture({
-          uri: selectedImage.uri,
-          name: selectedImage.fileName || 'profile.jpg',
-          type: selectedImage.type || 'image/jpeg',
+      if (mode === "gallery") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable gallery permissions to continue."
+          );
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
         });
-
-        setProfilePicture(uploadResponse.profilePicture);  // Update profile picture URL
-      } catch (error) {
-        console.error('Error uploading profile picture:', error);
+      } else {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable camera permissions to continue."
+          );
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          cameraType: ImagePicker.CameraType.front,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
       }
+
+      // Ensure assets exist and handle properly
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        setProfilePicture(selectedUri); // Update profile picture UI immediately
+        await updateProfileString(selectedUri);
+      }
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
     }
   };
+
+  const updateProfile = async (profilePictureUrl: string | null) => {
+    try {
+      const userUpdate = {
+        profile_picture: profilePictureUrl,
+      };
+
+      const response = await fetchFunctionWithAuth("users/profile/update", {
+        method: "PATCH",
+        body: JSON.stringify(userUpdate),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.success) {
+        console.log("✅ Profile updated successfully:", response.user);
+
+        // Check if the profile picture was successfully updated
+        if (response.user?.profile_picture === profilePictureUrl) {
+          console.log("�� Profile picture update: true");
+        } else {
+          console.log("❌ Profile picture update: false");
+        }
+      } else {
+        console.error("❌ Failed to update profile:", response);
+      }
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+    }
+  };
+
+  const handleFitnessGoalsChange = (text: string) => {
+    setFitnessGoalsInput(text); // Preserve raw input while typing
+  };
+
+  const handleFitnessGoalsSubmit = () => {
+    setFitnessGoals(
+      fitnessGoalsInput
+        .split(",")
+        .map((goal) => goal.trim())
+        .filter((goal) => goal !== "")
+    );
+  };
+
+  const updateUserInfo = async () => {
+    try {
+      const userUpdate = {
+        name: userName,
+        age: userAge,
+        weight: userWeight,
+        preferred_workout_goals: fitnessGoals.join(","),
+        skill_level: userSkillLevel, // Ensure this is included
+      };
+
+      // Send the PATCH request
+      const response = await fetchFunctionWithAuth("users/profile/update", {
+        method: "PATCH",
+        body: JSON.stringify(userUpdate),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      await loadUserProfile();
+    } catch (error) {
+      console.error("❌ Error updating info:", error);
+    }
+  };
+
+  // Wrapper function to update both profile picture
+  const updateProfileString = async (profilePictureUrl: string | null) => {
+    try {
+      // Update profile picture first
+      await updateProfile(profilePictureUrl);
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+    }
+  };
+
   const renderSchedule = () => {
-    const daysOfWeek = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    const daysOfWeek = [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+      "SUNDAY",
+    ];
     return daysOfWeek.map((day, index) => {
-      const dayRanges = timeRanges.filter(range => range.day_of_week === day);
+      const dayRanges = timeRanges.filter((range) => range.day_of_week === day);
       return (
         <View key={index} style={tw`mt-1`}>
-          <Text style={tw`text-xs text-gray-500`}>{day.substring(0,1)+day.substring(1,day.length).toLowerCase()}</Text>
+          <Text style={tw`text-xs text-gray-500`}>
+            {day.substring(0, 1) + day.substring(1, day.length).toLowerCase()}
+          </Text>
           {dayRanges.length > 0 ? (
             dayRanges.map((range, idx) => (
               <Text key={idx} style={tw`ml-2 text-xs text-gray-700`}>
@@ -125,25 +261,25 @@ export default function ProfileScreen({ navigation }: Props) {
       );
     });
   };
-  const handleClickSchedule = () =>{
+  const handleClickSchedule = () => {
     setModalVisible(false);
     navigation.navigate("Schedule");
-  }
+  };
 
   const logoutUser = async () => {
-    const userToken = await AsyncStorage.getItem('userToken');
-    const response = await fetchFunction('auth/logout', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userToken}`
+    const userToken = await AsyncStorage.getItem("userToken");
+    const response = await fetchFunction("auth/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
       },
     });
-    
-    console.log('Logout response:', response);
+
+    console.log("Logout response:", response);
     if (response.message === "Logged out successfully") {
-      await AsyncStorage.removeItem('userToken');
-      navigation.replace('Login');
+      await AsyncStorage.removeItem("userToken");
+      navigation.replace("Login");
     } else {
       alert("Error logging out. Please try again.");
     }
@@ -161,14 +297,33 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {/* User Profile */}
         <View style={tw`items-center mt-4`}>
-          <View style={tw`w-24 h-24 bg-purple-200 rounded-full flex items-center justify-center relative`}>
-            <Text style={tw`text-3xl font-bold text-purple-600`}>U</Text>
-            <TouchableOpacity style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`}>
+          <View
+            style={tw`w-30 h-30 bg-purple-200 rounded-full flex items-center justify-center relative`}
+          >
+            {profilePicture ? (
+              <Image
+                source={{ uri: profilePicture }}
+                style={tw`w-full h-full rounded-full`}
+              />
+            ) : (
+              <Text style={tw`text-3xl font-bold text-purple-600`}>U</Text>
+            )}
+            <TouchableOpacity
+              style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`}
+              onPress={() => handleProfilePictureUpdate("gallery")} // Open gallery by default
+            >
               <Icon name="pencil" size={14} color="gray" />
             </TouchableOpacity>
           </View>
-          <Text style={tw`text-xl font-bold mt-2`}>User Example, 21</Text>
-          <Text style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}>Intermediate</Text>
+
+          <Text style={tw`text-xl font-bold mt-2`}>
+            {userName}, {userAge}
+          </Text>
+          <Text
+            style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}
+          >
+            {userSkillLevel}
+          </Text>
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>8</Text>
@@ -202,17 +357,20 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
           </View>
 
-            <View style={tw`mt-3`}>
-              <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
-              {renderSchedule()}
-            </View> 
+          <View style={tw`mt-3`}>
+            <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
+            {renderSchedule()}
+          </View>
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Fitness Goals</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
                 {fitnessGoals.map((goal, index) => (
-                  <Text key={index} style={tw`bg-gray-200 px-2 py-1 rounded-full text-xs mr-2`}>
+                  <Text
+                    key={index}
+                    style={tw`bg-gray-200 px-2 py-1 rounded-full text-xs mr-2`}
+                  >
                     {goal}
                   </Text>
                 ))}
@@ -220,19 +378,23 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-        
+
         {/* Achievements */}
         <View style={tw`bg-white p-4 mt-6 rounded-lg shadow`}>
           <Text style={tw`text-lg font-bold`}>Achievements</Text>
           <View style={tw`mt-2`}>
-            <View style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}>
-            <FontAwesome5 name="dumbbell" size={16} color="purple" />
+            <View
+              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
+            >
+              <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-3`}>
                 <Text style={tw`font-bold`}>First Workout</Text>
                 <Text style={tw`text-xs text-gray-500`}>Jan 1, 2025</Text>
               </View>
             </View>
-            <View style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}>
+            <View
+              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
+            >
               <FontAwesome5 name="fire" size={20} color="orange" />
               <View style={tw`ml-3`}>
                 <Text style={tw`font-bold`}>Week Streak</Text>
@@ -251,35 +413,125 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {/* Edit Workout Preferences Modal */}
         <Modal visible={modalVisible} transparent={true} animationType="slide">
-          <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+          <View
+            style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+          >
             <View style={tw`bg-white p-6 rounded-lg w-80`}>
-              <Text style={tw`text-lg font-bold mb-4`}>Edit Workout Preferences</Text>
+              <Text style={tw`text-lg font-bold mb-4`}>
+                Edit Workout Preferences
+              </Text>
 
-              <Text style={tw`text-xs text-gray-500`}>Preferred Gym</Text>
-              <TextInput
-                style={tw`border p-2 rounded mb-2`}
-                value={preferredGym}
-                onChangeText={setPreferredGym}
-              />
+              <View style={tw`gap-y-4`}>
+                {/* Name */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Name</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    placeholder="Enter your name"
+                    value={userName}
+                    onChangeText={setUserName}
+                  />
+                </View>
 
-          
+                {/* Age */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Age</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    keyboardType="numeric"
+                    placeholder="Enter your age"
+                    value={userAge}
+                    onChangeText={setUserAge}
+                  />
+                </View>
 
-              <Text style={tw`text-xs text-gray-500`}>Fitness Goals (Comma Separated)</Text>
-              <TextInput
-                style={tw`border p-2 rounded mb-4`}
-                value={fitnessGoals.join(', ')}
-                onChangeText={(text) => setFitnessGoals(text.split(', ').map(goal => goal.trim()))}
-              />
-              <TouchableOpacity style={tw`mb-4 bg-purple-500 p-4 rounded-lg items-center`} onPress={() =>handleClickSchedule() }>
-          <Text style={tw`text-white font-bold`}>Edit Workout Schedule</Text>
-        </TouchableOpacity>
-              <View style={tw`flex-row justify-between`}>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={tw`text-red-500`}>Cancel</Text>
+                {/* Weight */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Weight</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    keyboardType="numeric"
+                    placeholder="Enter your weight"
+                    value={userWeight}
+                    onChangeText={setUserWeight}
+                  />
+                </View>
+
+                {/* Skill Level */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Skill Level
+                  </Text>
+                  <View style={tw`flex-row justify-center mb-1`}>
+                    {[
+                      { level: "BEGINNER", label: "BEGINNER" },
+                      { level: "INTERMEDIATE", label: "INTERMEDIATE" },
+                      { level: "ADVANCED", label: "ADVANCED" },
+                    ].map(({ level, label }) => (
+                      <TouchableOpacity
+                        key={level}
+                        onPress={() => setUserSkillLevel(level)}
+                        style={tw`p-1.5 border rounded-lg mx-1 justify-center items-center ${
+                          level === userSkillLevel
+                            ? "bg-purple-300"
+                            : "bg-gray-100 border-black-300"
+                        }`}
+                      >
+                        <Text style={tw`text-xs`}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Preferred Gym */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Preferred Gym
+                  </Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    value={preferredGym}
+                    onChangeText={setPreferredGym}
+                  />
+                </View>
+
+                {/* Fitness Goals */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                    Fitness Goals (Comma Separated)
+                  </Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    value={fitnessGoalsInput}
+                    onChangeText={handleFitnessGoalsChange} // Preserve spaces
+                    onBlur={handleFitnessGoalsSubmit}
+                  />
+                </View>
+
+                {/* Edit Workout Schedule Button */}
+                <TouchableOpacity
+                  style={tw`bg-purple-500 p-4 rounded-lg items-center`}
+                  onPress={() => handleClickSchedule()}
+                >
+                  <Text style={tw`text-white font-bold`}>
+                    Edit Workout Schedule
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={tw`text-green-500 font-bold`}>Save</Text>
-                </TouchableOpacity>
+
+                {/* Action Buttons */}
+                <View style={tw`flex-row justify-between`}>
+                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                    <Text style={tw`text-red-500`}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      updateUserInfo();
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={tw`text-green-500 font-bold`}>Save</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
