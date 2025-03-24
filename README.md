@@ -31,3 +31,14 @@ To run the app on a physical device like your phone, first install Expo Go on yo
 Then you will be able to test your code in React Native instantenously with the Expo Go app as you save your changes to files in the coding environment.
 
 If you do not want to run the app on your physical device, you are also able to run on a emulator.
+
+
+Migrating to Expo Dev Client:
+1. Install Expo Dev Client- expo install expo-dev-client
+2. Eject- expo prebuild
+3. Install HealthKit Library- npm install react-native-health
+4. Install CocoaPods- cd ios && pod install && cd ..
+5. Enable HealthKit in Xcode- Signing & Capabilities → HealthKit (Enable Development Team in 'Signing')
+6. Add Permissions in Info.plist- NSHealthUpdateUsageDescription: Allow GymBuds to track your health data & NSHealthShareUsageDescription: Allow GymBuds to access your health data.
+7. Run on iOS simulator: npx expo run:ios
+8. Run on physical device: npx expo run:ios --device (Phone has to be in developer mode, Trust Developer in VPN & Device Management)

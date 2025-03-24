@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserProfile } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
+import { userHealthData } from "@/app/tabs/ProfileApiService/HealthData";
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
@@ -50,6 +51,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
+  const { stepCount, fetchHealthData } = userHealthData(); // Use the hook
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
     try {
@@ -58,7 +60,9 @@ export default function ProfileScreen({ navigation }: Props) {
       if (userProfile && userProfile.user) {
         setUserName(userProfile.user.name || "");
         setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
-        setUserWeight(userProfile.user.weight ? userProfile.user.weight.toString() : "");
+        setUserWeight(
+          userProfile.user.weight ? userProfile.user.weight.toString() : ""
+        );
         setUserSkillLevel(userProfile.user.skill_level || null);
         setProfilePicture(userProfile.user.profile_picture || null);
 
@@ -379,37 +383,14 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Achievements */}
+        {/* Health Data */}
         <View style={tw`bg-white p-4 mt-6 rounded-lg shadow`}>
-          <Text style={tw`text-lg font-bold`}>Achievements</Text>
-          <View style={tw`mt-2`}>
-            <View
-              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
-            >
-              <FontAwesome5 name="dumbbell" size={16} color="purple" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>First Workout</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 1, 2025</Text>
-              </View>
-            </View>
-            <View
-              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
-            >
-              <FontAwesome5 name="fire" size={20} color="orange" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>Week Streak</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 8, 2025</Text>
-              </View>
-            </View>
-            <View style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg`}>
-              <FontAwesome5 name="user-friends" size={20} color="blue" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>Matched With a Buddy</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 9, 2025</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+      <Text style={tw`text-lg font-bold`}>Your Health Data Today</Text>
+      <Text style={tw`text-sm text-gray-600`}>Steps: {stepCount}</Text>
+      <TouchableOpacity style={tw`mt-4 bg-blue-500 p-3 rounded-lg`} onPress={fetchHealthData}>
+        <Text style={tw`text-white text-center`}>Fetch Step Count</Text>
+      </TouchableOpacity>
+    </View>
 
         {/* Edit Workout Preferences Modal */}
         <Modal visible={modalVisible} transparent={true} animationType="slide">
