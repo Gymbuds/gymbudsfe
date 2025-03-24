@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, Modal } from "react-native";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import tw from "twrnc";
-import { fetchFunctionWithAuth } from "@/api/auth";
+import { createWorkoutLog } from "./WorkoutApiService";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 // Define the types for the screens
@@ -69,21 +69,10 @@ export default function WorkoutLogPage({ navigation }: Props) {
         duration_minutes: duration,
         mood,
       };
+      console.log(JSON.stringify(workoutData));
+      const response = await createWorkoutLog(workoutData);
 
-      const response = await fetchFunctionWithAuth("workout_logs/log", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(workoutData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to log workout: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("Workout logged successfully!", data);
+      console.log("Workout logged: ", response);
 
       // Optionally reset the form after submission
       setTitle("");
@@ -93,7 +82,7 @@ export default function WorkoutLogPage({ navigation }: Props) {
       setDuration(0);
       setMood("ENERGIZED");
     } catch (error) {
-      // console.error("Error logging workout:", error);
+      console.error("Error logging workout:", error);
     }
     navigation.navigate("Workoutscreen");
   };
