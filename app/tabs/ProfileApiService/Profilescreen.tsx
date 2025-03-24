@@ -51,38 +51,40 @@ export default function ProfileScreen({ navigation }: Props) {
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const userProfile = await fetchUserProfile();
+  const loadUserProfile = async () => {
+    try {
+      const userProfile = await fetchUserProfile();
 
-        // Ensure the fetched data updates the state
-        if (userProfile && userProfile.user) {
-          setUserName(userProfile.user.name || ""); // Ensure there's no undefined value
-          setUserAge(
-            userProfile.user.age ? userProfile.user.age.toString() : ""
-          ); // Convert number to string
-          setUserWeight(
-            userProfile.user.weight ? userProfile.user.weight.toString() : ""
-          ); // Convert number to string
-          setUserSkillLevel(userProfile.user.skill_level || null);
-          setProfilePicture(userProfile.user.profile_picture || null);
+      if (userProfile && userProfile.user) {
+        setUserName(userProfile.user.name || "");
+        setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
+        setUserWeight(userProfile.user.weight ? userProfile.user.weight.toString() : "");
+        setUserSkillLevel(userProfile.user.skill_level || null);
+        setProfilePicture(userProfile.user.profile_picture || null);
 
-          // Separate preferred workout goals by commas and set them
-          const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
-            ? userProfile.user.preferred_workout_goals
-                .split(",")
-                .map((goal: string) => goal.trim()) // Split and trim any extra spaces
-            : [];
-          setFitnessGoals(preferredWorkoutGoals); // Update state with fetched goals
-        }
-      } catch (error) {
-        console.error("Error loading user profile:", error);
+        const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
+          ? userProfile.user.preferred_workout_goals
+              .split(",")
+              .map((goal: string) => goal.trim())
+          : [];
+        setFitnessGoals(preferredWorkoutGoals);
+        setFitnessGoalsInput(preferredWorkoutGoals.join(", ")); // Update input field
       }
-    };
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    }
+  };
 
-    loadUserProfile();
+  useEffect(() => {
+    loadUserProfile(); // Load user data on component mount
   }, []);
+
+  useEffect(() => {
+    if (modalVisible) {
+      loadUserProfile(); // Fetch user data when modal opens
+    }
+  }, [modalVisible]); // Runs when modalVisible changes
+
   useFocusEffect(
     useCallback(() => {
       const getUserTimeRanges = async () => {
@@ -213,16 +215,13 @@ export default function ProfileScreen({ navigation }: Props) {
         },
       });
 
-      setUserName(response.user?.name);
-      setUserAge(response.user?.age);
-      setUserWeight(response.user?.weight);
-      setUserSkillLevel(response.user?.skill_level);
+      await loadUserProfile();
     } catch (error) {
       console.error("❌ Error updating info:", error);
     }
   };
 
-  // Wrapper function to update both profile picture 
+  // Wrapper function to update both profile picture
   const updateProfileString = async (profilePictureUrl: string | null) => {
     try {
       // Update profile picture first
@@ -503,9 +502,9 @@ export default function ProfileScreen({ navigation }: Props) {
                   </Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
-                    value={fitnessGoalsInput} 
+                    value={fitnessGoalsInput}
                     onChangeText={handleFitnessGoalsChange} // Preserve spaces
-                    onBlur={handleFitnessGoalsSubmit} 
+                    onBlur={handleFitnessGoalsSubmit}
                   />
                 </View>
 
