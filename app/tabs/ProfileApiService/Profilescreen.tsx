@@ -39,8 +39,8 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
+  const [userWeight, setUserWeight] = useState<string>("");
   const [userSkillLevel, setUserSkillLevel] = useState("");
-  const [open, setOpen] = useState(false);
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
@@ -48,6 +48,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [preferredGym, setPreferredGym] = useState("");
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
+  const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   // Fetch user profile data from backend
   useEffect(() => {
@@ -60,6 +61,9 @@ export default function ProfileScreen({ navigation }: Props) {
           setUserName(userProfile.user.name || ""); // Ensure there's no undefined value
           setUserAge(
             userProfile.user.age ? userProfile.user.age.toString() : ""
+          ); // Convert number to string
+          setUserWeight(
+            userProfile.user.weight ? userProfile.user.weight.toString() : ""
           ); // Convert number to string
           setUserSkillLevel(userProfile.user.skill_level || null);
           setProfilePicture(userProfile.user.profile_picture || null);
@@ -97,10 +101,6 @@ export default function ProfileScreen({ navigation }: Props) {
       return () => {};
     }, [])
   );
-  const handleAgeChange = (text: string) => {
-    // Convert the input to a number if needed
-    setUserAge(text);
-  };
 
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {
@@ -181,11 +181,25 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
+  const handleFitnessGoalsChange = (text: string) => {
+    setFitnessGoalsInput(text); // Preserve raw input while typing
+  };
+
+  const handleFitnessGoalsSubmit = () => {
+    setFitnessGoals(
+      fitnessGoalsInput
+        .split(",")
+        .map((goal) => goal.trim())
+        .filter((goal) => goal !== "")
+    );
+  };
+
   const updateUserInfo = async () => {
     try {
       const userUpdate = {
         name: userName,
         age: userAge,
+        weight: userWeight,
         preferred_workout_goals: fitnessGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
@@ -198,18 +212,17 @@ export default function ProfileScreen({ navigation }: Props) {
           "Content-Type": "application/json",
         },
       });
-      console.log("Preferred Workout: ",response.user?.preferred_workout_goals);
-      console.log("Preferred Workout: ",typeof response.user?.preferred_workout_goals);
 
       setUserName(response.user?.name);
       setUserAge(response.user?.age);
+      setUserWeight(response.user?.weight);
       setUserSkillLevel(response.user?.skill_level);
     } catch (error) {
       console.error("❌ Error updating info:", error);
     }
   };
 
-  // Wrapper function to update both profile picture and name
+  // Wrapper function to update both profile picture 
   const updateProfileString = async (profilePictureUrl: string | null) => {
     try {
       // Update profile picture first
@@ -429,7 +442,19 @@ export default function ProfileScreen({ navigation }: Props) {
                     keyboardType="numeric"
                     placeholder="Enter your age"
                     value={userAge}
-                    onChangeText={handleAgeChange}
+                    onChangeText={setUserAge}
+                  />
+                </View>
+
+                {/* Weight */}
+                <View>
+                  <Text style={tw`text-xs text-gray-500 mb-1`}>Weight</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    keyboardType="numeric"
+                    placeholder="Enter your weight"
+                    value={userWeight}
+                    onChangeText={setUserWeight}
                   />
                 </View>
 
@@ -478,12 +503,9 @@ export default function ProfileScreen({ navigation }: Props) {
                   </Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
-                    value={fitnessGoals.join(", ")}
-                    onChangeText={(text) =>
-                      setFitnessGoals(
-                        text.split(", ").map((goal) => goal.trim())
-                      )
-                    }
+                    value={fitnessGoalsInput} 
+                    onChangeText={handleFitnessGoalsChange} // Preserve spaces
+                    onBlur={handleFitnessGoalsSubmit} 
                   />
                 </View>
 
