@@ -1,22 +1,10 @@
-import React, { useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Modal,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, Modal, Alert } from "react-native";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import tw from "twrnc";
-import { createWorkoutLog } from "./WorkoutApiService";
+import { fetchWorkoutLogs, updateWorkoutLog } from "./WorkoutApiService";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { fetchWorkoutLogs } from "./WorkoutApiService";
 
-// Define the types for the screens
 type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
@@ -25,7 +13,21 @@ type RootStackParamList = {
   Schedule: undefined;
   Workoutscreen: undefined;
   WorkoutLogPage: undefined;
-  ExistingWorkoutLogPage: undefined;
+  // ExistingWorkoutLogPage: { worklogId: number; existingWorkLog: Workout };
+  ExistingWorkoutLogPage: { worklogId: number; 
+    existingWorkLog: Workout;
+    updateWorkouts: (updatedWorkout: Workout) => void; };
+};
+
+type Workout = {
+  date: string;
+  duration_minutes: number;
+  exercise_details: Exercises[];
+  id: number;
+  mood: Mood;
+  notes: string;
+  title: string;
+  type: logMethod;
 };
 
 // Define types for the workout log
@@ -38,9 +40,11 @@ type Exercises = {
 
 type logMethod = "MANUAL" | "VOICE";
 type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
-type Props = NativeStackScreenProps<RootStackParamList, "WorkoutLogPage">;
 
-export default function WorkoutLogPage({ navigation }: Props) {
+type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage">;
+
+// export default function ExistingWorkoutLogPage({ navigation, route }: Props) {
+  export default function ExistingWorkoutLog({ route, navigation }: Props) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<logMethod>("MANUAL");
   const [exerciseDetails, setExerciseDetails] = useState<Exercises[]>([
@@ -51,9 +55,13 @@ export default function WorkoutLogPage({ navigation }: Props) {
   const [mood, setMood] = useState<Mood>("ENERGIZED");
   const [exercises, setExercises] = useState<Exercises[]>([]);
   const isButtonDisabled = !title || !exerciseDetails[0]?.exercise_name;
-
+  const { worklogId, existingWorkLog, updateWorkouts } = route.params; // Now updateWorkouts is part of the params
+  const [date, setDate] = useState("");
   // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
+  const [newExercise, setNewExercise] = useState({ exercise_name: "", reps: 0, sets: 0, weight: 0 });
+
+
   // Handle modal open/close
   const handlePress = () => {
     setModalVisible(true);
@@ -63,42 +71,99 @@ export default function WorkoutLogPage({ navigation }: Props) {
     setModalVisible(false);
   };
 
+
   const handleAddExercise = () => {
-    if (!isButtonDisabled) {
-      setExercises((prevExercises) => [
-        ...prevExercises,
-        { ...exerciseDetails[0] },
-      ]);
-      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]);
+    if (!isButtonDisabled && exerciseDetails[0].exercise_name.trim() !== "") {
+      setExercises((prevExercises) => [...prevExercises, exerciseDetails[0]]);
+      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]); // Reset only the input field
     }
   };
+  // const handleAddExercise = () => {
+  //   if (!isButtonDisabled && newExercise.exercise_name.trim() !== "") {
+  //     setExercises((prevExercises) => [...prevExercises, newExercise]);
+  //     setNewExercise({ exercise_name: "", reps: 0, sets: 0, weight: 0 }); // Reset input
+  //   }
+  // };
 
-  const logWorkout = async () => {
+  useEffect(() => {
+    const getExistingWorkoutLog = async () => {
+      try {
+        // Fetch all workout logs
+        const fetchedLogs: Workout[] = await fetchWorkoutLogs();
+  
+        // Find the log by the specific id
+        const existingLog = fetchedLogs.find((log: Workout) => log.id === worklogId);
+  
+        if (existingLog) {
+          // Update the state with the details of the fetched workout log
+          setTitle(existingLog.title || "");
+          setType(existingLog.type || "MANUAL");
+          setExerciseDetails(existingLog.exercise_details || [
+            { exercise_name: "", reps: 0, sets: 0, weight: 0 },
+          ]);
+          setNotes(existingLog.notes || "");
+          setDuration(existingLog.duration_minutes || 0);
+          setMood(existingLog.mood || "ENERGIZED");
+          setExercises(existingLog.exercise_details || []);
+        } else {
+          console.error('Log not found');
+          Alert.alert('Error', 'Workout log not found');
+        }
+      } catch (error) {
+        console.error('Error fetching workout log:', error);
+        Alert.alert('Failed to fetch workout log');
+      }
+    };
+  
+    // Check if worklogId exists and fetch the log
+    if (worklogId) {
+      getExistingWorkoutLog();
+    }
+  }, [worklogId]);
+
+  const editWorkout = async (logId: number) => {
     try {
-      const workoutData = {
+      // Updated workout log object with the correct fields
+      const updatedWorkoutLog: Workout = {
         title,
         type,
-        exercise_details: exercises,
+        exercise_details: exercises, // Renamed exercises to exercise_details
         notes,
-        duration_minutes: duration,
+        duration_minutes: duration, // Renamed duration to duration_minutes
         mood,
+        id: logId,
+        date,
       };
-      await createWorkoutLog(workoutData);
 
-      // Optionally reset the form after submission
-      setTitle("");
-      setType("MANUAL");
-      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]);
-      setNotes("");
-      setDuration(0);
-      setMood("ENERGIZED");
+      await updateWorkoutLog(logId, updatedWorkoutLog);
+
+      // Call the updateWorkouts function passed in params
+      if (updateWorkouts) {
+        updateWorkouts(updatedWorkoutLog);
+      }
+  
+      navigation.goBack();
     } catch (error) {
-      console.error("Error logging workout:", error);
+      alert("Failed to update workout log. Please try again.");
+      console.error("Error updating workout log:", error);
     }
-    await fetchWorkoutLogs();
-    navigation.navigate("Workoutscreen");
   };
-
+  
+  useEffect(() => {
+    if (existingWorkLog) {
+      console.log("Existing Work Log from Exist.tsx:", existingWorkLog); // Log the existing work log for debugging
+      setTitle(existingWorkLog.title || "");
+      setType(existingWorkLog.type || "MANUAL");
+      setExerciseDetails(existingWorkLog.exercise_details || [
+        { exercise_name: "", reps: 0, sets: 0, weight: 0 },
+      ]);
+      setNotes(existingWorkLog.notes || "");
+      setDuration(existingWorkLog.duration_minutes || 0);
+      setMood(existingWorkLog.mood || "ENERGIZED");
+      setDate(existingWorkLog.date || "");
+    }
+  }, [existingWorkLog]); // Runs when `existingWorkLog` changes
+  
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -118,7 +183,7 @@ export default function WorkoutLogPage({ navigation }: Props) {
                 color="black"
               />
               <Text style={{ fontWeight: "bold", marginLeft: 8, fontSize: 25 }}>
-                Workout Log
+                Update Workout Log
               </Text>
             </TouchableOpacity>
 
@@ -198,7 +263,9 @@ export default function WorkoutLogPage({ navigation }: Props) {
               style={tw`border p-3 mb-4 rounded-lg bg-white`}
               placeholder="Add exercise..."
               placeholderTextColor="gray"
-              value={exerciseDetails[0]?.exercise_name}
+              // the value should be an empty string to allow input 
+              // it shouldn't fetch the existing exrciseDetail
+              value={exerciseDetails[0]?.exercise_name||''}
               onChangeText={(text) =>
                 setExerciseDetails([
                   { ...exerciseDetails[0], exercise_name: text },
@@ -345,9 +412,7 @@ export default function WorkoutLogPage({ navigation }: Props) {
             <TouchableOpacity
               onPress={handleAddExercise}
               disabled={isButtonDisabled}
-              style={tw`p-3 rounded-lg mb-4 ${
-                isButtonDisabled ? "bg-gray-400" : "bg-blue-500"
-              }`}
+              style={tw`p-3 rounded-lg mb-4 ${isButtonDisabled ? "bg-gray-400" : "bg-blue-500"}`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
                 Add Exercise
@@ -368,12 +433,12 @@ export default function WorkoutLogPage({ navigation }: Props) {
                     {exercise.exercise_name}
                   </Text>
                   <Text>
-                    {exercise.sets} sets x {exercise.reps} reps x{" "}
-                    {exercise.weight} lbs
+                    {exercise.sets} sets x {exercise.reps} reps x {exercise.weight} lbs
                   </Text>
                 </View>
               ))}
             </View>
+            
 
             {/* Duration Input */}
             <View style={tw`mb-4`}>
@@ -428,13 +493,13 @@ export default function WorkoutLogPage({ navigation }: Props) {
               ))}
             </View>
 
-            {/* Submit Button */}
+            {/* Update Button */}
             <TouchableOpacity
-              onPress={logWorkout}
+              onPress={() => editWorkout(worklogId)}
               style={tw`bg-purple-600 p-3 rounded-lg`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
-                Submit Log
+                Update Log
               </Text>
             </TouchableOpacity>
           </View>

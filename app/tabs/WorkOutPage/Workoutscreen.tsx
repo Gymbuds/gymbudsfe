@@ -51,7 +51,11 @@ type RootStackParamList = {
   Schedule: undefined;
   Workoutscreen: undefined;
   WorkoutLogPage: undefined;
-  ExistingWorkoutLogPage: undefined;
+  ExistingWorkoutLogPage: {
+    worklogId: number;
+    existingWorkLog: Workout;
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Workoutscreen">;
@@ -156,6 +160,26 @@ export default function Workoutscreen({ navigation }: Props) {
       <MaterialIcons name="delete" size={24} color="white" />
     </TouchableOpacity>
   );
+
+  const handleNavigate = (worklogId: number, fetchWorkout: Workout[]) => {
+    const selectedWorkout = fetchWorkout.find(
+      (workout) => workout.id === worklogId
+    );
+
+    if (selectedWorkout) {
+      navigation.navigate("ExistingWorkoutLogPage", {
+        worklogId: worklogId,
+        existingWorkLog: selectedWorkout, // Pass selected workout to edit page
+        updateWorkouts: (updatedWorkout: Workout) => {
+          // Update the frontend with the modified workout list
+          const updatedWorkouts = fetchWorkout.map((workout) =>
+            workout.id === updatedWorkout.id ? updatedWorkout : workout
+          );
+          setFetchWorkout(updatedWorkouts); // Reflect the changes in the frontend
+        },
+      });
+    }
+  };
 
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -300,10 +324,6 @@ export default function Workoutscreen({ navigation }: Props) {
         <ScrollView>
           {/* Map through sorted workouts */}
           {fetchWorkout.map((workout: Workout, index) => (
-            //   <Swipeable
-            //   key={index}
-            //   renderRightActions={() => renderRightActions(index)}
-            // >
             <Swipeable
               key={index}
               renderRightActions={() =>
@@ -360,7 +380,7 @@ export default function Workoutscreen({ navigation }: Props) {
                   <TouchableOpacity
                     style={tw`absolute top-4 right-4 flex-row items-center`}
                     onPress={() => {
-                      navigation.navigate("ExistingWorkoutLogPage");
+                      handleNavigate(workout.id, fetchWorkout);
                     }}
                   >
                     <Text style={tw`text-purple-600 font-semibold ml-1`}>
