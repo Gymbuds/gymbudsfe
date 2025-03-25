@@ -268,7 +268,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const logoutUser = async () => {
     const userToken = await AsyncStorage.getItem("userToken");
-    const response = await fetchFunction("auth/logout", {
+    const response = await fetchFunctionWithAuth("auth/logout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
