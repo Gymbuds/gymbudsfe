@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Workoutscreen from "./Workoutscreen";
 import WorkoutLogPage from "./WorkoutLogPage";
 import ExistingWorkoutLogPage from "./ExistingWorkoutLogPage";
+import AiAdviceScreen from "./AiAdviceScreen";
 
 type Workout = {
   exercise: string;
@@ -22,6 +23,7 @@ type RootStackParamList = {
   Schedule: undefined;
   Workoutscreen: undefined;
   WorkoutLogPage: undefined;
+  AiAdvice:undefined;
   ExistingWorkoutLogPage: {
     worklogId: number;
     existingWorkLog: Workout;
@@ -63,6 +65,7 @@ export default function WorkoutNavigator() {
           />
         )}
       </Stack.Screen>
+      <Stack.Screen name="AiAdvice" component={AiAdviceScreen} />
     </Stack.Navigator>
   );
 }

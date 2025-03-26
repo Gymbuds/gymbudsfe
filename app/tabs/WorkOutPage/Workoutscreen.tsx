@@ -57,6 +57,7 @@ type RootStackParamList = {
     existingWorkLog: Workout;
     updateWorkouts: (updatedWorkout: Workout) => void;
   };
+  AiAdvice: undefined;
 };
 
 // type Props = NativeStackScreenProps<RootStackParamList, "Workoutscreen">;
@@ -210,7 +211,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
+    <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       <View style={tw`flex-1 p-4 bg-gray-100`}>
         {/* Header */}
         <View style={tw`flex-row justify-between items-center mb-4`}>
@@ -268,6 +269,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
         {/* AI Recommendations */}
         <TouchableOpacity
           style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
+          onPress={() =>{navigation.navigate("AiAdvice")}}
         >
           <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
             <Feather name="zap" size={16} color="white" />
