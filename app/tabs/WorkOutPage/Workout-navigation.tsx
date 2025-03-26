@@ -29,7 +29,6 @@ type RootStackParamList = {
   };
 };
 
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function WorkoutNavigator() {

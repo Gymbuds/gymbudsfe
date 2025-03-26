@@ -151,7 +151,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
   
   useEffect(() => {
     if (existingWorkLog) {
-      console.log("Existing Work Log from Exist.tsx:", existingWorkLog); // Log the existing work log for debugging
+      // console.log("Existing Work Log from Exist.tsx:", existingWorkLog); // Log the existing work log for debugging
       setTitle(existingWorkLog.title || "");
       setType(existingWorkLog.type || "MANUAL");
       setExerciseDetails(existingWorkLog.exercise_details || [

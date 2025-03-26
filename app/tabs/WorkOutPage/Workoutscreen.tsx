@@ -99,10 +99,13 @@ export default function Workoutscreen({ navigation }: Props) {
       });
   }, []);
 
-  // Debugging: Log fetchWorkout whenever it updates
   useEffect(() => {
-    // console.log(fetchWorkout);  // Log fetchWorkout to check updates
-  }, [fetchWorkout]);
+    setFilteredWorkouts(
+      fetchWorkout.filter(
+        (workout) => selectedOption === "all" || workout.type.toLowerCase() === selectedOption
+      )
+    );
+  }, [fetchWorkout, selectedOption]); // Runs every time fetchWorkout or selectedOption changes
 
   // Function to sort workouts alphabetically
   const sortWorkouts = () => {
@@ -180,6 +183,8 @@ export default function Workoutscreen({ navigation }: Props) {
       });
     }
   };
+
+
 
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -318,20 +323,19 @@ export default function Workoutscreen({ navigation }: Props) {
         </View>
 
         {/* Workout List */}
-        <Text style={tw`text-gray-600  text-lg font-semibold`}>
-          All Workouts
-        </Text>
+      <Text style={tw`text-gray-600 text-lg font-semibold`}>
+        {selectedOption === "all" ? "All Workouts" : `${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} Workouts`}
+      </Text>
         <ScrollView>
           {/* Map through sorted workouts */}
-          {fetchWorkout.map((workout: Workout, index) => (
+          {filteredWorkouts.map((workout: Workout, index) => (
             <Swipeable
               key={index}
               renderRightActions={() =>
-                renderRightActions(index, fetchWorkout[index].id)
+                renderRightActions(index, workout.id)
               }
             >
               <View
-                key={index}
                 style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}
               >
                 <View style={tw`flex-row items-center justify-between mb-2`}>
