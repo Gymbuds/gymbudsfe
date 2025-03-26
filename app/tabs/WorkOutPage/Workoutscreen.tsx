@@ -66,7 +66,7 @@ export default function Workoutscreen({ navigation }: Props) {
   >("all");
   const [date, setDate] = useState(new Date());
   const [filteredWorkouts, setFilteredWorkouts] = useState<Workout[]>([]);
-  const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]); // Always an array
+  const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]); 
 
   const changeMonth = (direction: "prev" | "next") => {
     setDate((prevDate) => {
@@ -118,11 +118,11 @@ export default function Workoutscreen({ navigation }: Props) {
     const date = parseISO(isoDate);
 
     if (isToday(date)) {
-      return `Today, ${format(date, "h:mm a")}`; // Example: "Today, 8:30 AM"
+      return `Today, ${format(date, "h:mm a")}`; 
     } else if (isYesterday(date)) {
-      return `Yesterday, ${format(date, "h:mm a")}`; // Example: "Yesterday, 5:30 PM"
+      return `Yesterday, ${format(date, "h:mm a")}`; 
     } else {
-      return format(date, "EEE, MMMM do, h:mm a"); // Example: "Sat, March 27th, 8:30 AM"
+      return format(date, "EEE, MMMM do, h:mm a"); 
     }
   };
 
@@ -342,7 +342,7 @@ export default function Workoutscreen({ navigation }: Props) {
                     style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
                   >
                     <MaterialIcons
-                      name="multitrack-audio"
+                      name={workout.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
                       size={24}
                       color="purple"
                     />
