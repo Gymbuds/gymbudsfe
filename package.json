@@ -56,7 +56,9 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "tailwind-rn": "^4.2.0",
-    "twrnc": "^4.6.1"
+    "twrnc": "^4.6.1",
+    "react-native-maps": "1.18.0",
+    "expo-location": "~18.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

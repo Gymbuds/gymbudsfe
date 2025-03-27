@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text , TextInput , ScrollView , TouchableOpacity , Platform } from 'react-native';
+import { View, Text , TextInput , ScrollView , TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -271,10 +271,7 @@ export default function MapScreen() {
         {/* List Section */}
         <View style={tw`bg-white p-4`}>
           <View style={tw`flex-row items-center justify-between mb-2`}>
-            <Text style={tw`text-lg font-bold`}>Nearby Gyms</Text>
-            <TouchableOpacity onPress={() => searchPlacesNew(searchQuery)}>
-              <Icon name="filter" size={20} color="gray" />
-            </TouchableOpacity>
+            <Text style={tw`text-lg font-bold`}>Gyms:</Text>
           </View>
           <ScrollView style={tw`max-h-40`}>
             {places.map((place, idx) => {
