@@ -1,62 +1,56 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
-import ProfileScreen from './ProfileApiService/Profilescreen';
-import UserSchedule from './ProfileApiService/UserSchedule';
 import ProfileNavigator from '../profile-navigation';
 import WorkoutNavigator from './WorkOutPage/Workout-navigation';
 
 const Tab = createBottomTabNavigator();
-const HomeScreen = () => {
 
-
-  return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
-      <ScrollView style={tw`p-4`}>
-        {/* Header */}
-        <View style={tw`flex-row justify-between items-center`}>
-          <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
-          <View style={tw`flex-row items-center`}>
-            <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
-            <View style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}>
-              <Text style={tw`text-white font-bold`}>U</Text>
+export default function MainTabs() {
+  const HomeScreen = () => {
+    return (
+      <SafeAreaView style={tw`flex-1 bg-white`}>
+        <ScrollView style={tw`p-4`}>
+          <View style={tw`flex-row justify-between items-center`}>
+            <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
+            <View style={tw`flex-row items-center`}>
+              <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
+              <View style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}>
+                <Text style={tw`text-white font-bold`}>U</Text>
+              </View>
             </View>
           </View>
-        </View>
-
-        {/* Today's Progress */}
-        <View style={tw`flex-row justify-between items-center mt-6`}>
-          <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
-          <TouchableOpacity>
-            <Text style={tw`text-purple-500 text-sm`}>View All &gt;</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={tw`flex-row justify-between mt-2`}>
-          <View style={tw`w-24 h-20 bg-purple-100 rounded-lg flex items-center justify-center`}>
-            <Icon name="check" size={18} color="purple" />
-            <Text style={tw`text-sm font-bold text-purple-500`}>Workout</Text>
-            <Text style={tw`text-xs text-gray-500`}>Completed</Text>
+          <View style={tw`flex-row justify-between items-center mt-6`}>
+            <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
+            <TouchableOpacity>
+              <Text style={tw`text-purple-500 text-sm`}>View All &gt;</Text>
+            </TouchableOpacity>
           </View>
-          <View style={tw`w-24 h-20 bg-orange-100 rounded-lg flex items-center justify-center`}>
-            <Icon name="fire" size={18} color="orange" />
-            <Text style={tw`text-sm font-bold text-orange-500`}>Calories</Text>
-            <Text style={tw`text-xs text-gray-500`}>1250</Text>
+          <View style={tw`flex-row justify-between mt-2`}>
+            <View style={tw`w-24 h-20 bg-purple-100 rounded-lg flex items-center justify-center`}>
+              <Icon name="check" size={18} color="purple" />
+              <Text style={tw`text-sm font-bold text-purple-500`}>Workout</Text>
+              <Text style={tw`text-xs text-gray-500`}>Completed</Text>
+            </View>
+            <View style={tw`w-24 h-20 bg-orange-100 rounded-lg flex items-center justify-center`}>
+              <Icon name="fire" size={18} color="orange" />
+              <Text style={tw`text-sm font-bold text-orange-500`}>Calories</Text>
+              <Text style={tw`text-xs text-gray-500`}>1250</Text>
+            </View>
+            <View style={tw`w-24 h-20 bg-green-100 rounded-lg flex items-center justify-center`}>
+              <Icon name="bolt" size={18} color="green" />
+              <Text style={tw`text-sm font-bold text-green-500`}>Streak</Text>
+              <Text style={tw`text-xs text-gray-500`}>8 days</Text>
+            </View>
           </View>
-          <View style={tw`w-24 h-20 bg-green-100 rounded-lg flex items-center justify-center`}>
-            <Icon name="bolt" size={18} color="green" />
-            <Text style={tw`text-sm font-bold text-green-500`}>Streak</Text>
-            <Text style={tw`text-xs text-gray-500`}>8 days</Text>
-          </View>
-        </View>
-
-        {/* Recent Workouts */}
+            {/* Recent Workouts */}
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
           <TouchableOpacity>
-            <Text style={tw`text-purple-500 text-sm`}>View All &gt;</Text>
+            <Text style={tw`text-purple-500 text-sm`}>View All </Text>
           </TouchableOpacity>
         </View>
         <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
@@ -75,7 +69,7 @@ const HomeScreen = () => {
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
-              <Text style={tw`text-purple-500 text-xs`}>Edit &gt;</Text>
+              <Text style={tw`text-purple-500 text-xs`}>Edit</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -84,7 +78,7 @@ const HomeScreen = () => {
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Nearby Communities</Text>
           <TouchableOpacity>
-            <Text style={tw`text-purple-500 text-sm`}>View Map &gt;</Text>
+            <Text style={tw`text-purple-500 text-sm`}>View Map</Text>
           </TouchableOpacity>
         </View>
         <View style={tw`bg-white rounded-lg shadow-lg mt-2`}>
@@ -102,14 +96,11 @@ const HomeScreen = () => {
             </View>
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+        </ScrollView>
+      </SafeAreaView>
+    );
+  };
 
-
-// Tabs Navigation
-export default function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ tabBarShowLabel: false, headerShown: false }}>
       <Tab.Screen 
@@ -136,7 +127,6 @@ export default function MainTabs() {
         name="ProfileNavigator" 
         component={ProfileNavigator} 
         options={{ tabBarIcon: ({ color }) => <Icon name="user" size={24} color={color} /> }} 
-        
       />
     </Tab.Navigator>
   );
