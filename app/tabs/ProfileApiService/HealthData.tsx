@@ -1,6 +1,7 @@
 import { fetchFunctionWithAuth } from "@/api/auth";
 import { useState, useEffect } from "react";
 import AppleHealthKit from "react-native-health";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const userHealthData = () => {
   const [stepCount, setStepCount] = useState<number | null>(null);
@@ -17,9 +18,26 @@ export const userHealthData = () => {
         setHealthKitAvailable(true);
       }
     });
+  
+    const checkConsentStatus = async () => {
+      const consent = await AsyncStorage.getItem("hasConsented");
+      if (consent === "true") {
+        setHasConsented(true);
+      } else {
+        setHasConsented(false);
+      }
+    };
+    
+    checkConsentStatus();
   }, []);
+  
+  useEffect(() => {
+    if (hasConsented) {
+      fetchHealthData(); // Fetch health data only if consent is true
+    }
+  }, [hasConsented]); // Run when `hasConsented` changes
 
-  const requestAuthorization = () => {
+  const requestAuthorization = async () => {
     if (!healthKitAvailable) {
       console.log("HealthKit is not available on this device.");
       return;
@@ -38,15 +56,35 @@ export const userHealthData = () => {
       },
     };
 
-    AppleHealthKit.initHealthKit(options, (err) => {
+    AppleHealthKit.getAuthStatus(options, (err, result) => {
       if (err) {
-        console.log("Error initializing HealthKit: ", err);
+        console.log("Error getting HealthKit auth status: ", err);
         return;
       }
 
-      setHasConsented(true);
+      AppleHealthKit.initHealthKit(options, async (err) => {
+        if (err) {
+          console.log("Error initializing HealthKit: ", err);
+          setHasConsented(false);
+          return;
+        }
 
-      fetchHealthData();
+        AppleHealthKit.getAuthStatus(options, async (err, result) => {
+          if (err) {
+            console.log("Error checking HealthKit authorization status:", err);
+            return;
+          }
+
+          if (result.permissions.read.length > 0) {
+            await AsyncStorage.setItem("hasConsented", "true");
+            setHasConsented(true);
+            fetchHealthData();
+          } else {
+            console.log("HealthKit permissions were denied.");
+            setHasConsented(false);
+          }
+        });
+      });
     });
   };
 
