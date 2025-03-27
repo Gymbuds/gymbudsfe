@@ -51,7 +51,24 @@ export default function ProfileScreen({ navigation }: Props) {
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
-  const { stepCount, fetchHealthData } = userHealthData(); // Use the hook
+  //Health data
+  const {
+    stepCount,
+    caloriesBurned,
+    avgHeartRate,
+    sleepDuration,
+    activeMins,
+    hasConsented,
+    healthKitAvailable,
+    requestAuthorization,
+    fetchHealthData,
+  } = userHealthData();
+  // useEffect(() => {
+  //   if (hasConsented && healthKitAvailable) {
+  //     fetchHealthData(); // Fetch health data when page mounts
+  //   }
+  // }, [hasConsented, healthKitAvailable]);
+
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
     try {
@@ -323,11 +340,10 @@ export default function ProfileScreen({ navigation }: Props) {
           <Text style={tw`text-xl font-bold mt-2`}>
             {userName}, {userAge}
           </Text>
-          <Text
-            style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}
-          >
-            {userSkillLevel}
-          </Text>
+          <View style={tw`bg-purple-100 px-3 py-1 rounded-full mt-1`}>
+            <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
+          </View>
+
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>8</Text>
@@ -371,12 +387,12 @@ export default function ProfileScreen({ navigation }: Props) {
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
                 {fitnessGoals.map((goal, index) => (
-                  <Text
+                  <View
                     key={index}
-                    style={tw`bg-gray-200 px-2 py-1 rounded-full text-xs mr-2`}
+                    style={tw`bg-gray-200 px-2 py-1 rounded-full mr-2`}
                   >
-                    {goal}
-                  </Text>
+                    <Text style={tw`text-xs`}>{goal}</Text>
+                  </View>
                 ))}
               </View>
             </View>
@@ -385,12 +401,56 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {/* Health Data */}
         <View style={tw`bg-white p-4 mt-6 rounded-lg shadow`}>
-      <Text style={tw`text-lg font-bold`}>Your Health Data Today</Text>
-      <Text style={tw`text-sm text-gray-600`}>Steps: {stepCount}</Text>
-      <TouchableOpacity style={tw`mt-4 bg-blue-500 p-3 rounded-lg`} onPress={fetchHealthData}>
-        <Text style={tw`text-white text-center`}>Fetch Step Count</Text>
-      </TouchableOpacity>
-    </View>
+          <Text style={tw`text-lg font-bold`}>Your Health Data Today</Text>
+
+          {hasConsented && healthKitAvailable ? (
+            <>
+              <Text style={tw`text-sm text-gray-600`}>
+                Steps: {stepCount ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Calories Burned: {caloriesBurned ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Avg Heart Rate: {avgHeartRate ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Sleep Duration:
+                {sleepDuration !== null
+                  ? ` ${Math.floor(sleepDuration)}h ${Math.round(
+                      (sleepDuration % 1) * 60
+                    )}m`
+                  : "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Active Minutes:
+                {activeMins !== null
+                  ? ` ${Math.floor(activeMins / 60)}h ${activeMins % 60}m`
+                  : "N/A"}
+              </Text>
+              <TouchableOpacity
+                style={tw`mt-4 bg-blue-500 px-4 py-2 rounded-lg`}
+                onPress={fetchHealthData}
+              >
+                <Text style={tw`text-white text-center font-semibold`}>
+                  Refresh Data
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Health data is unavailable. Please check your permissions.
+              </Text>
+              <TouchableOpacity
+                style={tw`bg-blue-500 p-2 mt-2 rounded-lg`}
+                onPress={requestAuthorization}
+              >
+                <Text style={tw`text-white text-center`}>Grant Permission</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         {/* Edit Workout Preferences Modal */}
         <Modal visible={modalVisible} transparent={true} animationType="slide">
