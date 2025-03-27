@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserProfile } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
+import { NullStyle } from "twrnc/dist/esm/types";
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
@@ -39,7 +40,7 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userWeight, setUserWeight] = useState<string>("");
+  const [userWeight, setUserWeight] = useState<number|null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -205,7 +206,7 @@ export default function ProfileScreen({ navigation }: Props) {
         preferred_workout_goals: fitnessGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
-
+      console.log(userUpdate)
       // Send the PATCH request
       const response = await fetchFunctionWithAuth("users/profile/update", {
         method: "PATCH",
