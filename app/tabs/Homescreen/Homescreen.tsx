@@ -6,6 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import tw from "twrnc";
 import ProfileNavigator from "../ProfileApiService/profile-navigation";
 import WorkoutNavigator from "../WorkOutPage/Workout-navigation";
+import Mapscreen from "../MapScreen/Mapscreen";
+import Matchscreen from "../MatchScreen/Matchscreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -142,7 +144,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Map"
-        component={HomeScreen}
+        component={Mapscreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="map-marker" size={24} color={color} />
@@ -151,7 +153,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={HomeScreen}
+        component={Matchscreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="users" size={24} color={color} />
