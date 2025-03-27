@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, Modal, Alert } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Modal,
+  Alert,
+} from "react-native";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import tw from "twrnc";
 import { fetchWorkoutLogs, updateWorkoutLog } from "./WorkoutApiService";
@@ -13,10 +24,11 @@ type RootStackParamList = {
   Schedule: undefined;
   Workoutscreen: undefined;
   WorkoutLogPage: undefined;
-  // ExistingWorkoutLogPage: { worklogId: number; existingWorkLog: Workout };
-  ExistingWorkoutLogPage: { worklogId: number; 
+  ExistingWorkoutLogPage: {
+    worklogId: number;
     existingWorkLog: Workout;
-    updateWorkouts: (updatedWorkout: Workout) => void; };
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
 };
 
 type Workout = {
@@ -41,10 +53,12 @@ type Exercises = {
 type logMethod = "MANUAL" | "VOICE";
 type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
 
-type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage">;
+type Props = NativeStackScreenProps<
+  RootStackParamList,
+  "ExistingWorkoutLogPage"
+>;
 
-// export default function ExistingWorkoutLogPage({ navigation, route }: Props) {
-  export default function ExistingWorkoutLog({ route, navigation }: Props) {
+export default function ExistingWorkoutLog({ route, navigation }: Props) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<logMethod>("MANUAL");
   const [exerciseDetails, setExerciseDetails] = useState<Exercises[]>([
@@ -55,12 +69,10 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
   const [mood, setMood] = useState<Mood>("ENERGIZED");
   const [exercises, setExercises] = useState<Exercises[]>([]);
   const isButtonDisabled = !title || !exerciseDetails[0]?.exercise_name;
-  const { worklogId, existingWorkLog, updateWorkouts } = route.params; // Now updateWorkouts is part of the params
+  const { worklogId, existingWorkLog, updateWorkouts } = route.params;
   const [date, setDate] = useState("");
   // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
-  const [newExercise, setNewExercise] = useState({ exercise_name: "", reps: 0, sets: 0, weight: 0 });
-
 
   // Handle modal open/close
   const handlePress = () => {
@@ -71,51 +83,43 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
     setModalVisible(false);
   };
 
-
   const handleAddExercise = () => {
     if (!isButtonDisabled && exerciseDetails[0].exercise_name.trim() !== "") {
-      setExercises((prevExercises) => [...prevExercises, exerciseDetails[0]]);
-      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]); // Reset only the input field
+      setExercises((prevExercises) => [...prevExercises, ...exerciseDetails]);
+      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]);
     }
   };
-  // const handleAddExercise = () => {
-  //   if (!isButtonDisabled && newExercise.exercise_name.trim() !== "") {
-  //     setExercises((prevExercises) => [...prevExercises, newExercise]);
-  //     setNewExercise({ exercise_name: "", reps: 0, sets: 0, weight: 0 }); // Reset input
-  //   }
-  // };
 
   useEffect(() => {
     const getExistingWorkoutLog = async () => {
       try {
-        // Fetch all workout logs
         const fetchedLogs: Workout[] = await fetchWorkoutLogs();
-  
-        // Find the log by the specific id
-        const existingLog = fetchedLogs.find((log: Workout) => log.id === worklogId);
-  
+        const existingLog = fetchedLogs.find(
+          (log: Workout) => log.id === worklogId
+        );
+        
         if (existingLog) {
-          // Update the state with the details of the fetched workout log
           setTitle(existingLog.title || "");
           setType(existingLog.type || "MANUAL");
-          setExerciseDetails(existingLog.exercise_details || [
-            { exercise_name: "", reps: 0, sets: 0, weight: 0 },
-          ]);
+          setExerciseDetails(
+            existingLog.exercise_details || [
+              { exercise_name: "", reps: 0, sets: 0, weight: 0 },
+            ]
+          );
           setNotes(existingLog.notes || "");
           setDuration(existingLog.duration_minutes || 0);
           setMood(existingLog.mood || "ENERGIZED");
           setExercises(existingLog.exercise_details || []);
         } else {
-          console.error('Log not found');
-          Alert.alert('Error', 'Workout log not found');
+          console.error("Log not found");
+          Alert.alert("Error", "Workout log not found");
         }
       } catch (error) {
-        console.error('Error fetching workout log:', error);
-        Alert.alert('Failed to fetch workout log');
+        console.error("Error fetching workout log:", error);
+        Alert.alert("Failed to fetch workout log");
       }
     };
-  
-    // Check if worklogId exists and fetch the log
+
     if (worklogId) {
       getExistingWorkoutLog();
     }
@@ -123,47 +127,44 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
 
   const editWorkout = async (logId: number) => {
     try {
-      // Updated workout log object with the correct fields
       const updatedWorkoutLog: Workout = {
         title,
         type,
-        exercise_details: exercises, // Renamed exercises to exercise_details
+        exercise_details: exercises,
         notes,
-        duration_minutes: duration, // Renamed duration to duration_minutes
+        duration_minutes: duration,
         mood,
         id: logId,
         date,
       };
 
       await updateWorkoutLog(logId, updatedWorkoutLog);
-
-      // Call the updateWorkouts function passed in params
       if (updateWorkouts) {
         updateWorkouts(updatedWorkoutLog);
       }
-  
+
       navigation.goBack();
     } catch (error) {
       alert("Failed to update workout log. Please try again.");
       console.error("Error updating workout log:", error);
     }
   };
-  
   useEffect(() => {
     if (existingWorkLog) {
-      // console.log("Existing Work Log from Exist.tsx:", existingWorkLog); // Log the existing work log for debugging
       setTitle(existingWorkLog.title || "");
       setType(existingWorkLog.type || "MANUAL");
-      setExerciseDetails(existingWorkLog.exercise_details || [
-        { exercise_name: "", reps: 0, sets: 0, weight: 0 },
-      ]);
+      setExerciseDetails(
+        existingWorkLog.exercise_details || [
+          { exercise_name: "", reps: 0, sets: 0, weight: 0 },
+        ]
+      );
       setNotes(existingWorkLog.notes || "");
       setDuration(existingWorkLog.duration_minutes || 0);
       setMood(existingWorkLog.mood || "ENERGIZED");
       setDate(existingWorkLog.date || "");
     }
-  }, [existingWorkLog]); // Runs when `existingWorkLog` changes
-  
+  }, [existingWorkLog]);
+
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -263,9 +264,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
               style={tw`border p-3 mb-4 rounded-lg bg-white`}
               placeholder="Add exercise..."
               placeholderTextColor="gray"
-              // the value should be an empty string to allow input 
+              // the value should be an empty string to allow input
               // it shouldn't fetch the existing exrciseDetail
-              value={exerciseDetails[0]?.exercise_name||''}
+              value={exerciseDetails[0]?.exercise_name || ""}
               onChangeText={(text) =>
                 setExerciseDetails([
                   { ...exerciseDetails[0], exercise_name: text },
@@ -281,13 +282,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                 <View style={tw`flex-row justify-center items-center`}>
                   <TouchableOpacity
                     onPress={() =>
-                      exerciseDetails[0]?.sets > 0 &&
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          sets: exerciseDetails[0].sets - 1,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, sets: Math.max(0, ex.sets - 1) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -297,20 +298,25 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                     style={tw`border p-2 mx-2 rounded-lg bg-white w-14 text-center`}
                     value={String(exerciseDetails[0]?.sets)}
                     onChangeText={(text) =>
-                      setExerciseDetails([
-                        { ...exerciseDetails[0], sets: parseInt(text) || 0 },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, sets: parseInt(text) || 0 }
+                            : ex
+                        )
+                      )
                     }
                     keyboardType="numeric"
                   />
                   <TouchableOpacity
                     onPress={() =>
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          sets: exerciseDetails[0].sets + 1,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, sets: Math.max(0, ex.sets + 1) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -325,13 +331,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                 <View style={tw`flex-row justify-center items-center`}>
                   <TouchableOpacity
                     onPress={() =>
-                      exerciseDetails[0]?.reps > 0 &&
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          reps: exerciseDetails[0].reps - 1,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, reps: Math.max(0, ex.reps - 1) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -341,20 +347,25 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                     style={tw`border p-2 mx-2 rounded-lg bg-white w-14 text-center`}
                     value={String(exerciseDetails[0]?.reps)}
                     onChangeText={(text) =>
-                      setExerciseDetails([
-                        { ...exerciseDetails[0], reps: parseInt(text) || 0 },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, reps: parseInt(text) || 0 }
+                            : ex
+                        )
+                      )
                     }
                     keyboardType="numeric"
                   />
                   <TouchableOpacity
                     onPress={() =>
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          reps: exerciseDetails[0].reps + 1,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, reps: Math.max(0, ex.reps + 1) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -369,13 +380,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                 <View style={tw`flex-row justify-center items-center`}>
                   <TouchableOpacity
                     onPress={() =>
-                      exerciseDetails[0]?.weight > 0 &&
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          weight: exerciseDetails[0].weight - 5,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, weight: Math.max(0, ex.weight - 5) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -385,20 +396,25 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                     style={tw`border p-2 mx-2 rounded-lg bg-white w-14 text-center`}
                     value={String(exerciseDetails[0]?.weight)}
                     onChangeText={(text) =>
-                      setExerciseDetails([
-                        { ...exerciseDetails[0], weight: parseInt(text) || 0 },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, weight: parseInt(text) || 0 }
+                            : ex
+                        )
+                      )
                     }
                     keyboardType="numeric"
                   />
                   <TouchableOpacity
                     onPress={() =>
-                      setExerciseDetails([
-                        {
-                          ...exerciseDetails[0],
-                          weight: exerciseDetails[0].weight + 5,
-                        },
-                      ])
+                      setExerciseDetails((prev) =>
+                        prev.map((ex, index) =>
+                          index === 0
+                            ? { ...ex, weight: Math.max(0, ex.weight + 5) }
+                            : ex
+                        )
+                      )
                     }
                     style={tw`rounded-full justify-center items-center p-2`}
                   >
@@ -412,7 +428,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
             <TouchableOpacity
               onPress={handleAddExercise}
               disabled={isButtonDisabled}
-              style={tw`p-3 rounded-lg mb-4 ${isButtonDisabled ? "bg-gray-400" : "bg-blue-500"}`}
+              style={tw`p-3 rounded-lg mb-4 ${
+                isButtonDisabled ? "bg-gray-400" : "bg-blue-500"
+              }`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
                 Add Exercise
@@ -433,12 +451,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "ExistingWorkoutLogPage"
                     {exercise.exercise_name}
                   </Text>
                   <Text>
-                    {exercise.sets} sets x {exercise.reps} reps x {exercise.weight} lbs
+                    {exercise.sets} sets x {exercise.reps} reps x{" "}
+                    {exercise.weight} lbs
                   </Text>
                 </View>
               ))}
             </View>
-            
 
             {/* Duration Input */}
             <View style={tw`mb-4`}>
