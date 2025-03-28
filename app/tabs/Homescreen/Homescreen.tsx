@@ -1,125 +1,248 @@
-import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { StackNavigationProp } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import tw from "twrnc";
-import ProfileNavigator from "../ProfileApiService/profile-navigation";
-import WorkoutNavigator from "../WorkOutPage/Workout-navigation";
+import ProfileNavigator from "../ProfileService/Profilenavigation";
 import Mapscreen from "../MapScreen/Mapscreen";
 import Matchscreen from "../MatchScreen/Matchscreen";
+import WorkoutNavigator from "../WorkOutPage/WorkoutNavigation";
+import { format } from "date-fns";
+import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
+import {
+  MaterialIcons,
+} from "@expo/vector-icons";
+type logMethod = "MANUAL" | "VOICE";
+type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
+// Define types for the workout log
+type Workout = {
+  title: string;
+  date: string;
+  type: logMethod;
+  mood: Mood;
+  id: number;
+};
+
+type RootStackParamList = {
+  ProfileNavigator: undefined;
+  WorkoutNavigator: undefined;
+  ExistingWorkoutLogPage: {
+    worklogId: number;
+    existingWorkLog: Workout;
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
+};
+
+type Props = {
+  profilePicture: string | null; // Add the profile picture prop
+};
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
-export default function MainTabs() {
-  const HomeScreen = () => {
-    return (
-      <SafeAreaView style={tw`flex-1 bg-white`}>
-        <ScrollView style={tw`p-4`}>
-          <View style={tw`flex-row justify-between items-center`}>
-            <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
-            <View style={tw`flex-row items-center`}>
-              <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
+const HomeScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkoutLogs()
+        .then((data) => {
+          setWorkouts(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching workouts:", error);
+        });
+    }, [])
+  );
+
+  const recentWorkout = workouts.length > 0 ? workouts[0] : null;
+ 
+  return (
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      <ScrollView style={tw`p-4`}>
+        <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
+          <View style={tw`flex-row items-center`}>
+            <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ProfileNavigator")}
+            >
               <View
                 style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}
               >
                 <Text style={tw`text-white font-bold`}>U</Text>
               </View>
-            </View>
-          </View>
-          <View style={tw`flex-row justify-between items-center mt-6`}>
-            <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
-            <TouchableOpacity>
-              <Text style={tw`text-purple-500 text-sm`}>View All &gt;</Text>
             </TouchableOpacity>
           </View>
-          <View style={tw`flex-row justify-between mt-2`}>
-            <View
-              style={tw`w-24 h-20 bg-purple-100 rounded-lg flex items-center justify-center`}
-            >
-              <Icon name="check" size={18} color="purple" />
-              <Text style={tw`text-sm font-bold text-purple-500`}>Workout</Text>
-              <Text style={tw`text-xs text-gray-500`}>Completed</Text>
-            </View>
-            <View
-              style={tw`w-24 h-20 bg-orange-100 rounded-lg flex items-center justify-center`}
-            >
-              <Icon name="fire" size={18} color="orange" />
-              <Text style={tw`text-sm font-bold text-orange-500`}>
-                Calories
-              </Text>
-              <Text style={tw`text-xs text-gray-500`}>1250</Text>
-            </View>
-            <View
-              style={tw`w-24 h-20 bg-green-100 rounded-lg flex items-center justify-center`}
-            >
-              <Icon name="bolt" size={18} color="green" />
-              <Text style={tw`text-sm font-bold text-green-500`}>Streak</Text>
-              <Text style={tw`text-xs text-gray-500`}>8 days</Text>
-            </View>
+        </View>
+        <View style={tw`flex-row justify-between items-center mt-6`}>
+          <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
+          <TouchableOpacity>
+            <Text style={tw`text-purple-500 text-sm`}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={tw`flex-row justify-between mt-2`}>
+          <View
+            style={tw`w-24 h-20 bg-purple-100 rounded-lg flex items-center justify-center`}
+          >
+            <Icon name="check" size={18} color="purple" />
+            <Text style={tw`text-sm font-bold text-purple-500`}>Workout</Text>
+            <Text style={tw`text-xs text-gray-500`}>Completed</Text>
           </View>
-          {/* Recent Workouts */}
-          <View style={tw`flex-row justify-between items-center mt-6`}>
-            <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
-            <TouchableOpacity>
-              <Text style={tw`text-purple-500 text-sm`}>View All </Text>
-            </TouchableOpacity>
+          <View
+            style={tw`w-24 h-20 bg-orange-100 rounded-lg flex items-center justify-center`}
+          >
+            <Icon name="fire" size={18} color="orange" />
+            <Text style={tw`text-sm font-bold text-orange-500`}>Calories</Text>
+            <Text style={tw`text-xs text-gray-500`}>1250</Text>
           </View>
+          <View
+            style={tw`w-24 h-20 bg-green-100 rounded-lg flex items-center justify-center`}
+          >
+            <Icon name="bolt" size={18} color="green" />
+            <Text style={tw`text-sm font-bold text-green-500`}>Streak</Text>
+            <Text style={tw`text-xs text-gray-500`}>8 days</Text>
+          </View>
+        </View>
+
+        {/* Recent Workouts */}
+        <View style={tw`flex-row justify-between items-center mt-6`}>
+          <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("WorkoutNavigator")}
+          >
+            <Text style={tw`text-purple-500 text-sm`}>View All </Text>
+          </TouchableOpacity>
+        </View>
+        {recentWorkout ? (
           <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
-            <Text style={tw`text-sm font-bold`}>Chest Day</Text>
-            <View style={tw`flex-row items-center mt-1`}>
+            {/* <Text style={tw`text-xl font-bold text-black-600`}>{recentWorkout?.title}</Text>
+            <View
+                    style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
+                  >
+                    <MaterialIcons
+                      name={recentWorkout?.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
+                      size={24}
+                      color="purple"
+                    />
+                  </View> */}
+                  <View style={tw`flex-row items-center justify-between mb-2`}>
+                  <Text style={tw`text-xl font-bold text-black-600`}>
+                    {recentWorkout?.title}
+                  </Text>
+                  <View
+                    style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
+                  >
+                    <MaterialIcons
+                      name={recentWorkout?.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
+                      size={24}
+                      color="purple"
+                    />
+                  </View>
+                </View>
+            <View style={tw`flex-row items-center mt-2`}>
               <Icon name="calendar" size={12} color="gray" />
-              <Text style={tw`text-xs text-gray-500 ml-1`}>Today, 8:30 AM</Text>
+              <Text style={tw`text-xs text-gray-500 ml-1 mt-2`}>
+                {recentWorkout?.date
+                  ? format(new Date(recentWorkout.date), "EEE, MMM d, h:mm a")
+                  : "Unknown Date"}
+              </Text>
             </View>
-            <View style={tw`flex-row justify-between items-center mt-2`}>
+            <View style={tw`flex-row justify-between items-center mt-3`}>
               <View style={tw`flex-row`}>
                 <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
-                  <Text style={tw`text-xs`}>Voice</Text>
+                  <Text style={tw`text-xs`}>{recentWorkout?.type}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg`}>
-                  <Text style={tw`text-xs`}>Excited</Text>
+                  <Text style={tw`text-xs`}>{recentWorkout?.mood}</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity>
-                <Text style={tw`text-purple-500 text-xs`}>Edit</Text>
-              </TouchableOpacity>
             </View>
           </View>
+        ) : (
+          <Text style={tw`text-gray-500 mt-2`}>No recent workouts found.</Text>
+        )}
 
-          {/* Nearby Communities */}
-          <View style={tw`flex-row justify-between items-center mt-6`}>
-            <Text style={tw`text-lg font-bold`}>Nearby Communities</Text>
-            <TouchableOpacity>
-              <Text style={tw`text-purple-500 text-sm`}>View Map</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={tw`bg-white rounded-lg shadow-lg mt-2`}>
-            <Image
-              source={{ uri: "https://source.unsplash.com/featured/?gym" }}
-              style={tw`h-40 w-full rounded-t-lg`}
-            />
-            <View style={tw`p-4`}>
-              <Text style={tw`text-lg font-bold`}>Fitness Hub</Text>
-              <View style={tw`flex-row items-center mt-1`}>
-                <Icon name="map-marker" size={12} color="gray" />
-                <Text style={tw`text-xs text-gray-500 ml-1`}>
-                  123 Main St, Los Angeles, CA
-                </Text>
-              </View>
-              <View style={tw`flex-row items-center mt-2`}>
-                <Icon name="star" size={14} color="gold" />
-                <Text style={tw`text-xs ml-1`}>4.8 (124 reviews)</Text>
-                <Text style={tw`text-xs text-gray-500 ml-auto`}>
-                  235 members
-                </Text>
-              </View>
+        {/* Nearby Communities */}
+        <View style={tw`flex-row justify-between items-center mt-6`}>
+          <Text style={tw`text-lg font-bold`}>Nearby Communities</Text>
+          <TouchableOpacity>
+            <Text style={tw`text-purple-500 text-sm`}>View Map</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={tw`bg-white rounded-lg shadow-lg mt-2`}>
+          <Image
+            source={{ uri: "https://source.unsplash.com/featured/?gym" }}
+            style={tw`h-40 w-full rounded-t-lg`}
+          />
+          <View style={tw`p-4`}>
+            <Text style={tw`text-lg font-bold`}>Fitness Hub</Text>
+            <View style={tw`flex-row items-center mt-1`}>
+              <Icon name="map-marker" size={12} color="gray" />
+              <Text style={tw`text-xs text-gray-500 ml-1`}>
+                123 Main St, Los Angeles, CA
+              </Text>
+            </View>
+            <View style={tw`flex-row items-center mt-2`}>
+              <Icon name="star" size={14} color="gold" />
+              <Text style={tw`text-xs ml-1`}>4.8 (124 reviews)</Text>
+              <Text style={tw`text-xs text-gray-500 ml-auto`}>235 members</Text>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  };
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
 
+const WorkoutsStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="WorkoutNavigator"
+      component={WorkoutNavigator}
+      options={{ headerShown: false }}
+    />
+  </Stack.Navigator>
+);
+
+const MapStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Map"
+      component={Mapscreen}
+      options={{ headerShown: false }}
+    />
+  </Stack.Navigator>
+);
+
+const MatchStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Match"
+      component={Matchscreen}
+      options={{ headerShown: false }}
+    />
+  </Stack.Navigator>
+);
+
+const ProfileStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="ProfileNavigator"
+      component={ProfileNavigator}
+      options={{ headerShown: false }}
+    />
+    {/* You can add other screens related to profile navigation here */}
+  </Stack.Navigator>
+);
+
+export default function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{ tabBarShowLabel: false, headerShown: false }}
@@ -134,8 +257,8 @@ export default function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Workouts"
-        component={WorkoutNavigator}
+        name="WorkoutNavigator"
+        component={WorkoutsStack}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="calendar" size={24} color={color} />
@@ -144,7 +267,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Map"
-        component={Mapscreen}
+        component={MapStack}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="map-marker" size={24} color={color} />
@@ -153,7 +276,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={Matchscreen}
+        component={MatchStack}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="users" size={24} color={color} />
@@ -162,7 +285,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="ProfileNavigator"
-        component={ProfileNavigator}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="user" size={24} color={color} />
