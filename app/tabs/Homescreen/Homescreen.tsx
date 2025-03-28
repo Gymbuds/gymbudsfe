@@ -1,6 +1,12 @@
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -14,9 +20,8 @@ import Matchscreen from "../MatchScreen/Matchscreen";
 import WorkoutNavigator from "../WorkOutPage/WorkoutNavigation";
 import { format } from "date-fns";
 import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
-import {
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import { fetchUserProfile } from "../ProfileService/ProfileApiService";
 type logMethod = "MANUAL" | "VOICE";
 type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
 // Define types for the workout log
@@ -38,16 +43,13 @@ type RootStackParamList = {
   };
 };
 
-type Props = {
-  profilePicture: string | null; // Add the profile picture prop
-};
-
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,11 +60,25 @@ const HomeScreen = () => {
         .catch((error) => {
           console.error("Error fetching workouts:", error);
         });
+
+      // Fetch user profile data
+      const loadUserProfile = async () => {
+        try {
+          const userProfile = await fetchUserProfile();
+          if (userProfile && userProfile.user) {
+            setProfilePicture(userProfile.user.profile_picture || null);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      };
+
+      loadUserProfile();
     }, [])
   );
 
   const recentWorkout = workouts.length > 0 ? workouts[0] : null;
- 
+
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <ScrollView style={tw`p-4`}>
@@ -73,11 +89,18 @@ const HomeScreen = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate("ProfileNavigator")}
             >
-              <View
-                style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}
-              >
-                <Text style={tw`text-white font-bold`}>U</Text>
-              </View>
+              {profilePicture ? (
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={tw`w-8 h-8 rounded-full`}
+                />
+              ) : (
+                <View
+                  style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}
+                >
+                  <Text style={tw`text-white font-bold`}>U</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -122,30 +145,24 @@ const HomeScreen = () => {
         </View>
         {recentWorkout ? (
           <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
-            {/* <Text style={tw`text-xl font-bold text-black-600`}>{recentWorkout?.title}</Text>
-            <View
-                    style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
-                  >
-                    <MaterialIcons
-                      name={recentWorkout?.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
-                      size={24}
-                      color="purple"
-                    />
-                  </View> */}
-                  <View style={tw`flex-row items-center justify-between mb-2`}>
-                  <Text style={tw`text-xl font-bold text-black-600`}>
-                    {recentWorkout?.title}
-                  </Text>
-                  <View
-                    style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
-                  >
-                    <MaterialIcons
-                      name={recentWorkout?.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
-                      size={24}
-                      color="purple"
-                    />
-                  </View>
-                </View>
+            <View style={tw`flex-row items-center justify-between mb-2`}>
+              <Text style={tw`text-xl font-bold text-black-600`}>
+                {recentWorkout?.title}
+              </Text>
+              <View
+                style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
+              >
+                <MaterialIcons
+                  name={
+                    recentWorkout?.type === "MANUAL"
+                      ? "keyboard"
+                      : "multitrack-audio"
+                  }
+                  size={24}
+                  color="purple"
+                />
+              </View>
+            </View>
             <View style={tw`flex-row items-center mt-2`}>
               <Icon name="calendar" size={12} color="gray" />
               <Text style={tw`text-xs text-gray-500 ml-1 mt-2`}>
@@ -238,7 +255,6 @@ const ProfileStack = () => (
       component={ProfileNavigator}
       options={{ headerShown: false }}
     />
-    {/* You can add other screens related to profile navigation here */}
   </Stack.Navigator>
 );
 
