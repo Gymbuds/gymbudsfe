@@ -50,12 +50,16 @@ const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-
   useFocusEffect(
     useCallback(() => {
       fetchWorkoutLogs()
         .then((data) => {
-          setWorkouts(data);
+          // Sort workouts by created_at field in descending order
+          const sortedWorkouts = data.sort((a: Workout, b: Workout) => 
+            b.id - a.id
+          );
+          
+          setWorkouts(sortedWorkouts);
         })
         .catch((error) => {
           console.error("Error fetching workouts:", error);
@@ -173,12 +177,12 @@ const HomeScreen = () => {
             </View>
             <View style={tw`flex-row justify-between items-center mt-3`}>
               <View style={tw`flex-row`}>
-                <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
+                <View style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
                   <Text style={tw`text-xs`}>{recentWorkout?.type}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg`}>
+                </View>
+                <View style={tw`bg-gray-300 p-2 rounded-lg`}>
                   <Text style={tw`text-xs`}>{recentWorkout?.mood}</Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
