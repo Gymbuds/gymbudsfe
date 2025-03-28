@@ -8,6 +8,7 @@ import {
   Switch,
   ScrollView,
   Dimensions, 
+  ActivityIndicator,
 } from "react-native";
 import { SimpleLineIcons, Feather } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -43,11 +44,22 @@ export default function AiAdviceScreen({navigation}: Props) {
   const [isLightSwitchOn,setIsLightSwitchOn] = useState(false);
   const [label,setLabel] = useState('');
   const [AIAdvices,setAIAdvices] = useState<AIAdvice[]>([]);
+  const [isLoading,setIsLoading] = useState(false);
   const handlePressGenerate = async() => {
     console.log("Generating recommendation for:", selectedValue,isLightSwitchOn);
-    const res = await createAIAdvice(selectedValue,isLightSwitchOn)
+    try{
+      setIsLoading(true)
+      setAiModelOpen(false)
+      await createAIAdvice(selectedValue,isLightSwitchOn)
+    }
+    catch(error){
+      console.error("Error with request")
+    }
+    finally{
+      setIsLoading(false)
+    }
     await getAIADvices()
-    setAiModelOpen(false);
+    
     
   };
   const toggleSwitch = () =>{
@@ -100,6 +112,9 @@ export default function AiAdviceScreen({navigation}: Props) {
         </Text>
       </TouchableOpacity>
       <ScrollView>
+          {isLoading&&(
+            <ActivityIndicator size="small" color="#0000ff" ></ActivityIndicator>
+          )}
           {/* Map through sorted workouts */}
           {AIAdvices.map((advice: AIAdvice, index) => (
               <View
