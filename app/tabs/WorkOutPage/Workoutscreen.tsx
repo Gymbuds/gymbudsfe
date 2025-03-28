@@ -111,7 +111,7 @@ export default function Workoutscreen({ navigation }: Props) {
   const sortWorkouts = () => {
     if (fetchWorkout) {
       const sorted = [...fetchWorkout].sort((a, b) =>
-        a.title.localeCompare(b.title)
+        b.title.localeCompare(a.title)
       );
       setFetchWorkout(sorted);
     }
@@ -282,7 +282,6 @@ export default function Workoutscreen({ navigation }: Props) {
               selectedOption === "manual" ? "bg-purple-500" : "bg-gray-300"
             }`}
             onPress={() => setSelectedOption("manual")}
-            // onPress={() => setManualModalVisible(true)}
           >
             <MaterialIcons
               name="keyboard"
@@ -328,7 +327,7 @@ export default function Workoutscreen({ navigation }: Props) {
       </Text>
         <ScrollView>
           {/* Map through sorted workouts */}
-          {filteredWorkouts.map((workout: Workout, index) => (
+          {[...filteredWorkouts].reverse().map((workout: Workout, index) => (
             <Swipeable
               key={index}
               renderRightActions={() =>

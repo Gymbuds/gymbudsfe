@@ -11,7 +11,7 @@ export const fetchFunctionWithAuth = async(endpoint:string,options) => {
 
     const auth_token =  await AsyncStorage.getItem('userToken');
     const refresh_token = await AsyncStorage.getItem('refreshToken');
-    console.log("ehre")
+    // console.log("ehre")
     const auth_res = await fetch(`${BASE_URL}/auth/check-auth`,{
         method: "POST",
         headers: { "Content-Type": "application/json" },

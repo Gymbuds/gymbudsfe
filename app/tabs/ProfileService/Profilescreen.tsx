@@ -169,19 +169,18 @@ export default function ProfileScreen({ navigation }: Props) {
       });
 
       if (response.success) {
-        console.log("✅ Profile updated successfully:", response.user);
-
+        
         // Check if the profile picture was successfully updated
         if (response.user?.profile_picture === profilePictureUrl) {
-          console.log("�� Profile picture update: true");
+          // console.log("�� Profile picture update: true");
         } else {
-          console.log("❌ Profile picture update: false");
+          // console.log("❌ Profile picture update: false");
         }
       } else {
-        console.error("❌ Failed to update profile:", response);
+        // console.error("❌ Failed to update profile:", response);
       }
     } catch (error) {
-      console.error("❌ Error updating profile:", error);
+      // console.error("❌ Error updating profile:", error);
     }
   };
 

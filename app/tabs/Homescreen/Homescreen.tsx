@@ -294,7 +294,7 @@ export default function MainTabs() {
           ),
         }}
       />
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Match"
         component={MatchStack}
         options={{
@@ -302,7 +302,7 @@ export default function MainTabs() {
             <Icon name="users" size={24} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="ProfileNavigator"
         component={ProfileStack}
