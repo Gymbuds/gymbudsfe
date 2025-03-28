@@ -18,7 +18,7 @@ export const userHealthData = () => {
         setHealthKitAvailable(true);
       }
     });
-  
+
     const checkConsentStatus = async () => {
       const consent = await AsyncStorage.getItem("hasConsented");
       if (consent === "true") {
@@ -27,10 +27,10 @@ export const userHealthData = () => {
         setHasConsented(false);
       }
     };
-    
+
     checkConsentStatus();
   }, []);
-  
+
   useEffect(() => {
     if (hasConsented) {
       fetchHealthData(); // Fetch health data only if consent is true
@@ -114,7 +114,7 @@ export const userHealthData = () => {
                 (acc, curr) => acc + curr.value,
                 0
               );
-              resolve(totalSteps);
+              resolve(Math.floor(totalSteps));
             }
           }
         );
@@ -232,35 +232,37 @@ export const userHealthData = () => {
             } else {
               // Sort active minutes data chronologically
               const sortedActiveData = results.sort(
-                (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+                (a, b) =>
+                  new Date(a.startDate).getTime() -
+                  new Date(b.startDate).getTime()
               );
-      
+
               let totalActiveMinutes = 0;
               let lastEndTime = null;
-      
+
               for (const entry of sortedActiveData) {
                 const start = new Date(entry.startDate).getTime();
                 const end = new Date(entry.endDate).getTime();
-      
+
                 // Convert entry.value from seconds to minutes if needed
                 const minutes = entry.value / 60; // Assuming entry.value is in seconds
-      
+
                 // Only add non-overlapping active durations
                 if (!lastEndTime || start >= lastEndTime) {
                   totalActiveMinutes += minutes;
                 } else if (end > lastEndTime) {
                   totalActiveMinutes += minutes;
                 }
-      
+
                 lastEndTime = Math.max(lastEndTime || 0, end);
               }
-      
+
               resolve(Math.round(totalActiveMinutes)); // Round to the nearest whole minute
             }
           }
         );
       });
-      setActiveMins(activeMins);      
+      setActiveMins(activeMins);
 
       // Sending data to backend
       setTimeout(() => {
@@ -271,13 +273,13 @@ export const userHealthData = () => {
           sleep_duration: sleepDuration || 0,
           active_mins: activeMins || 0,
         };
-  
+
         console.log("Steps:", stepCount);
         console.log("Calories Burnt:", caloriesBurned);
         console.log("Avg Heart Rate:", avgHeartRate);
         console.log("Sleep Duration:", sleepDuration);
         console.log("Active Minutes:", activeMins);
-    
+
         // Check if values are properly fetched before sending
         if (
           stepCount !== null &&
@@ -291,25 +293,38 @@ export const userHealthData = () => {
         } else {
           console.warn("Incomplete health data, not sending:", healthData);
         }
-      }, 1000); // 1-second delay 
-
+      }, 1000); // 1-second delay
     } catch (err) {
       console.error("Error fetching health data:", err);
     }
   };
 
   const sendHealthDataToBackend = async (healthData: any) => {
-    if (!healthKitAvailable) return;
-
+    const today = new Date().toISOString().split("T")[0];
+    console.log("Checking existing health data for:", today);
+  
     try {
-      await fetchFunctionWithAuth("health_datas/", {
-        method: "POST",
+      const response = await fetchFunctionWithAuth(`health_datas/${today}`, {
+        method: "GET",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(healthData),
       });
-      console.log("Health data sent successfully");
+      console.log("Response object:", response);
+  
+       if (response && response.id) {
+        await fetchFunctionWithAuth(`health_datas/${response.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(healthData),
+        });
+        console.log("Updated today's health data.");
+      }
     } catch (error) {
-      console.error("Error sending health data:", error);
+      await fetchFunctionWithAuth("health_datas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...healthData, date: today }),
+        });
+        console.log("Created new health data entry.");
     }
   };
 

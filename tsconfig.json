@@ -13,7 +13,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "react-native-healthd.ts"
   ],
   "extends": "./node_modules/expo/tsconfig.base"
 }

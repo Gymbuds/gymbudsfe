@@ -63,11 +63,33 @@ export default function ProfileScreen({ navigation }: Props) {
     requestAuthorization,
     fetchHealthData,
   } = userHealthData();
-  // useEffect(() => {
-  //   if (hasConsented && healthKitAvailable) {
-  //     fetchHealthData(); // Fetch health data when page mounts
-  //   }
-  // }, [hasConsented, healthKitAvailable]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch health data if the user has consented
+      if (hasConsented) {
+        fetchHealthData();
+      }
+  
+      // Load user profile data
+      loadUserProfile();
+  
+      // Fetch user time ranges
+      const getUserTimeRanges = async () => {
+        try {
+          const data = await fetchFunctionWithAuth("avalrange", {
+            method: "GET",
+          });
+          setTimeRanges(data);
+        } catch (error) {
+          console.error("Failed to fetch user time ranges", error);
+        }
+      };
+  
+      getUserTimeRanges();
+  
+    }, [hasConsented])
+  );
 
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
@@ -95,35 +117,6 @@ export default function ProfileScreen({ navigation }: Props) {
       console.error("Error loading user profile:", error);
     }
   };
-
-  useEffect(() => {
-    loadUserProfile(); // Load user data on component mount
-  }, []);
-
-  useEffect(() => {
-    if (modalVisible) {
-      loadUserProfile(); // Fetch user data when modal opens
-    }
-  }, [modalVisible]); // Runs when modalVisible changes
-
-  useFocusEffect(
-    useCallback(() => {
-      const getUserTimeRanges = async () => {
-        try {
-          const data = await fetchFunctionWithAuth("avalrange", {
-            method: "GET",
-          });
-          setTimeRanges(data);
-        } catch (error) {
-          console.error("Failed to fetch user time ranges", error);
-        }
-      };
-
-      getUserTimeRanges();
-
-      return () => {};
-    }, [])
-  );
 
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {
@@ -428,14 +421,6 @@ export default function ProfileScreen({ navigation }: Props) {
                   ? ` ${Math.floor(activeMins / 60)}h ${activeMins % 60}m`
                   : "N/A"}
               </Text>
-              <TouchableOpacity
-                style={tw`mt-4 bg-blue-500 px-4 py-2 rounded-lg`}
-                onPress={fetchHealthData}
-              >
-                <Text style={tw`text-white text-center font-semibold`}>
-                  Refresh Data
-                </Text>
-              </TouchableOpacity>
             </>
           ) : (
             <View>
