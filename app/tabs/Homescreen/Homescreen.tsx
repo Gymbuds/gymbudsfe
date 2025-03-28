@@ -17,7 +17,7 @@ import tw from "twrnc";
 import ProfileNavigator from "../ProfileService/Profilenavigation";
 import Mapscreen from "../MapScreen/Mapscreen";
 import Matchscreen from "../MatchScreen/Matchscreen";
-import WorkoutNavigator from "../WorkOutPage/WorkoutNavigation";
+import WorkoutNavigator from "../WorkOutPage/Workoutnavigation";
 import { format } from "date-fns";
 import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
 import { MaterialIcons } from "@expo/vector-icons";

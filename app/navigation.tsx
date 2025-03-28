@@ -8,7 +8,7 @@ import ResetCodescreen from "./frontscreen/ResetCodescreen";
 import ChangePasswordscreen from "./frontscreen/ChangePasswordscreen";
 import Homescreen from "./tabs/HomeScreen/Homescreen";
 import ProfileNavigator from "./tabs/ProfileService/Profilenavigation";
-import WorkoutNavigator from "./tabs/WorkOutPage/WorkoutNavigation";
+import WorkoutNavigator from "./tabs/WorkOutPage/Workoutnavigation";
 
 
 // Define the types for the screens
