@@ -1,13 +1,303 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
-import tw from "twrnc";
-export default function Mapscreen() {
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text , TextInput , ScrollView , TouchableOpacity , Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MapView, { Marker, Callout } from 'react-native-maps';
+import * as Location from 'expo-location';
+import { LinearGradient } from 'expo-linear-gradient';
+import tw from 'twrnc';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+// Types for Places API
+type DisplayNameObject = {
+  text: string;
+  languageCode?: string;
+};
+
+type PlaceLocation = {
+  latLng?: {
+    latitude: number;
+    longitude: number;
+  };
+  latitude?: number;
+  longitude?: number;
+};
+
+type Place = {
+  displayName?: DisplayNameObject;
+  formattedAddress?: string;
+  location?: PlaceLocation;
+};
+
+export default function MapScreen() {
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const apiKey = 'AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A';
+
+  // Ref to the MapView
+  const mapRef = useRef<MapView | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      // Request permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+      // Get current location
+      const currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation);
+
+      // Initially load gyms near the user
+      searchNearbyGyms(currentLocation);
+    })();
+  }, []);
+
+  /** Extract coordinates from the place object, handling either location.latLng or location.latitude. */
+  const getCoordinates = (place: Place) => {
+    if (
+      place.location?.latLng &&
+      typeof place.location.latLng.latitude === 'number' &&
+      typeof place.location.latLng.longitude === 'number'
+    ) {
+      return {
+        latitude: place.location.latLng.latitude,
+        longitude: place.location.latLng.longitude
+      };
+    } else if (
+      place.location &&
+      typeof place.location.latitude === 'number' &&
+      typeof place.location.longitude === 'number'
+    ) {
+      return {
+        latitude: place.location.latitude,
+        longitude: place.location.longitude
+      };
+    }
+    return null;
+  };
+
+  /** Nearby Search (New) - automatically sorted by distance. */
+  const searchNearbyGyms = async (userLocation: Location.LocationObject | null) => {
+    if (!userLocation) return;
+    const fieldMask = 'places.displayName,places.formattedAddress,places.location';
+    const endpoint = 'https://places.googleapis.com/v1/places:searchNearby';
+    const { latitude, longitude } = userLocation.coords;
+    const radiusMeters = 3000;
+
+    const body = {
+      maxResultCount: 20,
+      rankPreference: 'DISTANCE',
+      includedTypes: ['gym'],
+      locationRestriction: {
+        circle: {
+          center: { latitude, longitude },
+          radius: radiusMeters
+        }
+      }
+    };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': fieldMask
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      console.log('Nearby Search (New) response:', data);
+
+      if (data.error) {
+        console.error('Places API error:', data.error.message);
+        setPlaces([]);
+      } else if (data.places) {
+        setPlaces(data.places);
+      } else {
+        setPlaces([]);
+      }
+    } catch (error) {
+      console.error('Error searching nearby gyms:', error);
+    }
+  };
+
+  /** Text Search (New) - for arbitrary user queries. */
+  const searchPlacesNew = async (query: string, loc?: Location.LocationObject) => {
+    const userLocation = loc || location;
+    if (!userLocation) return;
+    const fieldMask = 'places.displayName,places.formattedAddress,places.location';
+    const endpoint = 'https://places.googleapis.com/v1/places:searchText';
+    const { latitude, longitude } = userLocation.coords;
+
+    const textQuery = `${query.trim() || 'gym'} near ${latitude},${longitude}`;
+
+    const body = {
+      textQuery,
+      includedType: 'gym',
+      strictTypeFiltering: true,
+    };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': fieldMask
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      console.log('Text Search (New) response:', data);
+
+      if (data.error) {
+        console.error('Places API error:', data.error.message);
+        setPlaces([]);
+      } else if (data.places) {
+        setPlaces(data.places);
+      } else {
+        setPlaces([]);
+      }
+    } catch (error) {
+      console.error('Error searching places (New):', error);
+    }
+  };
+
+  /** Fit map to all markers whenever `places` changes. */
+  useEffect(() => {
+    if (places.length > 0 && mapRef.current) {
+      const coords = places
+        .map(getCoordinates)
+        .filter((c): c is { latitude: number; longitude: number } => c !== null);
+
+      if (coords.length > 0) {
+        mapRef.current.fitToCoordinates(coords, {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true
+        });
+      }
+    }
+  }, [places]);
+
+  if (!location) {
+    return (
+      <View style={tw`flex-1 justify-center items-center`}>
+        <Text>Loading your location...</Text>
+        {errorMsg && <Text style={tw`text-red-500`}>{errorMsg}</Text>}
+      </View>
+    );
+  }
+
+  // Initial region
+  const initialRegion = {
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05
+  };
+
   return (
-    <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-    <View>
-      <Text>Mapscreen</Text>
-    </View>
+    <SafeAreaView style={tw`flex-1`}>
+      <LinearGradient colors={['#F2ECFF', '#E5D4FF']} style={tw`flex-1`}>
+
+        {/* Search Container */}
+        <View style={tw`px-4 pt-4`}>
+          <Text style={tw`text-base font-bold mb-2`}>Search</Text>
+          <TextInput
+            style={tw`bg-white rounded-lg px-4 py-2 mb-4`}
+            placeholder="Search for gyms..."
+            placeholderTextColor="#B5B0B0"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={() => searchPlacesNew(searchQuery)}
+          />
+        </View>
+
+        {/* Map Section */}
+        <View style={tw`flex-1`}>
+          <MapView
+            ref={mapRef}
+            style={tw`flex-1`}
+            initialRegion={initialRegion}
+            showsUserLocation
+          >
+            {places.map((place, idx) => {
+              const coords = getCoordinates(place);
+              if (!coords) return null;
+
+              const displayNameText = place.displayName?.text ?? 'Unknown Gym';
+
+              return (
+                <Marker key={idx} coordinate={coords}>
+                  <Callout tooltip>
+                    <View style={tw`bg-white p-2 rounded shadow-lg`}>
+                      <Text style={tw`font-bold text-base`}>{displayNameText}</Text>
+                      {place.formattedAddress && (
+                        <Text style={tw`text-xs text-gray-700`}>
+                          {place.formattedAddress}
+                        </Text>
+                      )}
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
+          </MapView>
+
+          {/* A custom "locate me" button. Tapping it re-centers the map on the user location. */}
+          <View style={tw`absolute top-5 right-4 z-10`}>
+            <TouchableOpacity
+              style={tw`bg-purple-500 p-3 rounded-full`}
+              onPress={() => {
+                if (location && mapRef.current) {
+                  mapRef.current.animateToRegion({
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05
+                  });
+                }
+              }}
+            >
+              <Icon name="location-arrow" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* List Section */}
+        <View style={tw`bg-white p-4`}>
+          <View style={tw`flex-row items-center justify-between mb-2`}>
+            <Text style={tw`text-lg font-bold`}>Nearby Gyms</Text>
+            <TouchableOpacity onPress={() => searchPlacesNew(searchQuery)}>
+              <Icon name="filter" size={20} color="gray" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={tw`max-h-40`}>
+            {places.map((place, idx) => {
+              const displayNameText = place.displayName?.text ?? 'Unknown Gym';
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={tw`p-4 border-b border-gray-300`}
+                  onPress={() => console.log(`Selected: ${displayNameText}`)}
+                >
+                  <Text style={tw`font-bold`}>{displayNameText}</Text>
+                  {place.formattedAddress && (
+                    <Text style={tw`text-xs text-gray-600`}>
+                      {place.formattedAddress}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+      </LinearGradient>
     </SafeAreaView>
-  )
+  );
 }
