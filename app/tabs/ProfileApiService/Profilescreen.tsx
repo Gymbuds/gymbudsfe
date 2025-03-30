@@ -59,6 +59,7 @@ export default function ProfileScreen({ navigation }: Props) {
     sleepDuration,
     activeMins,
     hasConsented,
+    setHasConsented,
     healthKitAvailable,
     requestAuthorization,
     fetchHealthData,
@@ -83,9 +84,20 @@ export default function ProfileScreen({ navigation }: Props) {
 
       getUserTimeRanges();
 
+      // Checked stored consent status
+      const checkConsentStatus = async () => {
+          const consent = await AsyncStorage.getItem("hasConsented");
+          console.log("ASYC STATUS:", consent);
+          setHasConsented(consent === "true");
+      };
+      
       // Fetch user health data
-      fetchHealthData();
-    }, [])
+      checkConsentStatus().then(() => {
+        if (hasConsented && healthKitAvailable) {
+          fetchHealthData();
+        }
+      });
+    }, [hasConsented])
   );
 
   // Fetch user profile data from backend

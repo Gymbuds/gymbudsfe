@@ -35,14 +35,6 @@ export const userHealthData = () => {
         console.log("HealthKit is NOT available.");
       }
     });
-
-    // const checkConsentStatus = async () => {
-    //   const consent = await AsyncStorage.getItem("hasConsented");
-    //   console.log("ASYNC STATUS:",consent);
-    //   setHasConsented(consent === "true");
-    // };
-
-    // checkConsentStatus();
   }, []);
 
   const requestAuthorization = async () => {
@@ -264,7 +256,7 @@ export const userHealthData = () => {
       if (allValuesZero) {
         console.warn("All health data values are 0. Consent revoked.");
         setHasConsented(false);
-        // await AsyncStorage.setItem("hasConsented", "false");
+        await AsyncStorage.setItem("hasConsented", "false");
 
         Alert.alert(
           "Permissions Required",
@@ -277,7 +269,7 @@ export const userHealthData = () => {
 
       console.log("Health data validated, sending to backend:", healthData);
       setHasConsented(true);
-      // await AsyncStorage.setItem("hasConsented", "true");
+      await AsyncStorage.setItem("hasConsented", "true");
       sendHealthDataToBackend(healthData);
     } catch (err) {
       console.error("Error fetching health data:", err);
@@ -320,6 +312,7 @@ export const userHealthData = () => {
     sleepDuration,
     activeMins,
     hasConsented,
+    setHasConsented,
     healthKitAvailable,
     requestAuthorization,
     fetchHealthData,
