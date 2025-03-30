@@ -1,5 +1,6 @@
 import { fetchFunctionWithAuth } from "@/api/auth";
 import { useState, useEffect } from "react";
+import { Alert } from "react-native";
 import AppleHealthKit from "react-native-health";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -12,7 +13,7 @@ export const userHealthData = () => {
   const [healthKitAvailable, setHealthKitAvailable] = useState(false);
   const [hasConsented, setHasConsented] = useState(false);
   const permissions = {
-    permissions: { 
+    permissions: {
       read: [
         AppleHealthKit.Constants.Permissions.StepCount,
         AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
@@ -23,7 +24,7 @@ export const userHealthData = () => {
       write: [],
     },
   };
-  
+
   useEffect(() => {
     console.log("Checking if HealthKit is available...");
     AppleHealthKit.isAvailable((err, available) => {
@@ -34,34 +35,22 @@ export const userHealthData = () => {
         console.log("HealthKit is NOT available.");
       }
     });
-  
-    const checkConsentStatus = async () => {
-      const consent = await AsyncStorage.getItem("hasConsented");
-      setHasConsented(consent === "true");
-    };
-  
-    checkConsentStatus();
-  }, []); 
-  
-  useEffect(() => {
-    if (!healthKitAvailable) return; // Only run if HealthKit is available
-  
-    console.log("HealthKit available, checking permissions...");
-    checkPermissions(); // Run immediately when HealthKit becomes available
-  
-    const interval = setInterval(() => {
-      checkPermissions();
-    }, 5000); // Check permissions every 5 seconds
-  
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [healthKitAvailable]); // Only run when `healthKitAvailable` changes
-  
+
+    // const checkConsentStatus = async () => {
+    //   const consent = await AsyncStorage.getItem("hasConsented");
+    //   console.log("ASYNC STATUS:",consent);
+    //   setHasConsented(consent === "true");
+    // };
+
+    // checkConsentStatus();
+  }, []);
+
   const requestAuthorization = async () => {
     if (!healthKitAvailable) {
       console.log("HealthKit is not available on this device.");
       return;
     }
-  
+
     console.log("Requesting HealthKit authorization...");
     AppleHealthKit.initHealthKit(permissions, async (err) => {
       if (err) {
@@ -69,101 +58,17 @@ export const userHealthData = () => {
         return;
       }
       console.log("HealthKit initialized. Checking authorization...");
-      checkPermissions(); // Run check immediately after requesting
-    });
-  };
-  
-  const checkPermissions = async () => {
-    if (!healthKitAvailable) {
-      console.log("HealthKit is not available on this device.");
-      return;
-    }
-  
-    console.log("Checking HealthKit authorization status...");
-  
-    AppleHealthKit.getAuthStatus(permissions, async (err, result) => {
-      if (err) {
-        console.log("Error checking HealthKit authorization status:", err);
-        setHasConsented(false);
-        return;
-      }
-  
-      console.log("Authorization status:", JSON.stringify(result, null, 2));
-
-      const grantedPermissions = result.permissions.read || {};
-      const requiredPermissions = permissions.permissions.read;
-  
-      // Check if ALL required permissions are granted
-      const missingPermissions = requiredPermissions.filter(
-        (_, index) => grantedPermissions[index] !== 1
-      );           
-  
-      if (missingPermissions.length === 0) {
-        console.log("All required permissions granted.");
-        setHasConsented(true);
-        await AsyncStorage.setItem("hasConsented", "true");
-      } else {
-        console.log("Missing Permissions:", missingPermissions);
-        setHasConsented(false);
-        await AsyncStorage.setItem("hasConsented", "false");
-      }
+      fetchHealthData();
     });
   };
 
-  // const checkPermissions = async () => {
-  //   if (!healthKitAvailable) {
-  //     console.log("HealthKit is not available on this device.");
-  //     return;
-  //   }
-  //   console.log("Checking HealthKit authorization status...");
-  //   // Define the functions to check each permission
-  //   const permissionChecks = [
-  //     { key: "StepCount", func: AppleHealthKit.getStepCount },
-  //     { key: "ActiveEnergyBurned", func: AppleHealthKit.getActiveEnergyBurned },
-  //     { key: "HeartRate", func: AppleHealthKit.getHeartRateSamples },
-  //     { key: "SleepAnalysis", func: AppleHealthKit.getSleepSamples },
-  //     { key: "AppleExerciseTime", func: AppleHealthKit.getAppleExerciseTime },
-  //   ];
-  //   let hasAllPermissions = true;
-  //   let missingPermissions: string[] = [];
-  //   // Attempt to read data for each permission
-  //   for (const perm of permissionChecks) {
-  //     try {
-  //       await new Promise((resolve, reject) => {
-  //         perm.func({ startDate: new Date().toISOString() }, (err, result) => {
-  //           if (err || !result ) {
-  //             console.log(`${perm.key} access denied.`);
-  //             missingPermissions.push(perm.key);
-  //             hasAllPermissions = false;
-  //             reject(err);
-  //           } else {
-  //             console.log(`${perm.key} access granted.`);
-  //             console.log(err, result);
-  //             resolve(result);
-  //           }
-  //         });
-  //       });
-  //     } catch {
-  //     }
-  //   }
-  //   if (hasAllPermissions) {
-  //     console.log("All required permissions granted.");
-  //     setHasConsented(true);
-  //     await AsyncStorage.setItem("hasConsented", "true");
-  //   } else {
-  //     console.log("Missing Permissions:", missingPermissions);
-  //     setHasConsented(false);
-  //     await AsyncStorage.setItem("hasConsented", "false");
-  //   }
-  // };  
-  
   useEffect(() => {
     console.log("hasConsented updated:", hasConsented);
   }, [hasConsented]);
-  
+
   const fetchHealthData = async () => {
     console.log("Fetching health data...");
-    if (!hasConsented || !healthKitAvailable) return;
+    if (!hasConsented && !healthKitAvailable) return;
 
     const startDate = new Date();
     startDate.setHours(0, 0, 0, 0);
@@ -339,35 +244,41 @@ export const userHealthData = () => {
       setActiveMins(activeMins);
 
       // Sending data to backend
-      setTimeout(() => {
-        const healthData = {
-          steps: stepCount || 0,
-          calories_burnt: caloriesBurned || 0,
-          avg_heart_rate: avgHeartRate || 0,
-          sleep_duration: sleepDuration || 0,
-          active_mins: activeMins || 0,
-        };
+      const healthData = {
+        steps: stepCount || 0,
+        calories_burnt: caloriesBurned || 0,
+        avg_heart_rate: avgHeartRate || 0,
+        sleep_duration: sleepDuration || 0,
+        active_mins: activeMins || 0,
+      };
 
-        console.log("Steps:", stepCount);
-        console.log("Calories Burnt:", caloriesBurned);
-        console.log("Avg Heart Rate:", avgHeartRate);
-        console.log("Sleep Duration:", sleepDuration);
-        console.log("Active Minutes:", activeMins);
+      console.log("Steps:", stepCount);
+      console.log("Calories Burnt:", caloriesBurned);
+      console.log("Avg Heart Rate:", avgHeartRate);
+      console.log("Sleep Duration:", sleepDuration);
+      console.log("Active Minutes:", activeMins);
 
-        // Check if values are properly fetched before sending
-        if (
-          stepCount !== null &&
-          caloriesBurned !== null &&
-          avgHeartRate !== null &&
-          sleepDuration !== null &&
-          activeMins !== null
-        ) {
-          console.log("Health data validated, sending to backend:", healthData);
-          sendHealthDataToBackend(healthData);
-        } else {
-          console.warn("Incomplete health data, not sending:", healthData);
-        }
-      }, 1000); // 1-second delay
+      // Check if all values are 0
+      const allValuesZero = Object.values(healthData).every((val) => val === 0);
+
+      if (allValuesZero) {
+        console.warn("All health data values are 0. Consent revoked.");
+        setHasConsented(false);
+        // await AsyncStorage.setItem("hasConsented", "false");
+
+        Alert.alert(
+          "Permissions Required",
+          "Health data permissions are off. Please enable them in Settings.",
+          [{ text: "OK" }]
+        );
+
+        return; // Do not send data
+      }
+
+      console.log("Health data validated, sending to backend:", healthData);
+      setHasConsented(true);
+      // await AsyncStorage.setItem("hasConsented", "true");
+      sendHealthDataToBackend(healthData);
     } catch (err) {
       console.error("Error fetching health data:", err);
     }
@@ -376,15 +287,15 @@ export const userHealthData = () => {
   const sendHealthDataToBackend = async (healthData: any) => {
     const today = new Date().toISOString().split("T")[0];
     console.log("Checking existing health data for:", today);
-  
+
     try {
       const response = await fetchFunctionWithAuth(`health_datas/${today}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
       console.log("Response object:", response);
-  
-       if (response && response.id) {
+
+      if (response && response.id) {
         await fetchFunctionWithAuth(`health_datas/${response.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -394,11 +305,11 @@ export const userHealthData = () => {
       }
     } catch (error) {
       await fetchFunctionWithAuth("health_datas", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...healthData, date: today }),
-        });
-        console.log("Created new health data entry.");
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...healthData, date: today }),
+      });
+      console.log("Created new health data entry.");
     }
   };
 

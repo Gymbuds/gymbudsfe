@@ -84,10 +84,8 @@ export default function ProfileScreen({ navigation }: Props) {
       getUserTimeRanges();
 
       // Fetch user health data
-      if (hasConsented && healthKitAvailable) {
-        fetchHealthData();
-      }
-    }, [hasConsented])
+      fetchHealthData();
+    }, [])
   );
 
   // Fetch user profile data from backend
@@ -426,6 +424,18 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={tw`text-sm text-gray-500 mt-2`}>
                 Health data is unavailable. Please check your permissions.
               </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                To allow access, go to Settings {" > "} Apps {" > "} Health{" "}
+                {" > "} Data Access & Devices {" > "} GymBudFrontend.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Then, tap "Grant Permission" to enable health data.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Note: You will only be prompted for permissions once. To change
+                them later, update your settings manually.
+              </Text>
+
               <TouchableOpacity
                 style={tw`bg-blue-500 p-2 mt-2 rounded-lg`}
                 onPress={requestAuthorization}
