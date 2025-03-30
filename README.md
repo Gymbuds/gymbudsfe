@@ -34,9 +34,14 @@ If you do not want to run the app on your physical device, you are also able to 
 
 
 Migrating to Expo Dev Client:
+- Ensure Developer Mode on physical iPhone enabled
+
 1. Install Expo Dev Client- expo install expo-dev-client
 2. Eject- expo prebuild
-3. npm install 
-4. Install CocoaPods- brew install cocoapods, then cd ios && pod install && cd ..
-5. Enable Signing & Capabilities → Signing (Enable Development Team)
-6. npx expo start --clear, make build on XCode with your physical device (have developer mode on)
+3. Install HealthKit Library- npm install react-native-health r
+4. Install CocoaPods- (mac) brew install cocoapods
+5. Intialize CocaPods depdencies- cd ios && pod install && cd ..
+6. Enable HealthKit in Xcode-   Click on gymbudfrontend -> Signing & Capabilities → HealthKit (Enable Development Team in 'Signing')
+- Ensure that bundler identifier is unique !!! 
+7. Add Permissions in Info.plist- NSHealthUpdateUsageDescription: Allow GymBuds to track your health data & NSHealthShareUsageDescription: Allow GymBuds to access your health data.
+8. npx expo start --clear, make build on XCode with your physical device. 
