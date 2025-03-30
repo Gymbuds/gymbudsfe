@@ -6,7 +6,7 @@ import Signupscreen from "./frontscreen/Signupscreen";
 import ForgotPasswordscreen from "./frontscreen/ForgotPasswordscreen";
 import ResetCodescreen from "./frontscreen/ResetCodescreen";
 import ChangePasswordscreen from "./frontscreen/ChangePasswordscreen";
-import Homescreen from "./tabs/HomeScreen/Homescreen";
+import Homescreen from "./tabs/Homescreen/Homescreen";
 import ProfileNavigator from "./tabs/ProfileApiService/profile-navigation";
 
 // Define the types for the screens
