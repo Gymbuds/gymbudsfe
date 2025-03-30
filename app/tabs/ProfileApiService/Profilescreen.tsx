@@ -66,14 +66,9 @@ export default function ProfileScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      // Fetch health data if the user has consented
-      if (hasConsented) {
-        fetchHealthData();
-      }
-  
       // Load user profile data
       loadUserProfile();
-  
+
       // Fetch user time ranges
       const getUserTimeRanges = async () => {
         try {
@@ -85,9 +80,13 @@ export default function ProfileScreen({ navigation }: Props) {
           console.error("Failed to fetch user time ranges", error);
         }
       };
-  
+
       getUserTimeRanges();
-  
+
+      // Fetch user health data
+      if (hasConsented && healthKitAvailable) {
+        fetchHealthData();
+      }
     }, [hasConsented])
   );
 

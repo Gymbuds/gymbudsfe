@@ -24,17 +24,25 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigation() {
-  const [initialRoute, setInitialRoute] = useState<'Signup' | 'Home'>('Signup');
+  const [initialRoute, setInitialRoute] = useState<'Signup' | 'Home' | null>(null);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
         setInitialRoute('Home'); // If token exists, go to Home
+      } else {
+        setInitialRoute('Signup'); // No token, go to Signup
       }
     };
+
     checkLoginStatus();
   }, []);
+
+  if (initialRoute === null) {
+    // Show a loading screen or placeholder while checking the token
+    return null; // Or return a loading indicator
+  }
 
   return (
     <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
