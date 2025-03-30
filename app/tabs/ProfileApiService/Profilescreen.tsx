@@ -14,7 +14,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchFunction, fetchFunctionWithAuth } from "@/api/auth";
+import { fetchFunctionWithAuth } from "@/api/auth";
 import { TimeRange } from "@/app/tabs/ProfileApiService/UserSchedule";
 import * as ImagePicker from "expo-image-picker"; // For selecting profile picture
 import AsyncStorage from "@react-native-async-storage/async-storage";
