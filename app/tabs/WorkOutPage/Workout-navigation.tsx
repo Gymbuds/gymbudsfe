@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Workoutscreen from "./Workoutscreen";
 import WorkoutLogPage from "./WorkoutLogPage";
 import ExistingWorkoutLogPage from "./ExistingWorkoutLogPage";
-import AiAdviceScreen from "./AiAdviceScreen";
+import AiAdviceScreen from "../AiAdvice/AiAdviceScreen";
 
 type Workout = {
   exercise: string;

@@ -28,6 +28,7 @@ type RootStackParamList = {
   AiAdvice: undefined;
 };
 type AIAdviceType = "WORKOUT_ADVICE" |"WORKOUT_OPTIMIZATION"|"RECOVERY_ANALYSIS"|"PERFORMANCE_TRENDS"|"MUSCLE_BALANCE"|"GOAL_ALIGNMENT";
+
 type AIAdvice = {
   id:number;
   advice_type:AIAdviceType;
@@ -73,9 +74,7 @@ export default function AiAdviceScreen({navigation}: Props) {
   useEffect(()=>{
     getAIADvices()
   },[])
-  useEffect(()=>{
-    console.log(AIAdvices)
-  },[AIAdvices])
+  
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -123,7 +122,7 @@ export default function AiAdviceScreen({navigation}: Props) {
               >
                 <View style={tw`flex-row items-center justify-between mb-2`}>
                   <Text style={tw`text-xl font-bold text-black-600`}>
-                    {advice.advice_type}
+                    {advice.advice_type.charAt(0).toUpperCase() + advice.advice_type.substring(1,advice.advice_type.length).toLowerCase().replace("_"," ")}
                   </Text>
                   <View
                     style={tw`flex-row items-center px-3 py-1 rounded-lg `}

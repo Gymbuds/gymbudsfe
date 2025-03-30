@@ -16,7 +16,7 @@ export const createAIAdvice = async (advice_type:string,health_data:boolean) => 
         body:JSON.stringify({advice_type,health_data})
       });
     } catch (error) {
-      console.error('Error fetching workout logs:', error);
+      console.error('Error creating AI Advice :', error);
       throw error;
     }
   };
