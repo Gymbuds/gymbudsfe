@@ -20,3 +20,12 @@ export const createAIAdvice = async (advice_type:string,health_data:boolean) => 
       throw error;
     }
   };
+export const fetchAIadviceFromID = async(advice_id:number)=>{
+  try{
+    return await fetchFunctionWithAuth(`ai_advices/${advice_id}`, { method: "GET" });
+  }
+  catch(error){
+    console.log(error)
+    throw error;
+  }
+}

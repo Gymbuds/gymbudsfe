@@ -10,6 +10,7 @@ import {
   Dimensions, 
   ActivityIndicator,
 } from "react-native";
+import {MaterialIcons} from "@expo/vector-icons";
 import { SimpleLineIcons, Feather } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {createAIAdvice,fetchAIAdvices} from "./AiAdviceAPI"
@@ -26,10 +27,13 @@ type RootStackParamList = {
   WorkoutLogPage: undefined;
   ExistingWorkoutLogPage: undefined;
   AiAdvice: undefined;
+  AiAdviceView:{
+    adviceId:number
+  };
 };
 type AIAdviceType = "WORKOUT_ADVICE" |"WORKOUT_OPTIMIZATION"|"RECOVERY_ANALYSIS"|"PERFORMANCE_TRENDS"|"MUSCLE_BALANCE"|"GOAL_ALIGNMENT";
 
-type AIAdvice = {
+export type AIAdvice = {
   id:number;
   advice_type:AIAdviceType;
   ai_feedback:string;
@@ -70,6 +74,11 @@ export default function AiAdviceScreen({navigation}: Props) {
   const getAIADvices = async() =>{
     const res = await fetchAIAdvices()
     setAIAdvices(res)
+  }
+  const handleTapViewMore = async(id:number) =>{
+    navigation.navigate("AiAdviceView",{
+      adviceId:id,
+    })
   }
   useEffect(()=>{
     getAIADvices()
@@ -121,9 +130,26 @@ export default function AiAdviceScreen({navigation}: Props) {
                 style={tw`bg-white p-5 ml-2 mr-2 mb-4 rounded-lg shadow-lg`}
               >
                 <View style={tw`flex-row items-center justify-between mb-2`}>
-                  <Text style={tw`text-xl font-bold text-black-600`}>
-                    {advice.advice_type.charAt(0).toUpperCase() + advice.advice_type.substring(1,advice.advice_type.length).toLowerCase().replace("_"," ")}
+                <Text style={tw`text-xl font-bold text-black-600`}>
+                  {advice.advice_type
+                    .toLowerCase()
+                    .split("_")
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")}
                   </Text>
+                  <TouchableOpacity
+                    style={tw`absolute top-1 right-4 flex-row items-center`}
+                    onPress={() => handleTapViewMore(advice.id)}
+                  >
+                  <Text style={tw`text-purple-600 font-semibold ml-1`}>
+                      View More
+                    </Text>
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={24}
+                      color="purple"
+                    />
+                  </TouchableOpacity>
                   <View
                     style={tw`flex-row items-center px-3 py-1 rounded-lg `}
                   >
@@ -137,7 +163,7 @@ export default function AiAdviceScreen({navigation}: Props) {
                   >
                     <RenderHTML 
                     contentWidth={Dimensions.get('window').width * 0.4}
-                    source={{ html: marked(advice.ai_feedback.substring(0,200)) }}
+                    source={{ html: marked(advice.ai_feedback.substring(0, 200)) as string }}
                     />
                     
     

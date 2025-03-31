@@ -4,7 +4,7 @@ import Workoutscreen from "./Workoutscreen";
 import WorkoutLogPage from "./WorkoutLogPage";
 import ExistingWorkoutLogPage from "./ExistingWorkoutLogPage";
 import AiAdviceScreen from "../AiAdvice/AiAdviceScreen";
-
+import AiAdviceViewScreen from "../AiAdvice/AiAdviceView";
 type Workout = {
   exercise: string;
   reps: number;
@@ -14,7 +14,6 @@ type Workout = {
   date: string;
 };
 
-// Define the types for the screens
 type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
@@ -29,6 +28,7 @@ type RootStackParamList = {
     existingWorkLog: Workout;
     updateWorkouts: (updatedWorkout: Workout) => void;
   };
+  AiAdviceView:undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,7 +36,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function WorkoutNavigator() {
   const [workouts, setWorkouts] = useState<Workout[]>();
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
-
+  const [adviceId,setAdviceId] = useState(0);
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Workoutscreen">
@@ -66,6 +66,16 @@ export default function WorkoutNavigator() {
         )}
       </Stack.Screen>
       <Stack.Screen name="AiAdvice" component={AiAdviceScreen} />
+      <Stack.Screen name ="AiAdviceView">
+        {(props) =>(
+          <AiAdviceViewScreen
+          {...props}
+          adviceId={adviceId}
+          />
+        )}
+      </Stack.Screen>
+     
+      
     </Stack.Navigator>
   );
 }
