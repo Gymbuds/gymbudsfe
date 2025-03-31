@@ -7,7 +7,7 @@ import tw from "twrnc";
 import ProfileNavigator from "../ProfileApiService/profile-navigation";
 import WorkoutNavigator from "../WorkOutPage/Workout-navigation";
 import Mapscreen from "../MapScreen/Mapscreen";
-import Matchscreen from "../MatchScreen/Matchscreen";
+// import Matchscreen from "../MatchScreen/Matchscreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -151,7 +151,7 @@ export default function MainTabs() {
           ),
         }}
       />
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Match"
         component={Matchscreen}
         options={{
@@ -159,7 +159,7 @@ export default function MainTabs() {
             <Icon name="users" size={24} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="ProfileNavigator"
         component={ProfileNavigator}

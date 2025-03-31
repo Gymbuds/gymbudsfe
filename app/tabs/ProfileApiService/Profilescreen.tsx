@@ -326,15 +326,15 @@ export default function ProfileScreen({ navigation }: Props) {
           </Text>
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>8</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Day Streak</Text>
             </View>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>47</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Workouts</Text>
             </View>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>12</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Buddies</Text>
             </View>
           </View>
