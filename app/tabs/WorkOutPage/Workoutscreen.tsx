@@ -49,7 +49,7 @@ type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
   Schedule: undefined;
-  Workoutscreen: undefined;
+  Workoutscreen: { updatedWorkoutLog: Workout };
   WorkoutLogPage: undefined;
   ExistingWorkoutLogPage: {
     worklogId: number;
@@ -58,15 +58,23 @@ type RootStackParamList = {
   };
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, "Workoutscreen">;
+// type Props = NativeStackScreenProps<RootStackParamList, "Workoutscreen">;
+type Props = NativeStackScreenProps<RootStackParamList, "Workoutscreen"> & {
+  route: {
+    params: {
+      updatedWorkoutLog?: Workout;
+    };
+  };
+};
 
-export default function Workoutscreen({ navigation }: Props) {
+export default function Workoutscreen({ navigation, route }: Props) {
+  const { updatedWorkoutLog } = route.params ?? {};
   const [selectedOption, setSelectedOption] = useState<
     "all" | "manual" | "voice"
   >("all");
   const [date, setDate] = useState(new Date());
   const [filteredWorkouts, setFilteredWorkouts] = useState<Workout[]>([]);
-  const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]); 
+  const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]);
 
   const changeMonth = (direction: "prev" | "next") => {
     setDate((prevDate) => {
@@ -102,10 +110,24 @@ export default function Workoutscreen({ navigation }: Props) {
   useEffect(() => {
     setFilteredWorkouts(
       fetchWorkout.filter(
-        (workout) => selectedOption === "all" || workout.type.toLowerCase() === selectedOption
+        (workout) =>
+          selectedOption === "all" ||
+          workout.type.toLowerCase() === selectedOption
       )
     );
   }, [fetchWorkout, selectedOption]); // Runs every time fetchWorkout or selectedOption changes
+
+  useEffect(() => {
+    if (updatedWorkoutLog) {
+      setFetchWorkout((prevWorkouts) =>
+        prevWorkouts.map((workout) =>
+          workout.id === updatedWorkoutLog.id
+            ? { ...workout, ...updatedWorkoutLog }
+            : workout
+        )
+      );
+    }
+  }, [updatedWorkoutLog]);
 
   // Function to sort workouts alphabetically
   const sortWorkouts = () => {
@@ -121,11 +143,11 @@ export default function Workoutscreen({ navigation }: Props) {
     const date = parseISO(isoDate);
 
     if (isToday(date)) {
-      return `Today, ${format(date, "h:mm a")}`; 
+      return `Today, ${format(date, "h:mm a")}`;
     } else if (isYesterday(date)) {
-      return `Yesterday, ${format(date, "h:mm a")}`; 
+      return `Yesterday, ${format(date, "h:mm a")}`;
     } else {
-      return format(date, "EEE, MMMM do, h:mm a"); 
+      return format(date, "EEE, MMMM do, h:mm a");
     }
   };
 
@@ -183,8 +205,6 @@ export default function Workoutscreen({ navigation }: Props) {
       });
     }
   };
-
-
 
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -323,21 +343,21 @@ export default function Workoutscreen({ navigation }: Props) {
         </View>
 
         {/* Workout List */}
-      <Text style={tw`text-gray-600 text-lg font-semibold`}>
-        {selectedOption === "all" ? "All Workouts" : `${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} Workouts`}
-      </Text>
+        <Text style={tw`text-gray-600 text-lg font-semibold`}>
+          {selectedOption === "all"
+            ? "All Workouts"
+            : `${
+                selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)
+              } Workouts`}
+        </Text>
         <ScrollView>
           {/* Map through sorted workouts */}
           {filteredWorkouts.map((workout: Workout, index) => (
             <Swipeable
               key={index}
-              renderRightActions={() =>
-                renderRightActions(index, workout.id)
-              }
+              renderRightActions={() => renderRightActions(index, workout.id)}
             >
-              <View
-                style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}
-              >
+              <View style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}>
                 <View style={tw`flex-row items-center justify-between mb-2`}>
                   <Text style={tw`text-xl font-bold text-black-600`}>
                     {workout.title}
@@ -346,7 +366,11 @@ export default function Workoutscreen({ navigation }: Props) {
                     style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
                   >
                     <MaterialIcons
-                      name={workout.type === "MANUAL" ? "keyboard" : "multitrack-audio"}
+                      name={
+                        workout.type === "MANUAL"
+                          ? "keyboard"
+                          : "multitrack-audio"
+                      }
                       size={24}
                       color="purple"
                     />

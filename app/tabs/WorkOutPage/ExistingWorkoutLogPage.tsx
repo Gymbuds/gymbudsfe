@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   SafeAreaView,
   View,
@@ -23,7 +24,7 @@ type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
   Schedule: undefined;
-  Workoutscreen: undefined;
+  Workoutscreen: { updatedWorkoutLog: Workout };
   WorkoutLogPage: undefined;
   ExistingWorkoutLogPage: {
     worklogId: number;
@@ -107,45 +108,17 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
   };
 
   useEffect(() => {
-    const getExistingWorkoutLog = async () => {
-      try {
-        const fetchedLogs: Workout[] = await fetchWorkoutLogs();
-        const existingLog = fetchedLogs.find(
-          (log: Workout) => log.id === worklogId
-        );
-
-        if (existingLog) {
-          const updatedWorkoutLog: Workout = {
-            title: existingLog.title || "",
-            type: existingLog.type || "MANUAL",
-            exercise_details: existingLog.exercise_details || [], // Ensure exercises are empty when opening the update page
-            notes: existingLog.notes || "",
-            duration_minutes: existingLog.duration_minutes || 0,
-            mood: existingLog.mood || "ENERGIZED",
-            id: existingLog.id,
-            date: existingLog.date,
-          };
-
-          setTitle(updatedWorkoutLog.title);
-          setType(updatedWorkoutLog.type);
-          setExerciseDetails(updatedWorkoutLog.exercise_details); // Make sure this is empty
-          setNotes(updatedWorkoutLog.notes);
-          setDuration(updatedWorkoutLog.duration_minutes);
-          setMood(updatedWorkoutLog.mood);
-          setDate(updatedWorkoutLog.date);
-        } else {
-          Alert.alert("Error", "Workout log not found");
-        }
-      } catch (error) {
-        console.error("Error fetching workout log:", error);
-        Alert.alert("Failed to fetch workout log");
-      }
-    };
-
-    if (worklogId) {
-      getExistingWorkoutLog();
+    if (route.params.existingWorkLog) {
+      setTitle(route.params.existingWorkLog.title);
+      setType(route.params.existingWorkLog.type);
+      setExerciseDetails(route.params.existingWorkLog.exercise_details);
+      setNotes(route.params.existingWorkLog.notes);
+      setDuration(route.params.existingWorkLog.duration_minutes);
+      setMood(route.params.existingWorkLog.mood);
+      setDate(route.params.existingWorkLog.date);
     }
-  }, [worklogId]);
+  }, [route.params.existingWorkLog]);
+
 
   const editWorkout = async (logId: number) => {
     try {
@@ -163,10 +136,12 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
       if (updateWorkouts) {
         updateWorkouts(updatedWorkoutLog);
       }
-      navigation.goBack();
+
+      navigation.setParams({ existingWorkLog: updatedWorkoutLog });
+      navigation.goBack(); // Ensure the back navigation doesn't override params
     } catch (error) {
-      alert("Failed to update workout log. Please try again.");
       console.error("Error updating workout log:", error);
+      alert("Failed to update workout log. Please try again.");
     }
   };
 
@@ -247,7 +222,19 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      navigation.navigate("Workoutscreen");
+                      // navigation.navigate("Workoutscreen", { updatedWorkoutLog });
+                      navigation.navigate("Workoutscreen", {
+                        updatedWorkoutLog: {
+                          title,
+                          type,
+                          exercise_details: exerciseDetails,
+                          notes,
+                          duration_minutes: duration,
+                          mood,
+                          id: worklogId,
+                          date,
+                        },
+                      });
                     }}
                     style={tw`bg-red-500 p-3 rounded-lg`}
                   >
