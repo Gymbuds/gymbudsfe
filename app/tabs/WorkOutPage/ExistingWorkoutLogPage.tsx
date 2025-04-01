@@ -94,7 +94,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
         const existingExerciseIndex = prevExercises.findIndex(
           (exercise) => exercise.exercise_name === exerciseName
         );
-  
+
         if (existingExerciseIndex !== -1) {
           // Update existing exercise
           const updatedExercises = [...prevExercises];
@@ -113,12 +113,12 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
               reps,
               sets,
               weight,
-              exercise_id: 0, 
+              exercise_id: 0,
             },
           ];
         }
       });
-  
+
       // Clear input fields after adding/updating
       setExerciseName("");
       setReps(0);
@@ -126,7 +126,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
       setWeight(0);
     }
   };
-  
 
   useEffect(() => {
     if (route.params.existingWorkLog) {
@@ -139,7 +138,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
       setDate(route.params.existingWorkLog.date);
     }
   }, [route.params.existingWorkLog]);
-
 
   const editWorkout = async (logId: number) => {
     try {
@@ -406,30 +404,38 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
               Logged Exercises:
             </Text>
             <View style={tw`mb-4`}>
-  {exerciseDetails.map((exercise, index) => (
-    <Swipeable key={index} renderRightActions={() => renderRightActions(index)}>
-      <TouchableOpacity
-        onPress={() => {
-          setExerciseName(exercise.exercise_name);
-          setReps(exercise.reps);
-          setSets(exercise.sets);
-          setWeight(exercise.weight);
-        }}
-        style={tw`border p-4 mb-2 rounded-lg bg-white relative`}
-      >
-        <Text style={tw`font-semibold`}>{exercise.exercise_name}</Text>
-        <Text>{exercise.sets} sets x {exercise.reps} reps x {exercise.weight} lbs</Text>
-        
-        {/* Edit button positioned in the bottom right */}
-        <View style={tw`absolute right-2 bottom-2 bg-blue-500 px-3 py-1 rounded-lg`}>
-          <Text style={tw`text-white font-semibold`}>Edit</Text>
-        </View>
-      </TouchableOpacity>
-    </Swipeable>
-  ))}
-</View>
+              {exerciseDetails.map((exercise, index) => (
+                <Swipeable
+                  key={index}
+                  renderRightActions={() => renderRightActions(index)}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      setExerciseName(exercise.exercise_name);
+                      setReps(exercise.reps);
+                      setSets(exercise.sets);
+                      setWeight(exercise.weight);
+                    }}
+                    style={tw`border p-4 mb-2 rounded-lg bg-white relative`}
+                  >
+                    <Text style={tw`font-semibold`}>
+                      {exercise.exercise_name}
+                    </Text>
+                    <Text>
+                      {exercise.sets} sets x {exercise.reps} reps x{" "}
+                      {exercise.weight} lbs
+                    </Text>
 
-
+                    {/* Edit button positioned in the bottom right */}
+                    <View
+                      style={tw`absolute right-2 bottom-2 bg-blue-500 px-3 py-1 rounded-lg`}
+                    >
+                      <Text style={tw`text-white font-semibold`}>Edit</Text>
+                    </View>
+                  </TouchableOpacity>
+                </Swipeable>
+              ))}
+            </View>
             {/* Duration Input */}
             <View style={tw`mb-4`}>
               <Text style={tw`text-lg font-semibold mb-2`}>
