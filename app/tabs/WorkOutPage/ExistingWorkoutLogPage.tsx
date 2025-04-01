@@ -1,5 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -14,7 +13,7 @@ import {
 } from "react-native";
 import { SimpleLineIcons, MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
-import { fetchWorkoutLogs, updateWorkoutLog } from "./WorkoutApiService";
+import { updateWorkoutLog } from "./WorkoutApiService";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Swipeable } from "react-native-gesture-handler";
 
@@ -91,21 +90,43 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
 
   const handleAddExercise = () => {
     if (!isButtonDisabled) {
-      const newExercise = {
-        exercise_name: exerciseName,
-        reps,
-        sets,
-        weight,
-        exercise_id: 0, // Assuming we are adding a new exercise
-      };
-      setExerciseDetails((prevExercises) => [...prevExercises, newExercise]);
-      // Clear input fields after adding exercise
+      setExerciseDetails((prevExercises) => {
+        const existingExerciseIndex = prevExercises.findIndex(
+          (exercise) => exercise.exercise_name === exerciseName
+        );
+  
+        if (existingExerciseIndex !== -1) {
+          // Update existing exercise
+          const updatedExercises = [...prevExercises];
+          updatedExercises[existingExerciseIndex] = {
+            ...updatedExercises[existingExerciseIndex],
+            reps,
+            sets,
+            weight,
+          };
+          return updatedExercises;
+        } else {
+          return [
+            ...prevExercises,
+            {
+              exercise_name: exerciseName,
+              reps,
+              sets,
+              weight,
+              exercise_id: 0, 
+            },
+          ];
+        }
+      });
+  
+      // Clear input fields after adding/updating
       setExerciseName("");
       setReps(0);
       setSets(0);
       setWeight(0);
     }
   };
+  
 
   useEffect(() => {
     if (route.params.existingWorkLog) {
@@ -384,27 +405,24 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
             <Text style={tw`text-lg font-semibold mb-2`}>
               Logged Exercises:
             </Text>
-            <View style={tw`mb-4`}>
-              {exerciseDetails.map((exercise, index) => (
-                <Swipeable
-                  key={index}
-                  renderRightActions={() => renderRightActions(index)} // No progress or dragX needed here
-                >
-                  <View
-                    key={index}
-                    style={tw`border p-4 mb-2 rounded-lg bg-white`}
-                  >
-                    <Text style={tw`font-semibold`}>
-                      {exercise.exercise_name}
-                    </Text>
-                    <Text>
-                      {exercise.sets} sets x {exercise.reps} reps x{" "}
-                      {exercise.weight} lbs
-                    </Text>
-                  </View>
-                </Swipeable>
-              ))}
-            </View>
+              <View style={tw`mb-4`}>
+                {exerciseDetails.map((exercise, index) => (
+                  <Swipeable key={index} renderRightActions={() => renderRightActions(index)}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setExerciseName(exercise.exercise_name);
+                        setReps(exercise.reps);
+                        setSets(exercise.sets);
+                        setWeight(exercise.weight);
+                      }}
+                      style={tw`border p-4 mb-2 rounded-lg bg-white`}
+                    >
+                      <Text style={tw`font-semibold`}>{exercise.exercise_name}</Text>
+                      <Text>{exercise.sets} sets x {exercise.reps} reps x {exercise.weight} lbs</Text>
+                    </TouchableOpacity>
+                  </Swipeable>
+                ))}
+              </View>
 
             {/* Duration Input */}
             <View style={tw`mb-4`}>
