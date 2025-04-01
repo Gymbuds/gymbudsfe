@@ -12,7 +12,8 @@ import {
     ActivityIndicator,
   } from "react-native";
 import { SimpleLineIcons, Feather } from "@expo/vector-icons";
-
+import RenderHTML from 'react-native-render-html';
+import { marked } from 'marked';
 import tw from "twrnc";
 import { AIAdvice } from "./AiAdviceScreen";
 import { fetchAIadviceFromID } from "./AiAdviceAPI";
@@ -72,6 +73,20 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
                 </View>
               </View>
               <View style={tw`border-b border-gray-300 mb-2`} />
+              <View>
+                <Text>
+                  AI Response Information
+                </Text>
+              </View>
+              <View>
+                <Text>Date Created:{currentAIAdvice.created_at}</Text>
+                <ScrollView>
+                <RenderHTML 
+                contentWidth={Dimensions.get('window').width * 0.4}
+                source={{ html: marked(currentAIAdvice.ai_feedback)as string }}
+                />
+                </ScrollView>
+              </View>
             </View>
           )
 
