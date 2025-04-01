@@ -39,6 +39,9 @@ export type AIAdvice = {
   ai_feedback:string;
   user_id: number;
   created_at: string;
+  workout_earliest_date:string;
+  workout_latest_date:string;
+  contains_health_data:boolean;
 }
 type Props = NativeStackScreenProps<RootStackParamList, "AiAdvice">;
 

@@ -4,7 +4,7 @@ export const fetchAIAdvices = async () => {
     try {
         return await fetchFunctionWithAuth("ai_advices", { method: "GET" });
       } catch (error) {
-        console.error('Error fetching workout logs:', error);
+        console.error('Error fetching ai advice:', error);
         throw error;
       }
     };

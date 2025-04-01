@@ -79,7 +79,11 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
                 </Text>
               </View>
               <View>
-                <Text>Date Created:{currentAIAdvice.created_at}</Text>
+                <Text>Date Created:{currentAIAdvice.created_at.split("T")[0]}</Text>
+                <Text>Workout Log Date Range: {currentAIAdvice.workout_earliest_date.split("T")[0]}-{currentAIAdvice.workout_latest_date.split("T")[0]}</Text>
+                <Text>Contains Health Data: 
+                    {currentAIAdvice.contains_health_data ? "✔" : "✘"}
+                </Text>
                 <ScrollView>
                 <RenderHTML 
                 contentWidth={Dimensions.get('window').width * 0.4}
