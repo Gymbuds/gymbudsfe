@@ -33,6 +33,7 @@ export default function MapScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mapkey, setMapKey] = useState(0);
   const apiKey = 'AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A';
 
   // Ref to the MapView
@@ -170,16 +171,19 @@ export default function MapScreen() {
   /** Fit map to all markers whenever `places` changes. */
   useEffect(() => {
     if (places.length > 0 && mapRef.current) {
-      const coords = places
-        .map(getCoordinates)
-        .filter((c): c is { latitude: number; longitude: number } => c !== null);
+      setMapKey(prev => prev + 1);
+      setTimeout(() => {
+        const coords = places
+          .map(getCoordinates)
+          .filter((c): c is { latitude: number; longitude: number } => c !== null);
 
-      if (coords.length > 0) {
-        mapRef.current.fitToCoordinates(coords, {
-          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-          animated: true
-        });
-      }
+        if (coords.length > 0) {
+          mapRef.current!.fitToCoordinates(coords, {
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+            animated: true
+          });
+        }
+      }, 500);
     }
   }, [places]);
 
@@ -220,6 +224,7 @@ export default function MapScreen() {
         {/* Map Section */}
         <View style={tw`flex-1`}>
           <MapView
+            key={mapkey}
             ref={mapRef}
             style={tw`flex-1`}
             initialRegion={initialRegion}
