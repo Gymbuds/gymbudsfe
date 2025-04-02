@@ -177,14 +177,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
     setSelectedExerciseId(null); // Reset so it switches back to "Add Exercise" mode
   };
 
-  const handleCancelEdit = () => {
-    setSelectedExerciseId(null);
-    setExerciseName("");
-    setReps(0);
-    setSets(0);
-    setWeight(0);
-  };
-
   const editWorkout = async () => {
     try {
       console.log(
@@ -445,7 +437,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
             {/* Cancel Update Button*/}
             {selectedExerciseId !== null && (
               <TouchableOpacity
-                onPress={handleCancelEdit}
+                onPress={resetExerciseForm}
                 style={tw`p-3 rounded-lg mb-4 bg-red-500`}
               >
                 <Text style={tw`text-white text-center font-semibold`}>
