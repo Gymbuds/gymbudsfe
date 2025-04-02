@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -97,15 +98,17 @@ export default function Workoutscreen({ navigation, route }: Props) {
     });
   };
 
-  useEffect(() => {
-    fetchWorkoutLogs()
-      .then((data) => {
-        setFetchWorkout(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching workouts:", error);
-      });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkoutLogs()
+        .then((data) => {
+          setFetchWorkout(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching workouts:", error);
+        });
+    }, [])
+  );
 
   useEffect(() => {
     setFilteredWorkouts(

@@ -33,10 +33,11 @@ type RootStackParamList = {
 };
 
 type Workout = {
-  date: string;
+  // date: string;
   duration_minutes: number;
   exercise_details: Exercises[];
-  id: number;
+  delete_exercises: number[];
+  // id: number;
   mood: Mood;
   notes: string;
   title: string;
@@ -71,11 +72,23 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
   const [reps, setReps] = useState(0);
   const [sets, setSets] = useState(0);
   const [weight, setWeight] = useState(0);
+  const [deletedExercises, setDeletedExercises] = useState<number[]>([]);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(
+    null
+  );
+  const updatedWorkoutLog: Workout = {
+    title,
+    type,
+    exercise_details: exerciseDetails,
+    delete_exercises: deletedExercises,
+    notes,
+    duration_minutes: duration,
+    mood,
+  };
 
   const isButtonDisabled =
     !exerciseName || reps === 0 || sets === 0 || weight === 0;
   const { worklogId, updateWorkouts } = route.params;
-  const [date, setDate] = useState("");
   // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -88,45 +101,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
     setModalVisible(false);
   };
 
-  const handleAddExercise = () => {
-    if (!isButtonDisabled) {
-      setExerciseDetails((prevExercises) => {
-        const existingExerciseIndex = prevExercises.findIndex(
-          (exercise) => exercise.exercise_name === exerciseName
-        );
-
-        if (existingExerciseIndex !== -1) {
-          // Update existing exercise
-          const updatedExercises = [...prevExercises];
-          updatedExercises[existingExerciseIndex] = {
-            ...updatedExercises[existingExerciseIndex],
-            reps,
-            sets,
-            weight,
-          };
-          return updatedExercises;
-        } else {
-          return [
-            ...prevExercises,
-            {
-              exercise_name: exerciseName,
-              reps,
-              sets,
-              weight,
-              exercise_id: 0,
-            },
-          ];
-        }
-      });
-
-      // Clear input fields after adding/updating
-      setExerciseName("");
-      setReps(0);
-      setSets(0);
-      setWeight(0);
-    }
-  };
-
   useEffect(() => {
     if (route.params.existingWorkLog) {
       setTitle(route.params.existingWorkLog.title);
@@ -135,29 +109,97 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
       setNotes(route.params.existingWorkLog.notes);
       setDuration(route.params.existingWorkLog.duration_minutes);
       setMood(route.params.existingWorkLog.mood);
-      setDate(route.params.existingWorkLog.date);
+      // setDate(route.params.existingWorkLog.date);
     }
   }, [route.params.existingWorkLog]);
 
-  const editWorkout = async (logId: number) => {
-    try {
-      const updatedWorkoutLog: Workout = {
-        title,
-        type,
-        exercise_details: exerciseDetails,
-        notes,
-        duration_minutes: duration,
-        mood,
-        id: logId,
-        date,
-      };
-      await updateWorkoutLog(logId, updatedWorkoutLog);
-      if (updateWorkouts) {
-        updateWorkouts(updatedWorkoutLog);
-      }
+  // Function to populate the form when an exercise is clicked
+  const handleSelectExercise = (exercise) => {
+    setSelectedExerciseId(exercise.exercise_id);
+    setExerciseName(exercise.exercise_name);
+    setReps(exercise.reps);
+    setSets(exercise.sets);
+    setWeight(exercise.weight);
+  };
 
-      navigation.setParams({ existingWorkLog: updatedWorkoutLog });
-      navigation.goBack(); // Ensure the back navigation doesn't override params
+  const handleAddNewExercise = () => {
+    if (!isButtonDisabled) {
+      setExerciseDetails((prevExercises) => [
+        ...prevExercises,
+        {
+          exercise_name: exerciseName,
+          reps,
+          sets,
+          weight,
+          exercise_id: 0,
+        },
+      ]);
+
+      // Reset form after adding
+      resetExerciseForm();
+    }
+  };
+
+  const handleEditExercise = (exerciseId: number) => {
+    // Find the exercise to edit
+    const exerciseToEdit = exerciseDetails.find(
+      (ex) => ex.exercise_id === exerciseId
+    );
+
+    if (exerciseToEdit) {
+      setSelectedExerciseId(exerciseId);
+      setExerciseName(exerciseToEdit.exercise_name);
+      setReps(exerciseToEdit.reps);
+      setSets(exerciseToEdit.sets);
+      setWeight(exerciseToEdit.weight);
+    }
+  };
+
+  const handleSaveEditedExercise = () => {
+    if (!isButtonDisabled && selectedExerciseId !== null) {
+      setExerciseDetails((prevExercises) =>
+        prevExercises.map((exercise) =>
+          exercise.exercise_id === selectedExerciseId
+            ? { ...exercise, exercise_name: exerciseName, reps, sets, weight }
+            : exercise
+        )
+      );
+
+      resetExerciseForm();
+    }
+  };
+
+  const resetExerciseForm = () => {
+    setExerciseName("");
+    setReps(0);
+    setSets(0);
+    setWeight(0);
+    setSelectedExerciseId(null); // Reset so it switches back to "Add Exercise" mode
+  };
+
+  const handleCancelEdit = () => {
+    setSelectedExerciseId(null);
+    setExerciseName("");
+    setReps(0);
+    setSets(0);
+    setWeight(0);
+  };
+
+  const editWorkout = async () => {
+    try {
+      console.log(
+        "Sending workout update:",
+        JSON.stringify(updatedWorkoutLog, null, 2)
+      );
+
+      // Call the updateWorkoutLog API with the worklogId in the URL
+      await updateWorkoutLog(worklogId, updatedWorkoutLog);
+
+      // Update workouts state in parent component
+      updateWorkouts && updateWorkouts(updatedWorkoutLog);
+
+      // Navigate back
+      navigation.goBack();
     } catch (error) {
       console.error("Error updating workout log:", error);
       alert("Failed to update workout log. Please try again.");
@@ -174,9 +216,21 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
           text: "Delete",
           style: "destructive",
           onPress: () => {
+            const deletedExercise = exerciseDetails[index]; // The exercise being deleted
+
+            // Ensure the exercise ID is a number and filter out any undefined values
+            setDeletedExercises((prevDeletedExercises) => {
+              const updatedDeletedExercises = [
+                ...prevDeletedExercises,
+                deletedExercise.exercise_id,
+              ].filter((id): id is number => id !== undefined); // Filter out undefined
+              return updatedDeletedExercises;
+            });
+
             const newExerciseDetails = exerciseDetails.filter(
               (_, i) => i !== index
             );
+
             setExerciseDetails(newExerciseDetails);
           },
         },
@@ -215,7 +269,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 Update Workout Log
               </Text>
             </TouchableOpacity>
-
             {/* Modal */}
             <Modal
               animationType="fade"
@@ -241,18 +294,8 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      // navigation.navigate("Workoutscreen", { updatedWorkoutLog });
                       navigation.navigate("Workoutscreen", {
-                        updatedWorkoutLog: {
-                          title,
-                          type,
-                          exercise_details: exerciseDetails,
-                          notes,
-                          duration_minutes: duration,
-                          mood,
-                          id: worklogId,
-                          date,
-                        },
+                        updatedWorkoutLog,
                       });
                     }}
                     style={tw`bg-red-500 p-3 rounded-lg`}
@@ -262,7 +305,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 </View>
               </View>
             </Modal>
-
             {/* Title Input */}
             <View style={tw`mb-4`}>
               <Text style={tw`text-lg font-semibold mb-2`}>Title:</Text>
@@ -274,7 +316,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 onChangeText={setTitle}
               />
             </View>
-
             {/* Log Method */}
             <Text style={tw`mb-2 text-lg font-semibold`}>
               Select Log Method
@@ -297,7 +338,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 </TouchableOpacity>
               ))}
             </View>
-
             {/* Exercise Input */}
             <Text style={tw`text-lg font-semibold mb-2`}>Exercises:</Text>
             <TextInput
@@ -307,7 +347,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
               value={exerciseName}
               onChangeText={setExerciseName}
             />
-
             {/* Reps, Sets, and Weight Controls */}
             <View style={tw`flex-row justify-between mb-4`}>
               {/* Sets */}
@@ -385,52 +424,68 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 </View>
               </View>
             </View>
-
             {/* Add Exercise Button */}
             <TouchableOpacity
-              onPress={handleAddExercise}
+              onPress={
+                selectedExerciseId !== null
+                  ? handleSaveEditedExercise
+                  : handleAddNewExercise
+              }
               disabled={isButtonDisabled}
               style={tw`p-3 rounded-lg mb-4 ${
                 isButtonDisabled ? "bg-gray-400" : "bg-blue-500"
               }`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
-                Add Exercise
+                {selectedExerciseId !== null
+                  ? "Update Exercise"
+                  : "Add Exercise"}
               </Text>
             </TouchableOpacity>
-
-            {/* List of Added Exercises */}
+            {/* Cancel Update Button*/}
+            {selectedExerciseId !== null && (
+              <TouchableOpacity
+                onPress={handleCancelEdit}
+                style={tw`p-3 rounded-lg mb-4 bg-red-500`}
+              >
+                <Text style={tw`text-white text-center font-semibold`}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            )}
+            {/* List of Added Exercises */}{" "}
             <Text style={tw`text-lg font-semibold mb-2`}>
               Logged Exercises:
             </Text>
             <View style={tw`mb-4`}>
               {exerciseDetails.map((exercise, index) => (
                 <Swipeable
-                  key={index}
+                  key={exercise.exercise_id}
                   renderRightActions={() => renderRightActions(index)}
                 >
                   <TouchableOpacity
-                    onPress={() => {
-                      setExerciseName(exercise.exercise_name);
-                      setReps(exercise.reps);
-                      setSets(exercise.sets);
-                      setWeight(exercise.weight);
-                    }}
-                    style={tw`border p-4 mb-2 rounded-lg bg-white relative`}
+                    onPress={() => handleSelectExercise(exercise)}
                   >
-                    <Text style={tw`font-semibold`}>
-                      {exercise.exercise_name}
-                    </Text>
-                    <Text>
-                      {exercise.sets} sets x {exercise.reps} reps x{" "}
-                      {exercise.weight} lbs
-                    </Text>
-
-                    {/* Edit button positioned in the bottom right */}
                     <View
-                      style={tw`absolute right-2 bottom-2 bg-blue-500 px-3 py-1 rounded-lg`}
+                      key={index}
+                      style={tw`border p-4 mb-2 rounded-lg bg-white`}
                     >
-                      <Text style={tw`text-white font-semibold`}>Edit</Text>
+                      <Text style={tw`font-semibold`}>
+                        {exercise.exercise_name}
+                      </Text>
+                      <Text>
+                        {exercise.sets} sets x {exercise.reps} reps x{" "}
+                        {exercise.weight} lbs
+                      </Text>
+
+                      {/* Edit button positioned in the bottom right */}
+                      <View>
+                        <Text
+                          style={tw`absolute right-2 bottom-2 text-purple-500`}
+                        >
+                          Edit
+                        </Text>
+                      </View>
                     </View>
                   </TouchableOpacity>
                 </Swipeable>
@@ -450,7 +505,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 onChangeText={(text) => setDuration(Number(text))}
               />
             </View>
-
             {/* Notes Input */}
             <View style={tw`mb-4`}>
               <Text style={tw`text-lg font-semibold mb-2`}>Notes:</Text>
@@ -464,7 +518,6 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 numberOfLines={4}
               />
             </View>
-
             {/* Mood Selection */}
             <Text style={tw`mb-2 text-lg font-semibold`}>Add Mood</Text>
             <View style={tw`flex-row justify-center mb-2`}>
@@ -488,10 +541,9 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 </TouchableOpacity>
               ))}
             </View>
-
             {/* Update Button */}
             <TouchableOpacity
-              onPress={() => editWorkout(worklogId)}
+              onPress={editWorkout}
               style={tw`bg-purple-600 p-3 rounded-lg`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
