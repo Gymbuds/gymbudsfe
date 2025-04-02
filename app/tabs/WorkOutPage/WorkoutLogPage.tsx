@@ -9,12 +9,14 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Modal,
+  Alert,
 } from "react-native";
-import { SimpleLineIcons } from "@expo/vector-icons";
+import { SimpleLineIcons, MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
 import { createWorkoutLog } from "./WorkoutApiService";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { fetchWorkoutLogs } from "./WorkoutApiService";
+import { Swipeable } from "react-native-gesture-handler";
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -50,7 +52,16 @@ export default function WorkoutLogPage({ navigation }: Props) {
   const [duration, setDuration] = useState(0);
   const [mood, setMood] = useState<Mood>("ENERGIZED");
   const [exercises, setExercises] = useState<Exercises[]>([]);
-  const isButtonDisabled = !title || !exerciseDetails[0]?.exercise_name;
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<
+    number | null
+  >(null);
+  const isButtonDisabled = !exerciseDetails.every(
+    (exercise) =>
+      exercise.exercise_name &&
+      exercise.reps > 0 &&
+      exercise.sets > 0 &&
+      exercise.weight > 0
+  );
 
   // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
@@ -97,6 +108,56 @@ export default function WorkoutLogPage({ navigation }: Props) {
     }
     await fetchWorkoutLogs();
     navigation.navigate("Workoutscreen");
+  };
+
+  const handleDeleteExercise = (index: number) => {
+    Alert.alert(
+      "Delete Exercise",
+      "Are you sure you want to delete this exercise?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setExercises((prevExercises) =>
+              prevExercises.filter((_, i) => i !== index)
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const renderRightActions = (index: number) => (
+    <TouchableOpacity
+      onPress={() => handleDeleteExercise(index)}
+      style={tw`bg-red-500 justify-center items-center h-17 w-15 rounded-lg`}
+    >
+      <MaterialIcons name="delete" size={24} color="white" />
+    </TouchableOpacity>
+  );
+
+  const handleEditExercise = (index: number) => {
+    setSelectedExerciseIndex(index);
+    setExerciseDetails([{ ...exercises[index] }]); // Load exercise into input fields
+  };
+
+  const handleSaveExercise = () => {
+    if (!isButtonDisabled && selectedExerciseIndex !== null) {
+      setExercises((prevExercises) =>
+        prevExercises.map((exercise, index) =>
+          index === selectedExerciseIndex ? { ...exerciseDetails[0] } : exercise
+        )
+      );
+      setSelectedExerciseIndex(null); // Reset selection
+      setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setSelectedExerciseIndex(null);
+    setExerciseDetails([{ exercise_name: "", reps: 0, sets: 0, weight: 0 }]);
   };
 
   return (
@@ -341,18 +402,36 @@ export default function WorkoutLogPage({ navigation }: Props) {
               </View>
             </View>
 
-            {/* Add Exercise Button */}
+            {/* Add/Save Exercise Button */}
             <TouchableOpacity
-              onPress={handleAddExercise}
+              onPress={
+                selectedExerciseIndex !== null
+                  ? handleSaveExercise
+                  : handleAddExercise
+              }
               disabled={isButtonDisabled}
               style={tw`p-3 rounded-lg mb-4 ${
                 isButtonDisabled ? "bg-gray-400" : "bg-blue-500"
               }`}
             >
               <Text style={tw`text-white text-center font-semibold`}>
-                Add Exercise
+                {selectedExerciseIndex !== null
+                  ? "Save Changes"
+                  : "Add Exercise"}
               </Text>
             </TouchableOpacity>
+
+            {/* Cancel Exercise Button*/}
+            {selectedExerciseIndex !== null && (
+              <TouchableOpacity
+                onPress={handleCancelEdit}
+                style={tw`p-3 rounded-lg mb-4 bg-red-500`}
+              >
+                <Text style={tw`text-white text-center font-semibold`}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {/* List of Added Exercises */}
             <Text style={tw`text-lg font-semibold mb-2`}>
@@ -360,18 +439,32 @@ export default function WorkoutLogPage({ navigation }: Props) {
             </Text>
             <View style={tw`mb-4`}>
               {exercises.map((exercise, index) => (
-                <View
+                <Swipeable
                   key={index}
-                  style={tw`border p-4 mb-2 rounded-lg bg-white`}
+                  renderRightActions={() => renderRightActions(index)} // No progress or dragX needed here
                 >
-                  <Text style={tw`font-semibold`}>
-                    {exercise.exercise_name}
-                  </Text>
-                  <Text>
-                    {exercise.sets} sets x {exercise.reps} reps x{" "}
-                    {exercise.weight} lbs
-                  </Text>
-                </View>
+                  <TouchableOpacity onPress={() => handleEditExercise(index)}>
+                    <View
+                      key={index}
+                      style={tw`border p-4 mb-2 rounded-lg bg-white`}
+                    >
+                      <Text style={tw`font-semibold`}>
+                        {exercise.exercise_name}
+                      </Text>
+                      <Text>
+                        {exercise.sets} sets x {exercise.reps} reps x{" "}
+                        {exercise.weight} lbs
+                      </Text>
+                      <View>
+                        <Text
+                          style={tw`absolute right-2 bottom-2 text-purple-500`}
+                        >
+                          Edit
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </Swipeable>
               ))}
             </View>
 
