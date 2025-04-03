@@ -29,3 +29,12 @@ export const fetchAIadviceFromID = async(advice_id:number)=>{
     throw error;
   }
 }
+export const deleteAIAdvice = async(advice_id:number)=>{
+  try{
+    return await fetchFunctionWithAuth(`ai_advices/${advice_id}`, { method: "DELETE" });
+  }
+  catch(error){
+    console.log(error)
+    throw error;
+  }
+}

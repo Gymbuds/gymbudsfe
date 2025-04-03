@@ -10,10 +10,11 @@ import {
   Dimensions, 
   ActivityIndicator,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import {MaterialIcons} from "@expo/vector-icons";
 import { SimpleLineIcons, Feather } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {createAIAdvice,fetchAIAdvices} from "./AiAdviceAPI"
+import {createAIAdvice,fetchAIAdvices,deleteAIAdvice} from "./AiAdviceAPI"
 import tw from "twrnc";
 import RenderHTML from 'react-native-render-html';
 import { marked } from 'marked';
@@ -54,7 +55,6 @@ export default function AiAdviceScreen({navigation}: Props) {
   const [AIAdvices,setAIAdvices] = useState<AIAdvice[]>([]);
   const [isLoading,setIsLoading] = useState(false);
   const handlePressGenerate = async() => {
-    console.log("Generating recommendation for:", selectedValue,isLightSwitchOn);
     try{
       setIsLoading(true)
       setAiModelOpen(false)
@@ -74,6 +74,18 @@ export default function AiAdviceScreen({navigation}: Props) {
     setIsLightSwitchOn(!isLightSwitchOn)
 
   }
+  const handleDelete = async(advice_id:number) =>{
+    await deleteAIAdvice(advice_id)
+    await getAIADvices()
+  }
+  const renderRightActions = (adviceId: number) => (
+    <TouchableOpacity
+      onPress={() => handleDelete(adviceId)}
+      style={tw`bg-red-500 mb-4 justify-center items-center h-auto w-15 rounded-lg`}
+    >
+      <MaterialIcons name="delete" size={24} color="white" />
+    </TouchableOpacity>
+  );
   const getAIADvices = async() =>{
     const res = await fetchAIAdvices()
     setAIAdvices(res)
@@ -124,13 +136,21 @@ export default function AiAdviceScreen({navigation}: Props) {
       </TouchableOpacity>
       <ScrollView>
           {isLoading&&(
+            <View style={tw`mb-1`}>
             <ActivityIndicator size="small" color="#0000ff" ></ActivityIndicator>
+            </View>
           )}
           {/* Map through sorted workouts */}
           {AIAdvices.map((advice: AIAdvice, index) => (
+            <Swipeable
+              key={index}
+              renderRightActions={() =>
+                renderRightActions(advice.id)
+              }
+            >
               <View
                 key={index}
-                style={tw`bg-white p-5 ml-2 mr-2 mb-4 rounded-lg shadow-lg`}
+                style={tw`bg-white p-5 ml-2 mr-2 rounded-lg shadow-lg mb-4`}
               >
                 <View style={tw`flex-row items-center justify-between mb-2`}>
                 <Text style={tw`text-xl font-bold text-black-600`}>
@@ -160,15 +180,16 @@ export default function AiAdviceScreen({navigation}: Props) {
                   </View>
                 </View>
 
-                <View style={tw`flex-row mb-2`}>
+                <View style={tw`flex-row mb-2 mr-2 `}>
                   <View
-                    style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl  mr-2`}
+                    style={tw`shrink-2 items-center bg-gray-300 p-5 rounded-3xl mr-3`}
                   >
                     <RenderHTML 
                     contentWidth={Dimensions.get('window').width * 0.4}
                     source={{ html: marked(advice.ai_feedback.substring(0, 200)) as string }}
-                    />
                     
+                    />
+
     
                   </View>
                  
@@ -176,6 +197,8 @@ export default function AiAdviceScreen({navigation}: Props) {
                   
                 </View>
               </View>
+              </Swipeable>
+              
           ))}
         </ScrollView>
       {/* Modal */}

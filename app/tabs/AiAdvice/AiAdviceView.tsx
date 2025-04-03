@@ -39,15 +39,12 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
   const [currentAIAdvice,setCurrentAIAdvice] = useState<AIAdvice>()
   useEffect(()=>{
     (async()=>{
-      console.log("hi")
       const res = await fetchAIadviceFromID(route.params.adviceId)
       setCurrentAIAdvice(res)
     
     })();
   },[])
-  useEffect(()=>{
-    console.log(currentAIAdvice)
-  },[currentAIAdvice])
+  
   
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -99,7 +96,7 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
           </View>
   
           {/* AI Feedback */}
-          <ScrollView style={tw`bg-white p-4 rounded-lg shadow`}>
+          <ScrollView style={tw`flex-1 bg-white p-4 rounded-lg shadow pb-140`} >
             <RenderHTML
               contentWidth={Dimensions.get("window").width * 0.9}
               source={{ html: marked(currentAIAdvice.ai_feedback) as string }}
