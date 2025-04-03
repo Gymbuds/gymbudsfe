@@ -114,7 +114,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
   }, [route.params.existingWorkLog]);
 
   // Function to populate the form when an exercise is clicked
-  const handleSelectExercise = (exercise) => {
+  const handleSelectExercise = (exercise: any) => {
     setSelectedExerciseId(exercise.exercise_id);
     setExerciseName(exercise.exercise_name);
     setReps(exercise.reps);

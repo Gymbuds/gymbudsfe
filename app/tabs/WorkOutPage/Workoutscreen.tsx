@@ -111,14 +111,21 @@ export default function Workoutscreen({ navigation, route }: Props) {
   );
 
   useEffect(() => {
+    const filteredByMonth = fetchWorkout.filter((workout) => {
+      const workoutDate = new Date(workout.date);
+      return (
+        workoutDate.getMonth() === date.getMonth() &&
+        workoutDate.getFullYear() === date.getFullYear()
+      );
+    });
     setFilteredWorkouts(
-      fetchWorkout.filter(
+      filteredByMonth.filter(
         (workout) =>
           selectedOption === "all" ||
           workout.type.toLowerCase() === selectedOption
       )
     );
-  }, [fetchWorkout, selectedOption]); // Runs every time fetchWorkout or selectedOption changes
+  }, [fetchWorkout, selectedOption, date]); // Runs every time fetchWorkout or selectedOption changes
 
   useEffect(() => {
     if (updatedWorkoutLog) {
