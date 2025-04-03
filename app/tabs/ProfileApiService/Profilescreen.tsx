@@ -206,7 +206,7 @@ export default function ProfileScreen({ navigation }: Props) {
         preferred_workout_goals: fitnessGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
-      console.log(userUpdate)
+      // console.log(userUpdate)
       // Send the PATCH request
       const response = await fetchFunctionWithAuth("users/profile/update", {
         method: "PATCH",

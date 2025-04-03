@@ -37,15 +37,15 @@ type RootStackParamList = {
 
 export default function AiAdviceViewScreen({navigation,route}: Props){
   const [currentAIAdvice,setCurrentAIAdvice] = useState<AIAdvice>()
+  
   useEffect(()=>{
     (async()=>{
       const res = await fetchAIadviceFromID(route.params.adviceId)
       setCurrentAIAdvice(res)
-    
     })();
   },[])
   
-  
+    
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       {currentAIAdvice && (
@@ -96,12 +96,14 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
           </View>
   
           {/* AI Feedback */}
-          <ScrollView style={tw`flex-1 bg-white p-4 rounded-lg shadow pb-140`} >
-            <RenderHTML
-              contentWidth={Dimensions.get("window").width * 0.9}
-              source={{ html: marked(currentAIAdvice.ai_feedback) as string }}
-            />
-          </ScrollView>
+          <SafeAreaView style ={tw`flex-1`}>
+            <ScrollView style={tw` bg-white p-4 rounded-lg shadow pb-140 h-auto`} bounces={false}>  
+              <RenderHTML
+                contentWidth={Dimensions.get("window").width * 0.9}
+                source={{ html: (marked(currentAIAdvice.ai_feedback) +`<div style = "margin-bottom: 5rem;"/>s` ) }}
+              />
+            </ScrollView>
+          </SafeAreaView>
         </View>
       )}
     </SafeAreaView>
