@@ -125,7 +125,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
           workout.type.toLowerCase() === selectedOption
       )
     );
-  }, [fetchWorkout, selectedOption, , date]); // Runs every time fetchWorkout or selectedOption changes
+  }, [fetchWorkout, selectedOption, date]); // Runs every time fetchWorkout or selectedOption changes
 
   useEffect(() => {
     if (updatedWorkoutLog) {
