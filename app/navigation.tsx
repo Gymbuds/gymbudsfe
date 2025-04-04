@@ -8,6 +8,7 @@ import ResetCodescreen from "./frontscreen/ResetCodescreen";
 import ChangePasswordscreen from "./frontscreen/ChangePasswordscreen";
 import Homescreen from "./tabs/Homescreen/Homescreen";
 import ProfileNavigator from "./tabs/ProfileApiService/profile-navigation";
+import WorkoutNavigator from "./tabs/WorkOutPage/Workout-navigation";
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -19,7 +20,18 @@ type RootStackParamList = {
   ResetCode: undefined;
   ChangePassword: { token: string };
   ProfileNavigator: undefined;
+  WorkoutNavigator: undefined;
 };
+
+type Workout = {
+  title: string;
+  date: string;
+  type: logMethod;
+  mood: Mood;
+  id: number;
+};
+type logMethod = "MANUAL" | "VOICE";
+type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,6 +57,7 @@ export default function AppNavigation() {
       <Stack.Screen name="Login" component={Loginscreen} />
       <Stack.Screen name="Home" component={Homescreen} />
       <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
+      <Stack.Screen name="WorkoutNavigator" component={WorkoutNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordscreen} />
       <Stack.Screen name="ResetCode" component={ResetCodescreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
