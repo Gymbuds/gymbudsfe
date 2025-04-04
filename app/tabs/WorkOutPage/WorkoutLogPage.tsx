@@ -28,6 +28,7 @@ type RootStackParamList = {
   Workoutscreen: undefined;
   WorkoutLogPage: undefined;
   ExistingWorkoutLogPage: undefined;
+  AiAdvice: undefined;
 };
 
 // Define types for the workout log

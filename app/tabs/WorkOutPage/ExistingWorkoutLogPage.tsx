@@ -28,8 +28,8 @@ type RootStackParamList = {
   ExistingWorkoutLogPage: {
     worklogId: number;
     existingWorkLog: Workout;
-    updateWorkouts: (updatedWorkout: Workout) => void;
-  };
+    updateWorkouts: (updatedWorkout: Workout) => void; };
+    AiAdvice: undefined;
 };
 
 type Workout = {
