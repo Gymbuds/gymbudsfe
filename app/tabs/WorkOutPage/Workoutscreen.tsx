@@ -276,7 +276,9 @@ export default function Workoutscreen({ navigation, route }: Props) {
         {/* AI Recommendations */}
         <TouchableOpacity
           style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
-          onPress={() =>{navigation.navigate("AiAdvice")}}
+          onPress={() => {
+            navigation.navigate("AiAdvice");
+          }}
         >
           <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
             <Feather name="zap" size={16} color="white" />
@@ -417,7 +419,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
                   </View>
 
                   {/* Edit Button */}
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={tw`absolute top-4 right-4 flex-row items-center`}
                     onPress={() => {
                       handleNavigate(workout.id, fetchWorkout);
@@ -431,6 +433,13 @@ export default function Workoutscreen({ navigation, route }: Props) {
                       size={24}
                       color="purple"
                     />
+                  </TouchableOpacity> */}
+
+                  <TouchableOpacity
+                    style={tw`absolute top-4 right-4`}
+                    onPress={() => handleNavigate(workout.id, fetchWorkout)}
+                  >
+                    <Text style={tw`text-purple-600 font-semibold`}>Edit</Text>
                   </TouchableOpacity>
                 </View>
               </View>
