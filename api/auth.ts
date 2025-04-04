@@ -3,10 +3,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
 
 export const fetchFunctionWithAuth = async(endpoint:string,options) => {
-    const accessToken =  await AsyncStorage.getItem('userToken')
+
+    let auth_token =  await AsyncStorage.getItem('userToken');
+    const refresh_token = await AsyncStorage.getItem('refreshToken');
+    const auth_res = await fetch(`${BASE_URL}/auth/check-auth`,{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({auth_token}),
+    })
+    if (auth_res.status == 401){
+        const refresh_res = await fetchFunction('auth/refresh',{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({refresh_token})
+        })
+        await AsyncStorage.setItem("userToken", refresh_res.access_token);
+    }
+    auth_token =  await AsyncStorage.getItem('userToken');
     const headers = {
         'Content-Type':'application/json',
-        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+        ...(auth_token && { 'Authorization': `Bearer ${auth_token}` }),
         ...options?.headers,
     }
     const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -24,6 +40,6 @@ export const fetchFunction = async(endpoint: string, options: any) => {
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-
+    // console.log(response.json())
     return response.json();
 };

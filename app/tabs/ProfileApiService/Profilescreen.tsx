@@ -14,7 +14,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchFunction, fetchFunctionWithAuth } from "@/api/auth";
+import { fetchFunctionWithAuth } from "@/api/auth";
 import { TimeRange } from "@/app/tabs/ProfileApiService/UserSchedule";
 import * as ImagePicker from "expo-image-picker"; // For selecting profile picture
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,6 +23,7 @@ import { fetchUserProfile } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
 import { userHealthData } from "@/app/tabs/ProfileApiService/HealthData";
+import { NullStyle } from "twrnc/dist/esm/types";
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
@@ -40,7 +41,7 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userWeight, setUserWeight] = useState<string>("");
+  const [userWeight, setUserWeight] = useState<number|null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -228,7 +229,7 @@ export default function ProfileScreen({ navigation }: Props) {
         preferred_workout_goals: fitnessGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
-
+      // console.log(userUpdate)
       // Send the PATCH request
       const response = await fetchFunctionWithAuth("users/profile/update", {
         method: "PATCH",
@@ -291,7 +292,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const logoutUser = async () => {
     const userToken = await AsyncStorage.getItem("userToken");
-    const response = await fetchFunction("auth/logout", {
+    const response = await fetchFunctionWithAuth("auth/logout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -348,15 +349,15 @@ export default function ProfileScreen({ navigation }: Props) {
 
           <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>8</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Day Streak</Text>
             </View>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>47</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Workouts</Text>
             </View>
             <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>12</Text>
+              <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Buddies</Text>
             </View>
           </View>
