@@ -419,27 +419,21 @@ export default function Workoutscreen({ navigation, route }: Props) {
                   </View>
 
                   {/* Edit Button */}
-                  {/* <TouchableOpacity
-                    style={tw`absolute top-4 right-4 flex-row items-center`}
-                    onPress={() => {
-                      handleNavigate(workout.id, fetchWorkout);
-                    }}
-                  >
-                    <Text style={tw`text-purple-600 font-semibold ml-1`}>
-                      Edit
-                    </Text>
-                    <MaterialIcons
-                      name="chevron-right"
-                      size={24}
-                      color="purple"
-                    />
-                  </TouchableOpacity> */}
 
                   <TouchableOpacity
                     style={tw`absolute top-4 right-4`}
                     onPress={() => handleNavigate(workout.id, fetchWorkout)}
                   >
-                    <Text style={tw`text-purple-600 font-semibold`}>Edit</Text>
+                    <View style={tw`flex-row items-center`}>
+                      <Text style={tw`text-purple-600 font-semibold`}>
+                        Edit
+                      </Text>
+                      <MaterialIcons
+                        name="chevron-right"
+                        size={24}
+                        color="purple"
+                      />
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
