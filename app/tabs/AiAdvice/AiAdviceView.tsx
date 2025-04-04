@@ -97,10 +97,10 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
   
           {/* AI Feedback */}
           <SafeAreaView style ={tw`flex-1`}>
-            <ScrollView style={tw` bg-white p-4 rounded-lg shadow pb-140 h-auto`} bounces={false}>  
+            <ScrollView style={tw` bg-white p-4 rounded-lg shadow pb-140 h-auto`}>  
               <RenderHTML
                 contentWidth={Dimensions.get("window").width * 0.9}
-                source={{ html: (marked(currentAIAdvice.ai_feedback) +`<div style = "margin-bottom: 5rem;"/>s` ) }}
+                source={{ html: (marked(currentAIAdvice.ai_feedback) +`<div style = "margin-bottom: 6rem;"/>s` ) }}
               />
             </ScrollView>
           </SafeAreaView>
