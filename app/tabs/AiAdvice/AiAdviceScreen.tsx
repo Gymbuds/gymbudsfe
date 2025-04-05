@@ -1,4 +1,4 @@
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,17 +7,18 @@ import {
   SafeAreaView,
   Switch,
   ScrollView,
-  Dimensions, 
+  Dimensions,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import {MaterialIcons} from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { SimpleLineIcons, Feather } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {createAIAdvice,fetchAIAdvices,deleteAIAdvice} from "./AiAdviceAPI"
+import { createAIAdvice, fetchAIAdvices, deleteAIAdvice } from "./AiAdviceAPI";
 import tw from "twrnc";
-import RenderHTML from 'react-native-render-html';
-import { marked } from 'marked';
+import RenderHTML from "react-native-render-html";
+import { marked } from "marked";
 type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
@@ -28,56 +29,76 @@ type RootStackParamList = {
   WorkoutLogPage: undefined;
   ExistingWorkoutLogPage: undefined;
   AiAdvice: undefined;
-  AiAdviceView:{
-    adviceId:number
+  AiAdviceView: {
+    adviceId: number;
   };
 };
-type AIAdviceType = "WORKOUT_ADVICE" |"WORKOUT_OPTIMIZATION"|"RECOVERY_ANALYSIS"|"PERFORMANCE_TRENDS"|"MUSCLE_BALANCE"|"GOAL_ALIGNMENT";
+type AIAdviceType =
+  | "WORKOUT_ADVICE"
+  | "WORKOUT_OPTIMIZATION"
+  | "RECOVERY_ANALYSIS"
+  | "PERFORMANCE_TRENDS"
+  | "MUSCLE_BALANCE"
+  | "GOAL_ALIGNMENT";
 
 export type AIAdvice = {
-  id:number;
-  advice_type:AIAdviceType;
-  ai_feedback:string;
+  id: number;
+  advice_type: AIAdviceType;
+  ai_feedback: string;
   user_id: number;
   created_at: string;
-  workout_earliest_date:string;
-  workout_latest_date:string;
-  contains_health_data:boolean;
-}
+  workout_earliest_date: string;
+  workout_latest_date: string;
+  contains_health_data: boolean;
+};
 type Props = NativeStackScreenProps<RootStackParamList, "AiAdvice">;
 
-export default function AiAdviceScreen({navigation}: Props) {
+export default function AiAdviceScreen({ navigation }: Props) {
   const [AiModalOpen, setAiModelOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedValue, setSelectedValue] = useState("");
   const [selectOpen, setSelectOpen] = useState(false);
-  const [isLightSwitchOn,setIsLightSwitchOn] = useState(false);
-  const [label,setLabel] = useState('');
-  const [AIAdvices,setAIAdvices] = useState<AIAdvice[]>([]);
-  const [isLoading,setIsLoading] = useState(false);
-  const handlePressGenerate = async() => {
-    try{
-      setIsLoading(true)
-      setAiModelOpen(false)
-      await createAIAdvice(selectedValue,isLightSwitchOn)
+  const [isLightSwitchOn, setIsLightSwitchOn] = useState(false);
+  const [label, setLabel] = useState("");
+  const [AIAdvices, setAIAdvices] = useState<AIAdvice[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
+  const handlePressGenerate = async () => {
+    try {
+      setIsLoading(true);
+      setAiModelOpen(false);
+      await createAIAdvice(selectedValue, isLightSwitchOn);
+    } catch (error) {
+      console.error("Error with request");
+    } finally {
+      setIsLoading(false);
     }
-    catch(error){
-      console.error("Error with request")
-    }
-    finally{
-      setIsLoading(false)
-    }
-    await getAIADvices()
-    
-    
+    await getAIADvices();
   };
-  const toggleSwitch = () =>{
-    setIsLightSwitchOn(!isLightSwitchOn)
+  const toggleSwitch = () => {
+    setIsLightSwitchOn(!isLightSwitchOn);
+  };
+  const handleDelete = (advice_id: number) => {
+    Alert.alert(
+      "Delete Advice",
+      "Are you sure you want to delete this AI advice?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const swipeable = swipeableRefs.current.get(advice_id);
+            swipeable?.close();
+            swipeableRefs.current.delete(advice_id);
 
-  }
-  const handleDelete = async(advice_id:number) =>{
-    await deleteAIAdvice(advice_id)
-    await getAIADvices()
-  }
+            await deleteAIAdvice(advice_id);
+            await getAIADvices(); // Refresh the list
+          },
+        },
+      ]
+    );
+  };
+
   const renderRightActions = (adviceId: number) => (
     <TouchableOpacity
       onPress={() => handleDelete(adviceId)}
@@ -86,19 +107,18 @@ export default function AiAdviceScreen({navigation}: Props) {
       <MaterialIcons name="delete" size={24} color="white" />
     </TouchableOpacity>
   );
-  const getAIADvices = async() =>{
-    const res = await fetchAIAdvices()
-    setAIAdvices(res)
-  }
-  const handleTapViewMore = async(id:number) =>{
-    navigation.navigate("AiAdviceView",{
-      adviceId:id,
-    })
-  }
-  useEffect(()=>{
-    getAIADvices()
-  },[])
-  
+  const getAIADvices = async () => {
+    const res = await fetchAIAdvices();
+    setAIAdvices(res);
+  };
+  const handleTapViewMore = async (id: number) => {
+    navigation.navigate("AiAdviceView", {
+      adviceId: id,
+    });
+  };
+  useEffect(() => {
+    getAIADvices();
+  }, []);
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -135,88 +155,86 @@ export default function AiAdviceScreen({navigation}: Props) {
         </Text>
       </TouchableOpacity>
       <ScrollView>
-          {isLoading&&(
-            <View style={tw`mb-1`}>
-            <ActivityIndicator size="small" color="#0000ff" ></ActivityIndicator>
-            </View>
-          )}
-          {/* Map through sorted workouts */}
-          {AIAdvices.map((advice: AIAdvice, index) => (
-            <Swipeable
+        {isLoading && (
+          <View style={tw`mb-1`}>
+            <ActivityIndicator size="small" color="#0000ff"></ActivityIndicator>
+          </View>
+        )}
+        {/* Map through sorted workouts */}
+        {AIAdvices.map((advice: AIAdvice, index) => (
+          <Swipeable
+            key={advice.id}
+            ref={(ref) => {
+              if (ref) swipeableRefs.current.set(advice.id, ref);
+              else swipeableRefs.current.delete(advice.id);
+            }}
+            renderRightActions={() => renderRightActions(advice.id)}
+          >
+            <View
               key={index}
-              renderRightActions={() =>
-                renderRightActions(advice.id)
-              }
+              style={tw`bg-white p-5 ml-2 mr-2 rounded-lg shadow-lg mb-4`}
             >
-              <View
-                key={index}
-                style={tw`bg-white p-5 ml-2 mr-2 rounded-lg shadow-lg mb-4`}
-              >
-                <View style={tw`flex-row items-center justify-between mb-2`}>
+              <View style={tw`flex-row items-center justify-between mb-2`}>
                 <Text style={tw`text-xl font-bold text-black-600`}>
                   {advice.advice_type
                     .toLowerCase()
                     .split("_")
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ")}
-                  </Text>
-                  <TouchableOpacity
-                    style={tw`absolute top-1 right-4 flex-row items-center`}
-                    onPress={() => handleTapViewMore(advice.id)}
-                  >
+                </Text>
+                <TouchableOpacity
+                  style={tw`absolute top-1 right-4 flex-row items-center`}
+                  onPress={() => handleTapViewMore(advice.id)}
+                >
                   <Text style={tw`text-purple-600 font-semibold ml-1`}>
-                      View More
-                    </Text>
-                    <MaterialIcons
-                      name="chevron-right"
-                      size={24}
-                      color="purple"
-                    />
-                  </TouchableOpacity>
-                  <View
-                    style={tw`flex-row items-center px-3 py-1 rounded-lg `}
-                  >
-                    
-                  </View>
-                </View>
+                    View More
+                  </Text>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color="purple"
+                  />
+                </TouchableOpacity>
+                <View
+                  style={tw`flex-row items-center px-3 py-1 rounded-lg `}
+                ></View>
+              </View>
 
-                <View style={tw`flex-row mb-2 mr-2 `}>
-                  <View
-                    style={tw`shrink-2 items-center bg-gray-300 p-5 rounded-3xl mr-3`}
-                  >
-                    <RenderHTML 
-                    contentWidth={Dimensions.get('window').width * 0.4}
-                    source={{ html: marked(advice.ai_feedback.substring(0, 200)) as string }}
-                    
-                    />
-
-    
-                  </View>
-                 
-
-                  
+              <View style={tw`flex-row mb-2 mr-2 `}>
+                <View
+                  style={tw`shrink-2 items-center bg-gray-300 p-5 rounded-3xl mr-3`}
+                >
+                  <RenderHTML
+                    contentWidth={Dimensions.get("window").width * 0.4}
+                    source={{
+                      html: marked(
+                        advice.ai_feedback.substring(0, 200)
+                      ) as string,
+                    }}
+                  />
                 </View>
               </View>
-              </Swipeable>
-              
-          ))}
-        </ScrollView>
+            </View>
+          </Swipeable>
+        ))}
+      </ScrollView>
       {/* Modal */}
-      <Modal 
-        visible={AiModalOpen} 
+      <Modal
+        visible={AiModalOpen}
         transparent={true}
         onRequestClose={() => setAiModelOpen(false)}
       >
-        <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+        <View
+          style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+        >
           <View style={tw`bg-white p-6 rounded-lg w-80`}>
-
-            <TouchableOpacity 
+            <TouchableOpacity
               style={tw`self-end mb-4`}
               onPress={() => setAiModelOpen(false)}
             >
               <Text style={tw`text-red-500`}>Cancel</Text>
             </TouchableOpacity>
-            
+
             <Text style={tw`text-lg font-bold mb-6`}>
               How would you like AI to assist with your workout data?
             </Text>
@@ -231,21 +249,29 @@ export default function AiAdviceScreen({navigation}: Props) {
                   <Text style={tw`text-gray-700`}>
                     {label || "Select option"}
                   </Text>
-                  <Feather 
-                    name={selectOpen ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color="gray" 
+                  <Feather
+                    name={selectOpen ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="gray"
                   />
                 </View>
               </TouchableOpacity>
 
               {selectOpen && (
-                <View style={tw`mt-2 border border-gray-200 rounded-lg bg-white shadow-md`}>
+                <View
+                  style={tw`mt-2 border border-gray-200 rounded-lg bg-white shadow-md`}
+                >
                   {[
                     { label: "Workout Advice", value: "WORKOUT_ADVICE" },
-                    { label: "Workout Optimization", value: "WORKOUT_OPTIMIZATION" },
+                    {
+                      label: "Workout Optimization",
+                      value: "WORKOUT_OPTIMIZATION",
+                    },
                     { label: "Recovery Analysis", value: "RECOVERY_ANALYSIS" },
-                    { label: "Performance Trends", value: "PERFORMANCE_TRENDS" },
+                    {
+                      label: "Performance Trends",
+                      value: "PERFORMANCE_TRENDS",
+                    },
                     { label: "Goal Alignment", value: "GOAL_ALIGNMENT" },
                     { label: "Muscle Balance", value: "MUSCLE_BALANCE" },
                   ].map((item) => (
@@ -256,10 +282,10 @@ export default function AiAdviceScreen({navigation}: Props) {
                       onPress={() => {
                         setSelectedValue(item.value);
                         setSelectOpen(false);
-                        setLabel(item.label)
+                        setLabel(item.label);
                       }}
                     >
-                      <Text style={tw`` }>{item.label}</Text>
+                      <Text style={tw``}>{item.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -271,14 +297,11 @@ export default function AiAdviceScreen({navigation}: Props) {
               <Text style={tw`text-base font-bold mb-4 w-50`}>
                 Do you want to use synced health data?
               </Text>
-              <Switch 
-              onValueChange={toggleSwitch} 
-              value ={isLightSwitchOn} 
-              
-              trackColor={{false: '#767577', true: '#ad46ff'}
-              }>
-
-              </Switch>
+              <Switch
+                onValueChange={toggleSwitch}
+                value={isLightSwitchOn}
+                trackColor={{ false: "#767577", true: "#ad46ff" }}
+              ></Switch>
             </View>
 
             {/* Generate Button */}

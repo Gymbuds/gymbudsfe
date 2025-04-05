@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   View,
@@ -28,8 +28,9 @@ type RootStackParamList = {
   ExistingWorkoutLogPage: {
     worklogId: number;
     existingWorkLog: Workout;
-    updateWorkouts: (updatedWorkout: Workout) => void; };
-    AiAdvice: undefined;
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
+  AiAdvice: undefined;
 };
 
 type Workout = {
@@ -76,6 +77,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(
     null
   );
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
   const updatedWorkoutLog: Workout = {
     title,
     type,
@@ -208,22 +210,27 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            const deletedExercise = exerciseDetails[index]; // The exercise being deleted
+            const deletedExercise = exerciseDetails[index];
+            const exerciseId = deletedExercise?.exercise_id;
 
-            // Ensure the exercise ID is a number and filter out any undefined values
-            setDeletedExercises((prevDeletedExercises) => {
-              const updatedDeletedExercises = [
-                ...prevDeletedExercises,
-                deletedExercise.exercise_id,
-              ].filter((id): id is number => id !== undefined); // Filter out undefined
-              return updatedDeletedExercises;
-            });
+            if (exerciseId !== undefined) {
+              // Close swipeable row if open
+              const swipeable = swipeableRefs.current.get(exerciseId);
+              swipeable?.close();
 
-            const newExerciseDetails = exerciseDetails.filter(
-              (_, i) => i !== index
-            );
+              // Add to deleted exercises list
+              setDeletedExercises((prev) =>
+                [...prev, exerciseId].filter(
+                  (id): id is number => id !== undefined
+                )
+              );
 
-            setExerciseDetails(newExerciseDetails);
+              // Remove from exerciseDetails
+              setExerciseDetails((prev) => prev.filter((_, i) => i !== index));
+
+              // Clean up ref
+              swipeableRefs.current.delete(exerciseId);
+            }
           },
         },
       ]
@@ -453,6 +460,16 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
               {exerciseDetails.map((exercise, index) => (
                 <Swipeable
                   key={exercise.exercise_id}
+                  ref={(ref) => {
+                    const id = exercise.exercise_id;
+                    if (id === undefined) return; // Skip if undefined
+
+                    if (ref) {
+                      swipeableRefs.current.set(id, ref);
+                    } else {
+                      swipeableRefs.current.delete(id);
+                    }
+                  }}
                   renderRightActions={() => renderRightActions(index)}
                 >
                   <TouchableOpacity

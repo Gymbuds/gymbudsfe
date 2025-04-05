@@ -91,6 +91,6 @@
 	<key>NSHealthShareUsageDescription</key>
 	<string>Allow GymBuds to access your health data.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to function properly.</string>
+	<string>GymBuds needs access to your location to find nearby gyms.</string>
 </dict>
 </plist>

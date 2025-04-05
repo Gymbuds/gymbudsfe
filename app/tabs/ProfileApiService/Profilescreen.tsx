@@ -90,14 +90,12 @@ export default function ProfileScreen({ navigation }: Props) {
           const consent = await AsyncStorage.getItem("hasConsented");
           console.log("ASYC STATUS:", consent);
           setHasConsented(consent === "true");
+          if (hasConsented && healthKitAvailable) {
+            fetchHealthData();
+          }
       };
       
-      // Fetch user health data
-      checkConsentStatus().then(() => {
-        if (hasConsented && healthKitAvailable) {
-          fetchHealthData();
-        }
-      });
+      checkConsentStatus();
     }, [hasConsented])
   );
 
@@ -500,8 +498,11 @@ export default function ProfileScreen({ navigation }: Props) {
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
                     placeholder="Enter your weight"
-                    value={userWeight}
-                    onChangeText={setUserWeight}
+                    value={userWeight !== null ? String(userWeight) : ""}
+                    onChangeText={(text) => {
+                      const parsed = parseFloat(text);
+                      setUserWeight(isNaN(parsed) ? null : parsed);
+                    }}
                   />
                 </View>
 

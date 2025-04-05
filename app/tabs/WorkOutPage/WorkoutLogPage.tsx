@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   SafeAreaView,
   View,
@@ -56,6 +56,7 @@ export default function WorkoutLogPage({ navigation }: Props) {
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<
     number | null
   >(null);
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
   const isButtonDisabled = !exerciseDetails.every(
     (exercise) =>
       exercise.exercise_name &&
@@ -121,9 +122,15 @@ export default function WorkoutLogPage({ navigation }: Props) {
           text: "Delete",
           style: "destructive",
           onPress: () => {
+            const swipeable = swipeableRefs.current.get(index);
+            swipeable?.close(); // Close the row if it's open
+
             setExercises((prevExercises) =>
               prevExercises.filter((_, i) => i !== index)
             );
+
+            // Optional: clean up the ref after deletion
+            swipeableRefs.current.delete(index);
           },
         },
       ]
@@ -442,7 +449,11 @@ export default function WorkoutLogPage({ navigation }: Props) {
               {exercises.map((exercise, index) => (
                 <Swipeable
                   key={index}
-                  renderRightActions={() => renderRightActions(index)} // No progress or dragX needed here
+                  ref={(ref) => {
+                    if (ref) swipeableRefs.current.set(index, ref);
+                    else swipeableRefs.current.delete(index); 
+                  }}
+                  renderRightActions={() => renderRightActions(index)}
                 >
                   <TouchableOpacity onPress={() => handleEditExercise(index)}>
                     <View

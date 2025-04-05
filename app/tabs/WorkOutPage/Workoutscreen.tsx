@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
@@ -77,6 +77,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
   const [date, setDate] = useState(new Date());
   const [filteredWorkouts, setFilteredWorkouts] = useState<Workout[]>([]);
   const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]);
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
 
   const changeMonth = (direction: "prev" | "next") => {
     setDate((prevDate) => {
@@ -173,10 +174,13 @@ export default function Workoutscreen({ navigation, route }: Props) {
           text: "Delete",
           onPress: async () => {
             try {
-              await deleteWorkoutLog(logId); // Update backend
-              const updatedWorkoutLogs = [...fetchWorkout];
-              updatedWorkoutLogs.splice(index, 1); // Remove from state
-              setFetchWorkout(updatedWorkoutLogs); // Update frontend
+              const swipeable = swipeableRefs.current.get(logId);
+              swipeable?.close();
+              swipeableRefs.current.delete(logId);
+
+              await deleteWorkoutLog(logId); // Delete from backend
+              const data = await fetchWorkoutLogs(); // Re-fetch fresh data
+              setFetchWorkout(data); // Update state
             } catch (error) {
               console.error("Failed to delete workout log:", error);
             }
@@ -368,7 +372,11 @@ export default function Workoutscreen({ navigation, route }: Props) {
           {/* Map through sorted workouts */}
           {filteredWorkouts.map((workout: Workout, index) => (
             <Swipeable
-              key={index}
+              ref={(ref) => {
+                if (ref) swipeableRefs.current.set(workout.id, ref);
+                else swipeableRefs.current.delete(workout.id); // cleanup when unmounted
+              }}
+              key={workout.id}
               renderRightActions={() => renderRightActions(index, workout.id)}
             >
               <View style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}>

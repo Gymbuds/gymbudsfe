@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -20,26 +20,28 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function Loginscreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [secureText, setSecureText] = useState(true);
 
   const loginUser = async () => {
-    const response = await fetchFunction("auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetchFunction("auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    console.log("Login Response:", response);
+      console.log("Login Response:", response);
 
-    if (response.access_token) {
-      // Adjust based on your API response
-      await AsyncStorage.setItem("userToken", response.access_token);
-      await AsyncStorage.setItem("refreshToken",response.refresh_token);
-      navigation.replace("Home"); // Redirect to home page
-    } else {
-      alert("Invalid login credentials.");
+      if (response.access_token) {
+        // Adjust based on your API response
+        await AsyncStorage.setItem("userToken", response.access_token);
+        await AsyncStorage.setItem("refreshToken", response.refresh_token);
+        navigation.replace("Home"); // Redirect to home page
+      }
+    } catch {
+      Alert.alert("Login Failed", "Invalid email or password.");
     }
   };
 
@@ -92,8 +94,8 @@ export default function Loginscreen({ navigation }: Props) {
             onPress={() => navigation.navigate("ForgotPassword")}
           >
             Forgot password?
-        </Text>
-      </TouchableOpacity>
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
@@ -115,7 +117,6 @@ export default function Loginscreen({ navigation }: Props) {
           </Text>
         </Text>
       </TouchableOpacity>
-      
     </LinearGradient>
   );
 }
