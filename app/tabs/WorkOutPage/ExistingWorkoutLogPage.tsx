@@ -445,7 +445,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 </Text>
               </TouchableOpacity>
             )}
-            {/* List of Added Exercises */}{" "}
+            {/* List of Added Exercises */}
             <Text style={tw`text-lg font-semibold mb-2`}>
               Logged Exercises:
             </Text>
