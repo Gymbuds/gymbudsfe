@@ -5,11 +5,11 @@ import AppleHealthKit from "react-native-health";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const userHealthData = () => {
-  const [stepCount, setStepCount] = useState<number | null>(null);
-  const [caloriesBurned, setCaloriesBurned] = useState<number | null>(null);
-  const [avgHeartRate, setAvgHeartRate] = useState<number | null>(null);
-  const [sleepDuration, setSleepDuration] = useState<number | null>(null);
-  const [activeMins, setActiveMins] = useState<number | null>(null);
+  const [stepCount, setStepCount] = useState<number>(0);
+  const [caloriesBurned, setCaloriesBurned] = useState<number>(0);
+  const [avgHeartRate, setAvgHeartRate] = useState<number>(0);
+  const [sleepDuration, setSleepDuration] = useState<number>(0);
+  const [activeMins, setActiveMins] = useState<number>(0);  
   const [healthKitAvailable, setHealthKitAvailable] = useState(false);
   const [hasConsented, setHasConsented] = useState(false);
   const permissions = {

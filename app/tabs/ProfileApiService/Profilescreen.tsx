@@ -89,8 +89,9 @@ export default function ProfileScreen({ navigation }: Props) {
       const checkConsentStatus = async () => {
           const consent = await AsyncStorage.getItem("hasConsented");
           console.log("ASYC STATUS:", consent);
-          setHasConsented(consent === "true");
-          if (hasConsented && healthKitAvailable) {
+          const hasUserConsented = consent === "true"
+          setHasConsented(hasUserConsented);
+          if (hasUserConsented && healthKitAvailable) {
             fetchHealthData();
           }
       };
