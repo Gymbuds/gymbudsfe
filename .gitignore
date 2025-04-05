@@ -134,3 +134,9 @@ dist
 
 expo-env.d.ts
 # @end expo-cli
+
+router.d.ts
+
+
+**/.DS_Store
+
