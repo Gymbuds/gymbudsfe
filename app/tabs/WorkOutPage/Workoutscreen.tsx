@@ -219,7 +219,6 @@ export default function Workoutscreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-      <ScrollView style={tw`p-4`}>
         <View style={tw`flex-1 p-4 bg-gray-100`}>
           {/* Header */}
           <View style={tw`flex-row justify-between items-center mb-4`}>
@@ -442,7 +441,6 @@ export default function Workoutscreen({ navigation, route }: Props) {
             ))}
           </ScrollView>
         </View>
-      </ScrollView>
     </SafeAreaView>
   );
 }
