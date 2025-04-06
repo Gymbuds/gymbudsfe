@@ -34,41 +34,40 @@ type RootStackParamList = {
 
 export default function HomeScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
-    const [profilePicture, setProfilePicture] = useState<string | null>(null);
-    useFocusEffect(
-      useCallback(() => {
-        fetchWorkoutLogs()
-          .then((data) => {
-            // Sort workouts by created_at field in descending order
-            const sortedWorkouts = data.sort(
-              (a: Workout, b: Workout) => b.id - a.id
-            );
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkoutLogs()
+        .then((data) => {
+          // Sort workouts by created_at field in descending order
+          const sortedWorkouts = data.sort(
+            (a: Workout, b: Workout) => b.id - a.id
+          );
 
-            setWorkouts(sortedWorkouts);
-          })
-          .catch((error) => {
-            console.error("Error fetching workouts:", error);
-          });
+          setWorkouts(sortedWorkouts);
+        })
+        .catch((error) => {
+          console.error("Error fetching workouts:", error);
+        });
 
-        // Fetch user profile data
-        const loadUserProfile = async () => {
-          try {
-            const userProfile = await fetchUserProfile();
-            if (userProfile && userProfile.user) {
-              setProfilePicture(userProfile.user.profile_picture || null);
-            }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
+      // Fetch user profile data
+      const loadUserProfile = async () => {
+        try {
+          const userProfile = await fetchUserProfile();
+          if (userProfile && userProfile.user) {
+            setProfilePicture(userProfile.user.profile_picture || null);
           }
-        };
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      };
 
-        loadUserProfile();
-      }, [])
-    );
+      loadUserProfile();
+    }, [])
+  );
 
-    const recentWorkout = workouts.length > 0 ? workouts[0] : null;
-
+  const recentWorkout = workouts.length > 0 ? workouts[0] : null;
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <ScrollView style={tw`p-4`}>
@@ -76,17 +75,28 @@ export default function HomeScreen() {
           <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
           <View style={tw`flex-row items-center`}>
             <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
-            <View
-              style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ProfileNavigator")}
             >
-              <Text style={tw`text-white font-bold`}>U</Text>
-            </View>
+              {profilePicture ? (
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={tw`w-8 h-8 rounded-full`}
+                />
+              ) : (
+                <View
+                  style={tw`bg-purple-300 w-8 h-8 rounded-full flex items-center justify-center`}
+                >
+                  <Text style={tw`text-white font-bold`}>U</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
           <TouchableOpacity>
-            <Text style={tw`text-purple-500 text-sm`}>View All &gt;</Text>
+            <Text style={tw`text-purple-500 text-sm`}>View All</Text>
           </TouchableOpacity>
         </View>
         <View style={tw`flex-row justify-between mt-2`}>
@@ -112,33 +122,58 @@ export default function HomeScreen() {
             <Text style={tw`text-xs text-gray-500`}>8 days</Text>
           </View>
         </View>
+
         {/* Recent Workouts */}
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("WorkoutNavigator")}
+          >
             <Text style={tw`text-purple-500 text-sm`}>View All </Text>
           </TouchableOpacity>
         </View>
-        <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
-          <Text style={tw`text-sm font-bold`}>Chest Day</Text>
-          <View style={tw`flex-row items-center mt-1`}>
-            <Icon name="calendar" size={12} color="gray" />
-            <Text style={tw`text-xs text-gray-500 ml-1`}>Today, 8:30 AM</Text>
-          </View>
-          <View style={tw`flex-row justify-between items-center mt-2`}>
-            <View style={tw`flex-row`}>
-              <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
-                <Text style={tw`text-xs`}>Voice</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={tw`bg-gray-300 p-2 rounded-lg`}>
-                <Text style={tw`text-xs`}>Excited</Text>
-              </TouchableOpacity>
+        {recentWorkout ? (
+          <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
+            <View style={tw`flex-row items-center justify-between mb-2`}>
+              <Text style={tw`text-xl font-bold text-black-600`}>
+                {recentWorkout?.title}
+              </Text>
+              <View
+                style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
+              >
+                <MaterialIcons
+                  name={
+                    recentWorkout?.type === "MANUAL"
+                      ? "keyboard"
+                      : "multitrack-audio"
+                  }
+                  size={24}
+                  color="purple"
+                />
+              </View>
             </View>
-            <TouchableOpacity>
-              <Text style={tw`text-purple-500 text-xs`}>Edit</Text>
-            </TouchableOpacity>
+            <View style={tw`flex-row items-center mt-2`}>
+              <Icon name="calendar" size={12} color="gray" />
+              <Text style={tw`text-xs text-gray-500 ml-1 mt-2`}>
+                {recentWorkout?.date
+                  ? format(new Date(recentWorkout.date), "EEE, MMM d, h:mm a")
+                  : "Unknown Date"}
+              </Text>
+            </View>
+            <View style={tw`flex-row justify-between items-center mt-3`}>
+              <View style={tw`flex-row`}>
+                <View style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
+                  <Text style={tw`text-xs`}>{recentWorkout?.type}</Text>
+                </View>
+                <View style={tw`bg-gray-300 p-2 rounded-lg`}>
+                  <Text style={tw`text-xs`}>{recentWorkout?.mood}</Text>
+                </View>
+              </View>
+            </View>
           </View>
-        </View>
+        ) : (
+          <Text style={tw`text-gray-500 mt-2`}>No recent workouts found.</Text>
+        )}
 
         {/* Nearby Communities */}
         <View style={tw`flex-row justify-between items-center mt-6`}>
