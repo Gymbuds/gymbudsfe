@@ -6,8 +6,8 @@ import Signupscreen from "./frontscreen/Signupscreen";
 import ForgotPasswordscreen from "./frontscreen/ForgotPasswordscreen";
 import ResetCodescreen from "./frontscreen/ResetCodescreen";
 import ChangePasswordscreen from "./frontscreen/ChangePasswordscreen";
-import Homescreen from "./tabs/Homescreen/Homescreen";
 import ProfileNavigator from "./tabs/ProfileApiService/profile-navigation";
+import MainTabs from "./tabs/MainTab/Maintabs";
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -43,7 +43,7 @@ export default function AppNavigation() {
     >
       <Stack.Screen name="Signup" component={Signupscreen} />
       <Stack.Screen name="Login" component={Loginscreen} />
-      <Stack.Screen name="Home" component={Homescreen} />
+      <Stack.Screen name="Home" component={MainTabs} />
       <Stack.Screen name="ProfileNavigator" component={ProfileNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordscreen} />
       <Stack.Screen name="ResetCode" component={ResetCodescreen} />
