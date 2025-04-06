@@ -25,11 +25,6 @@ type RootStackParamList = {
   Home: undefined;
   ProfileNavigator: undefined;
   WorkoutNavigator: undefined;
-  ExistingWorkoutLogPage: {
-    worklogId: number;
-    existingWorkLog: Workout;
-    updateWorkouts: (updatedWorkout: Workout) => void;
-  };
 };
 
 export default function HomeScreen() {
