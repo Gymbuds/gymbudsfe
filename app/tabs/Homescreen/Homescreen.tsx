@@ -24,7 +24,6 @@ type Workout = {
 type RootStackParamList = {
   Home: undefined;
   ProfileNavigator: undefined;
-  WorkoutNavigator: undefined;
   Workouts: undefined;
 };
 
