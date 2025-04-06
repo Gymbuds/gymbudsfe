@@ -194,6 +194,7 @@ export default function ScheduleScreen({ navigation }: Props) {
               <TextInput
                 style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
                 placeholder="7:00"
+                placeholderTextColor="#B5B0B0"
                 value={startTimeAdd}
                 onChangeText={setStartTimeAdd}
               />
@@ -224,6 +225,7 @@ export default function ScheduleScreen({ navigation }: Props) {
             <TextInput
               style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
               placeholder="9:00"
+              placeholderTextColor="#B5B0B0"
               value={endTimeAdd}
               onChangeText={setEndTimeAdd}
             />

@@ -13,7 +13,10 @@ type RootStackParamList = {
 };
 
 type ChangePasswordRouteProp = RouteProp<RootStackParamList, "ChangePassword">;
-type ChangePasswordNavProp = NativeStackNavigationProp<RootStackParamList, "ChangePassword">;
+type ChangePasswordNavProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "ChangePassword"
+>;
 
 export default function ChangePasswordscreen() {
   const route = useRoute<ChangePasswordRouteProp>();
@@ -31,31 +34,47 @@ export default function ChangePasswordscreen() {
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert("New password does not match confirmed password.");
+      Alert.alert(
+        "Try Again",
+        "New password does not match confirmed password."
+      );
       return;
     }
+    try {
+      const response = await fetchFunction("auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reset_token: token, new_password: newPassword }),
+      });
 
-    const response = await fetchFunction("auth/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reset_token: token, new_password: newPassword }),
-    });
-
-    if (response.success) {
-      Alert.alert("Password successfully reset. You can now log in with your new password.");
-      navigation.replace("Login");
-    } else {
-      Alert.alert("Error resetting password. Please try again.");
+      if (response.success) {
+        Alert.alert(
+          "Password successfully reset. You can now log in with your new password."
+        );
+        navigation.replace("Login");
+      }
+    } catch {
+      Alert.alert(
+        "Invalid Password",
+        "Passwords must have at least 8 digits, 1 uppercase and lowercase letter, 1 digit, and 1 special character."
+      );
     }
   };
 
   return (
-    <LinearGradient colors={["#F2ECFF", "#E5D4FF"]} style={tw`flex-1 justify-center items-center px-8`}>
+    <LinearGradient
+      colors={["#F2ECFF", "#E5D4FF"]}
+      style={tw`flex-1 justify-center items-center px-8`}
+    >
       <Text style={tw`text-4xl font-bold text-purple-500`}>GymBuds</Text>
       <Text style={tw`text-xl font-semibold mt-4`}>Create a New Password</Text>
-      <Text style={tw`text-gray-600 mb-4`}>Set a new password for your GymBuds account:</Text>
+      <Text style={tw`text-gray-600 mb-4`}>
+        Set a new password for your GymBuds account:
+      </Text>
 
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
+      <View
+        style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}
+      >
         <Icon name="lock" size={20} color="#B5B0B0" />
         <TextInput
           style={tw`flex-1 pl-3 text-base text-black`}
@@ -65,11 +84,17 @@ export default function ChangePasswordscreen() {
           onChangeText={setNewPassword}
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-          <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
+          <Icon
+            name={secureText ? "eye-slash" : "eye"}
+            size={20}
+            color="#B5B0B0"
+          />
         </TouchableOpacity>
       </View>
 
-      <View style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}>
+      <View
+        style={tw`flex-row items-center bg-white rounded-lg px-4 py-3 w-full shadow-md mb-4`}
+      >
         <Icon name="lock" size={20} color="#B5B0B0" />
         <TextInput
           style={tw`flex-1 pl-3 text-base text-black`}
@@ -79,7 +104,11 @@ export default function ChangePasswordscreen() {
           onChangeText={setConfirmPassword}
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-          <Icon name={secureText ? "eye-slash" : "eye"} size={20} color="#B5B0B0" />
+          <Icon
+            name={secureText ? "eye-slash" : "eye"}
+            size={20}
+            color="#B5B0B0"
+          />
         </TouchableOpacity>
       </View>
 
@@ -88,7 +117,9 @@ export default function ChangePasswordscreen() {
         onPress={handlePasswordReset}
       >
         <Icon name="check" size={20} color="white" />
-        <Text style={tw`text-white text-lg font-bold ml-2`}>Change Password</Text>
+        <Text style={tw`text-white text-lg font-bold ml-2`}>
+          Change Password
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>

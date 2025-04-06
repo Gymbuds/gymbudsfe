@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -21,19 +21,23 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
 
 export default function Loginscreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const requestPasswordReset = async () => {
-      const response = await fetchFunction('auth/request-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    try {
+      const response = await fetchFunction("auth/request-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       if (response.success) {
         navigation.replace("ResetCode");
       }
-    };
+    } catch {
+      Alert.alert("Try Again", "No account associated with this email found.");
+    }
+  };
 
   return (
     <LinearGradient
@@ -41,7 +45,9 @@ export default function Loginscreen({ navigation }: Props) {
       style={tw`flex-1 justify-center items-center px-8`}
     >
       <Text style={tw`text-4xl font-bold text-purple-500`}>GymBuds</Text>
-      <Text style={tw`text-xl font-semibold mt-4`}>Did you forget your password?</Text>
+      <Text style={tw`text-xl font-semibold mt-4`}>
+        Did you forget your password?
+      </Text>
       <Text style={tw`text-gray-600 mb-4 text-center`}>
         Please enter the email associated with your GymBuds account:
       </Text>
@@ -72,17 +78,21 @@ export default function Loginscreen({ navigation }: Props) {
           <Text
             style={tw`text-purple-500`}
             onPress={() => navigation.navigate("Signup")}
-          > Sign Up
+          >
+            {" "}
+            Sign Up
           </Text>
         </Text>
       </TouchableOpacity>
       <TouchableOpacity>
         <Text style={tw`text-gray-700 text-sm`}>
           Remembered your password?
-          <Text 
-            style={tw`text-purple-500`} 
-            onPress={() => navigation.navigate('Login')}
-          > Login
+          <Text
+            style={tw`text-purple-500`}
+            onPress={() => navigation.navigate("Login")}
+          >
+            {" "}
+            Login
           </Text>
         </Text>
       </TouchableOpacity>

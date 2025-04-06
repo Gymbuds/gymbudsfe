@@ -346,7 +346,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
           </View>
 
-          <View style={tw`flex-row mt-3`}>
+          {/* <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Day Streak</Text>
@@ -359,7 +359,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Buddies</Text>
             </View>
-          </View>
+          </View> */}
         </View>
 
         {/* Workout Preferences */}
@@ -371,13 +371,13 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          <View style={tw`mt-3`}>
+          {/* <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
               <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
             </View>
-          </View>
+          </View> */}
 
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
@@ -475,6 +475,7 @@ export default function ProfileScreen({ navigation }: Props) {
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
                     placeholder="Enter your name"
+                    placeholderTextColor="#B5B0B0"
                     value={userName}
                     onChangeText={setUserName}
                   />
@@ -487,6 +488,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
                     placeholder="Enter your age"
+                    placeholderTextColor="#B5B0B0"
                     value={userAge}
                     onChangeText={setUserAge}
                   />
@@ -499,6 +501,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
                     placeholder="Enter your weight"
+                    placeholderTextColor="#B5B0B0"
                     value={userWeight !== null ? String(userWeight) : ""}
                     onChangeText={(text) => {
                       const parsed = parseFloat(text);
@@ -534,7 +537,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 </View>
 
                 {/* Preferred Gym */}
-                <View>
+                {/* <View>
                   <Text style={tw`text-xs text-gray-500 mb-1`}>
                     Preferred Gym
                   </Text>
@@ -543,7 +546,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     value={preferredGym}
                     onChangeText={setPreferredGym}
                   />
-                </View>
+                </View> */}
 
                 {/* Fitness Goals */}
                 <View>
@@ -552,6 +555,8 @@ export default function ProfileScreen({ navigation }: Props) {
                   </Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
+                    placeholder="Enter your fitness goals (Separate by commas)"
+                    placeholderTextColor="#B5B0B0"
                     value={fitnessGoalsInput}
                     onChangeText={handleFitnessGoalsChange} // Preserve spaces
                     onBlur={handleFitnessGoalsSubmit}
