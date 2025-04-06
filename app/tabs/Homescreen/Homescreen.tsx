@@ -1,13 +1,74 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StackNavigationProp } from "@react-navigation/stack";
 import tw from "twrnc";
+import { format } from "date-fns";
+import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
+import { MaterialIcons } from "@expo/vector-icons";
+import { fetchUserProfile } from "../ProfileApiService/ProfileApiService";
 
-const Tab = createBottomTabNavigator();
+type logMethod = "MANUAL" | "VOICE";
+type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
+// Define types for the workout log
+type Workout = {
+  title: string;
+  date: string;
+  type: logMethod;
+  mood: Mood;
+  id: number;
+};
+
+type RootStackParamList = {
+  Home: undefined;
+  ProfileNavigator: undefined;
+  WorkoutNavigator: undefined;
+  ExistingWorkoutLogPage: {
+    worklogId: number;
+    existingWorkLog: Workout;
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
+};
 
 export default function HomeScreen() {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [profilePicture, setProfilePicture] = useState<string | null>(null);
+    useFocusEffect(
+      useCallback(() => {
+        fetchWorkoutLogs()
+          .then((data) => {
+            // Sort workouts by created_at field in descending order
+            const sortedWorkouts = data.sort(
+              (a: Workout, b: Workout) => b.id - a.id
+            );
+
+            setWorkouts(sortedWorkouts);
+          })
+          .catch((error) => {
+            console.error("Error fetching workouts:", error);
+          });
+
+        // Fetch user profile data
+        const loadUserProfile = async () => {
+          try {
+            const userProfile = await fetchUserProfile();
+            if (userProfile && userProfile.user) {
+              setProfilePicture(userProfile.user.profile_picture || null);
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+        };
+
+        loadUserProfile();
+      }, [])
+    );
+
+    const recentWorkout = workouts.length > 0 ? workouts[0] : null;
+
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <ScrollView style={tw`p-4`}>

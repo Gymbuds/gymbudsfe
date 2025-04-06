@@ -19,7 +19,7 @@ export default function MainTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <Icon name="home" size={24} color={color} />
           ),
         }}
@@ -28,7 +28,7 @@ export default function MainTabs() {
         name="Workouts"
         component={WorkoutNavigator}
         options={{
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <Icon name="calendar" size={24} color={color} />
           ),
         }}
@@ -37,7 +37,7 @@ export default function MainTabs() {
         name="Map"
         component={Mapscreen}
         options={{
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <Icon name="map-marker" size={24} color={color} />
           ),
         }}
@@ -55,7 +55,7 @@ export default function MainTabs() {
         name="ProfileNavigator"
         component={ProfileNavigator}
         options={{
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <Icon name="user" size={24} color={color} />
           ),
         }}
