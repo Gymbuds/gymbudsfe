@@ -19,6 +19,7 @@ import { createAIAdvice, fetchAIAdvices, deleteAIAdvice } from "./AiAdviceAPI";
 import tw from "twrnc";
 import RenderHTML from "react-native-render-html";
 import { marked } from "marked";
+import { fetchUserHealthDatas } from "../ProfileApiService/ProfileApiService";
 type RootStackParamList = {
   Signup: undefined;
   Login: undefined;
@@ -61,6 +62,7 @@ export default function AiAdviceScreen({ navigation }: Props) {
   const [label, setLabel] = useState("");
   const [AIAdvices, setAIAdvices] = useState<AIAdvice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [healthData,setHealthData] = useState(null);
   const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
   const handlePressGenerate = async () => {
     try {
@@ -118,7 +120,19 @@ export default function AiAdviceScreen({ navigation }: Props) {
   };
   useEffect(() => {
     getAIADvices();
+    (async()=>{
+      const res = await fetchUserHealthDatas();
+      if(res.length!=0){
+        console.log(res.length)
+        setHealthData(res)
+      }
+    }
+  )();
   }, []);
+
+  useEffect(()=>{
+    console.log(healthData);
+  },[healthData]);
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -293,6 +307,7 @@ export default function AiAdviceScreen({ navigation }: Props) {
             </View>
 
             {/* Health Data Toggle */}
+            {healthData &&(
             <View style={tw`mb-8 flex flex-row justify-between items-center`}>
               <Text style={tw`text-base font-bold mb-4 w-50`}>
                 Do you want to use synced health data?
@@ -303,7 +318,8 @@ export default function AiAdviceScreen({ navigation }: Props) {
                 trackColor={{ false: "#767577", true: "#ad46ff" }}
               ></Switch>
             </View>
-
+            )
+          }
             {/* Generate Button */}
             <TouchableOpacity
               style={tw`bg-purple-500 p-4 rounded-lg`}

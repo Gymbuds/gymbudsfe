@@ -10,3 +10,14 @@ export const fetchUserProfile = async () => {
     throw error;
   }
 };
+export const fetchUserHealthDatas = async() =>{
+  try{
+    const res =  await fetchFunctionWithAuth("health_datas",{method:"GET"});
+    console.log(res)
+    return res
+  }
+  catch (error){
+    console.error("Error fetching User's Health Data",error);
+    throw error;
+  }
+}
