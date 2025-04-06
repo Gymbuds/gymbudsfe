@@ -21,6 +21,11 @@ type RootStackParamList = {
   ChangePassword: { token: string };
   ProfileNavigator: undefined;
   WorkoutNavigator: undefined;
+  ExistingWorkoutLogPage: {
+    worklogId: number;
+    existingWorkLog: Workout;
+    updateWorkouts: (updatedWorkout: Workout) => void;
+  };
 };
 
 type Workout = {
