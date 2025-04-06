@@ -536,18 +536,6 @@ export default function ProfileScreen({ navigation }: Props) {
                   </View>
                 </View>
 
-                {/* Preferred Gym */}
-                {/* <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>
-                    Preferred Gym
-                  </Text>
-                  <TextInput
-                    style={tw`border p-2 rounded w-full`}
-                    value={preferredGym}
-                    onChangeText={setPreferredGym}
-                  />
-                </View> */}
-
                 {/* Fitness Goals */}
                 <View>
                   <Text style={tw`text-xs text-gray-500 mb-1`}>
