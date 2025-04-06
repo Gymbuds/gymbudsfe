@@ -20,7 +20,7 @@ type RootStackParamList = {
   ResetCode: undefined;
   ChangePassword: { token: string };
   ProfileNavigator: undefined;
-  WorkoutNavigator: undefined;
+  Workouts: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

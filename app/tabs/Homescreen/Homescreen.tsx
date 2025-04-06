@@ -25,6 +25,7 @@ type RootStackParamList = {
   Home: undefined;
   ProfileNavigator: undefined;
   WorkoutNavigator: undefined;
+  Workouts: undefined;
 };
 
 export default function HomeScreen() {
@@ -122,7 +123,7 @@ export default function HomeScreen() {
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate("WorkoutNavigator")}
+            onPress={() => navigation.navigate("Workouts")}
           >
             <Text style={tw`text-purple-500 text-sm`}>View All </Text>
           </TouchableOpacity>

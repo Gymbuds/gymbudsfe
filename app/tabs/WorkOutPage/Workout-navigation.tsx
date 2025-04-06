@@ -36,7 +36,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function WorkoutNavigator() {
   const [workouts, setWorkouts] = useState<Workout[]>();
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
-  const [adviceId, setAdviceId] = useState(0);
+  const [adviceId] = useState(0);
   return (
     <Stack.Navigator initialRouteName={"Workoutscreen"} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Workoutscreen">
