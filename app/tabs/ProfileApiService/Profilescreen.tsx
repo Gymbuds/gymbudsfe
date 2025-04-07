@@ -41,7 +41,7 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userWeight, setUserWeight] = useState<number|null>(null);
+  const [userWeight, setUserWeight] = useState<number | null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -87,15 +87,15 @@ export default function ProfileScreen({ navigation }: Props) {
 
       // Checked stored consent status
       const checkConsentStatus = async () => {
-          const consent = await AsyncStorage.getItem("hasConsented");
-          console.log("ASYC STATUS:", consent);
-          const hasUserConsented = consent === "true"
-          setHasConsented(hasUserConsented);
-          if (hasConsented && healthKitAvailable) {
-            fetchHealthData();
-          }
+        const consent = await AsyncStorage.getItem("hasConsented");
+        console.log("ASYC STATUS:", consent);
+        const hasUserConsented = consent === "true";
+        setHasConsented(hasUserConsented);
+        if (hasConsented && healthKitAvailable) {
+          fetchHealthData();
+        }
       };
-      
+
       checkConsentStatus();
     }, [hasConsented])
   );
@@ -210,22 +210,21 @@ export default function ProfileScreen({ navigation }: Props) {
     setFitnessGoalsInput(text); // Preserve raw input while typing
   };
 
-  const handleFitnessGoalsSubmit = () => {
-    setFitnessGoals(
-      fitnessGoalsInput
-        .split(",")
-        .map((goal) => goal.trim())
-        .filter((goal) => goal !== "")
-    );
-  };
-
   const updateUserInfo = async () => {
     try {
+      const parsedGoals = fitnessGoalsInput
+        .split(",")
+        .map((goal) => goal.trim())
+        .filter((goal) => goal !== "");
+
+      // Keep UI updated
+      setFitnessGoals(parsedGoals);
+
       const userUpdate = {
         name: userName,
         age: userAge,
         weight: userWeight,
-        preferred_workout_goals: fitnessGoals.join(","),
+        preferred_workout_goals: parsedGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
       // console.log(userUpdate)
@@ -547,7 +546,6 @@ export default function ProfileScreen({ navigation }: Props) {
                     placeholderTextColor="#B5B0B0"
                     value={fitnessGoalsInput}
                     onChangeText={handleFitnessGoalsChange} // Preserve spaces
-                    onBlur={handleFitnessGoalsSubmit}
                   />
                 </View>
 
