@@ -5,9 +5,9 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Modal,
   SafeAreaView,
   Alert,
+  ActionSheetIOS, Platform
 } from "react-native";
 import {
   AntDesign,
@@ -140,12 +140,41 @@ export default function Workoutscreen({ navigation, route }: Props) {
     }
   }, [updatedWorkoutLog]);
 
-  // Function to sort workouts alphabetically
-  const sortWorkouts = () => {
-    if (fetchWorkout) {
-      const sorted = [...fetchWorkout].sort((a, b) =>
-        a.title.localeCompare(b.title)
+  const showFilterOptions = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Alphabetically', 'Title', 'Type', 'Date'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) sortWorkouts('alphabetical');
+          if (buttonIndex === 2) sortWorkouts('title');
+          if (buttonIndex === 3) sortWorkouts('type');
+          if (buttonIndex === 4) sortWorkouts('date');
+        }
       );
+    } else {
+      // For Android or cross-platform, trigger your own modal here
+      console.log('Show modal filter options for Android');
+    }
+  };
+  
+  const sortWorkouts = (criteria = 'alphabetical') => {
+    if (fetchWorkout) {
+      let sorted = [...fetchWorkout];
+      switch (criteria) {
+        case 'alphabetical':
+        case 'title':
+          sorted.sort((a, b) => b.title.localeCompare(a.title));
+          break;
+        case 'type':
+          sorted.sort((a, b) => a.type.localeCompare(b.type));
+          break;
+        case 'date':
+          sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          break;
+      }
       setFetchWorkout(sorted);
     }
   };
@@ -225,7 +254,8 @@ export default function Workoutscreen({ navigation, route }: Props) {
             <Text style={tw`text-xl font-bold`}>Your Workouts</Text>
             <View style={tw`flex-row gap-4`}>
               {/* Filter Button */}
-              <TouchableOpacity onPress={sortWorkouts}>
+              <TouchableOpacity 
+              onLongPress={showFilterOptions}>
                 <AntDesign name="filter" size={24} />
               </TouchableOpacity>
 
