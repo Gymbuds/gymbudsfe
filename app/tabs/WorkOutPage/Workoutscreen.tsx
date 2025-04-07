@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
@@ -77,6 +77,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
   const [date, setDate] = useState(new Date());
   const [filteredWorkouts, setFilteredWorkouts] = useState<Workout[]>([]);
   const [fetchWorkout, setFetchWorkout] = useState<Workout[]>([]);
+  const swipeableRefs = useRef<Map<number, Swipeable>>(new Map());
 
   const changeMonth = (direction: "prev" | "next") => {
     setDate((prevDate) => {
@@ -173,10 +174,13 @@ export default function Workoutscreen({ navigation, route }: Props) {
           text: "Delete",
           onPress: async () => {
             try {
-              await deleteWorkoutLog(logId); // Update backend
-              const updatedWorkoutLogs = [...fetchWorkout];
-              updatedWorkoutLogs.splice(index, 1); // Remove from state
-              setFetchWorkout(updatedWorkoutLogs); // Update frontend
+              const swipeable = swipeableRefs.current.get(logId);
+              swipeable?.close();
+              swipeableRefs.current.delete(logId);
+
+              await deleteWorkoutLog(logId); // Delete from backend
+              const data = await fetchWorkoutLogs(); // Re-fetch fresh data
+              setFetchWorkout(data); // Update state
             } catch (error) {
               console.error("Failed to delete workout log:", error);
             }
@@ -219,214 +223,216 @@ export default function Workoutscreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-        <View style={tw`flex-1 p-4 bg-gray-100`}>
-          {/* Header */}
-          <View style={tw`flex-row justify-between items-center mb-4`}>
-            <Text style={tw`text-xl font-bold`}>Your Workouts</Text>
-            <View style={tw`flex-row gap-4`}>
-              {/* Filter Button */}
-              <TouchableOpacity onPress={sortWorkouts}>
-                <AntDesign name="filter" size={24} />
-              </TouchableOpacity>
+      <View style={tw`flex-1 p-4 bg-gray-100`}>
+        {/* Header */}
+        <View style={tw`flex-row justify-between items-center mb-4`}>
+          <Text style={tw`text-xl font-bold`}>Your Workouts</Text>
+          <View style={tw`flex-row gap-4`}>
+            {/* Filter Button */}
+            <TouchableOpacity onPress={sortWorkouts}>
+              <AntDesign name="filter" size={24} />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate("WorkoutLogPage")}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("WorkoutLogPage")}
+            >
+              <View
+                style={{
+                  backgroundColor: "purple",
+                  borderRadius: 50,
+                  padding: 3,
+                }}
               >
-                <View
-                  style={{
-                    backgroundColor: "purple",
-                    borderRadius: 50,
-                    padding: 3,
-                  }}
-                >
-                  <AntDesign name="plus" size={24} color="white" />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-          {/* Horizontal Line */}
-          <View style={tw`border-b border-gray-300 mb-4`} />
-
-          {/* Date */}
-          <View style={tw`relative flex-row items-center justify-center mb-2`}>
-            {/* Previous Month Button - Left Edge */}
-            <TouchableOpacity
-              onPress={() => changeMonth("prev")}
-              style={tw`absolute left-4 p-2`}
-            >
-              <FontAwesome5 name="chevron-left" size={15} color="black" />
-            </TouchableOpacity>
-
-            {/* Display Current Month & Year */}
-            <Text style={tw`text-gray-600 text-center text-lg font-semibold`}>
-              {date.toLocaleString("default", { month: "long" })}{" "}
-              {date.getFullYear()}
-            </Text>
-
-            {/* Next Month Button - Right Edge */}
-            <TouchableOpacity
-              onPress={() => changeMonth("next")}
-              style={tw`absolute right-4 p-2`}
-            >
-              <FontAwesome5 name="chevron-right" size={15} color="black" />
+                <AntDesign name="plus" size={24} color="white" />
+              </View>
             </TouchableOpacity>
           </View>
-          <View style={tw` border-gray-300 mb-4`} />
+        </View>
+        {/* Horizontal Line */}
+        <View style={tw`border-b border-gray-300 mb-4`} />
 
-          {/* AI Recommendations */}
+        {/* Date */}
+        <View style={tw`relative flex-row items-center justify-center mb-2`}>
+          {/* Previous Month Button - Left Edge */}
           <TouchableOpacity
-            style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
-            onPress={() => {
-              navigation.navigate("AiAdvice");
-            }}
+            onPress={() => changeMonth("prev")}
+            style={tw`absolute left-4 p-2`}
           >
-            <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
-              <Feather name="zap" size={16} color="white" />
-            </View>
-            <Text style={tw`text-white text-center font-regular`}>
-              See your AI Recommendations
+            <FontAwesome5 name="chevron-left" size={15} color="black" />
+          </TouchableOpacity>
+
+          {/* Display Current Month & Year */}
+          <Text style={tw`text-gray-600 text-center text-lg font-semibold`}>
+            {date.toLocaleString("default", { month: "long" })}{" "}
+            {date.getFullYear()}
+          </Text>
+
+          {/* Next Month Button - Right Edge */}
+          <TouchableOpacity
+            onPress={() => changeMonth("next")}
+            style={tw`absolute right-4 p-2`}
+          >
+            <FontAwesome5 name="chevron-right" size={15} color="black" />
+          </TouchableOpacity>
+        </View>
+        <View style={tw` border-gray-300 mb-4`} />
+
+        {/* AI Recommendations */}
+        <TouchableOpacity
+          style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
+          onPress={() => {
+            navigation.navigate("AiAdvice");
+          }}
+        >
+          <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
+            <Feather name="zap" size={16} color="white" />
+          </View>
+          <Text style={tw`text-white text-center font-regular`}>
+            See your AI Recommendations
+          </Text>
+        </TouchableOpacity>
+
+        {/* Filter Buttons */}
+        <View style={tw`flex-row justify-around mb-4`}>
+          <TouchableOpacity
+            style={tw`flex-row items-center bg-gray-300 rounded-3xl w-28 justify-center ${
+              selectedOption === "all" ? "bg-purple-500" : "bg-gray-300"
+            }`}
+            onPress={() => setSelectedOption("all")}
+          >
+            <FontAwesome5
+              name="list"
+              size={18}
+              color={selectedOption === "all" ? "white" : "black"}
+              style={tw`mr-2`}
+            />
+            <Text
+              style={tw`${
+                selectedOption === "all" ? "text-white" : "text-black"
+              }`}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+          {/* Manual Button with Keyboard Icon */}
+          <TouchableOpacity
+            style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 justify-center ${
+              selectedOption === "manual" ? "bg-purple-500" : "bg-gray-300"
+            }`}
+            onPress={() => setSelectedOption("manual")}
+            // onPress={() => setManualModalVisible(true)}
+          >
+            <MaterialIcons
+              name="keyboard"
+              size={18}
+              color={selectedOption === "manual" ? "white" : "black"}
+              style={tw`mr-2`}
+            />
+            <Text
+              style={tw`${
+                selectedOption === "manual" ? "text-white" : "text-black"
+              }`}
+            >
+              Manual
             </Text>
           </TouchableOpacity>
 
-          {/* Filter Buttons */}
-          <View style={tw`flex-row justify-around mb-4`}>
-            <TouchableOpacity
-              style={tw`flex-row items-center bg-gray-300 rounded-3xl w-28 justify-center ${
-                selectedOption === "all" ? "bg-purple-500" : "bg-gray-300"
+          {/* Voice Button with Multi-Audio Icon */}
+          <TouchableOpacity
+            style={tw`flex-row items-center px-6 py-3 rounded-3xl ${
+              selectedOption === "voice" ? "bg-purple-500" : "bg-gray-300"
+            }`}
+            onPress={() => setSelectedOption("voice")}
+          >
+            <MaterialIcons
+              name="multitrack-audio"
+              size={18}
+              color={selectedOption === "voice" ? "white" : "black"}
+              style={tw`mr-2`}
+            />
+            <Text
+              style={tw`${
+                selectedOption === "voice" ? "text-white" : "text-black"
               }`}
-              onPress={() => setSelectedOption("all")}
             >
-              <FontAwesome5
-                name="list"
-                size={18}
-                color={selectedOption === "all" ? "white" : "black"}
-                style={tw`mr-2`}
-              />
-              <Text
-                style={tw`${
-                  selectedOption === "all" ? "text-white" : "text-black"
-                }`}
-              >
-                All
-              </Text>
-            </TouchableOpacity>
-            {/* Manual Button with Keyboard Icon */}
-            <TouchableOpacity
-              style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 justify-center ${
-                selectedOption === "manual" ? "bg-purple-500" : "bg-gray-300"
-              }`}
-              onPress={() => setSelectedOption("manual")}
-              // onPress={() => setManualModalVisible(true)}
+              Voice
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Workout List */}
+        <Text style={tw`text-gray-600 text-lg font-semibold`}>
+          {selectedOption === "all"
+            ? "All Workouts"
+            : `${
+                selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)
+              } Workouts`}
+        </Text>
+        <ScrollView>
+          {/* Map through sorted workouts */}
+          {filteredWorkouts.map((workout: Workout, index) => (
+            <Swipeable
+              ref={(ref) => {
+                if (ref) swipeableRefs.current.set(workout.id, ref);
+                else swipeableRefs.current.delete(workout.id); // cleanup
+              }}
+              key={workout.id}
+              renderRightActions={() => renderRightActions(index, workout.id)}
             >
-              <MaterialIcons
-                name="keyboard"
-                size={18}
-                color={selectedOption === "manual" ? "white" : "black"}
-                style={tw`mr-2`}
-              />
-              <Text
-                style={tw`${
-                  selectedOption === "manual" ? "text-white" : "text-black"
-                }`}
-              >
-                Manual
-              </Text>
-            </TouchableOpacity>
-
-            {/* Voice Button with Multi-Audio Icon */}
-            <TouchableOpacity
-              style={tw`flex-row items-center px-6 py-3 rounded-3xl ${
-                selectedOption === "voice" ? "bg-purple-500" : "bg-gray-300"
-              }`}
-              onPress={() => setSelectedOption("voice")}
-            >
-              <MaterialIcons
-                name="multitrack-audio"
-                size={18}
-                color={selectedOption === "voice" ? "white" : "black"}
-                style={tw`mr-2`}
-              />
-              <Text
-                style={tw`${
-                  selectedOption === "voice" ? "text-white" : "text-black"
-                }`}
-              >
-                Voice
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Workout List */}
-          <Text style={tw`text-gray-600 text-lg font-semibold`}>
-            {selectedOption === "all"
-              ? "All Workouts"
-              : `${
-                  selectedOption.charAt(0).toUpperCase() +
-                  selectedOption.slice(1)
-                } Workouts`}
-          </Text>
-          <ScrollView>
-            {/* Map through sorted workouts */}
-            {filteredWorkouts.map((workout: Workout, index) => (
-              <Swipeable
-                key={index}
-                renderRightActions={() => renderRightActions(index, workout.id)}
-              >
-                <View style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}>
-                  <View style={tw`flex-row items-center justify-between mb-2`}>
-                    <Text style={tw`text-xl font-bold text-black-600`}>
-                      {workout.title}
-                    </Text>
-                    <View
-                      style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
-                    >
-                      <MaterialIcons
-                        name={
-                          workout.type === "MANUAL"
-                            ? "keyboard"
-                            : "multitrack-audio"
-                        }
-                        size={24}
-                        color="purple"
-                      />
-                    </View>
-                  </View>
-
-                  <View style={tw`flex-row items-center mb-8`}>
-                    <MaterialCommunityIcons
-                      name="calendar-clock-outline"
+              <View style={tw`bg-white p-4 mb-4 rounded-lg shadow-lg`}>
+                <View style={tw`flex-row items-center justify-between mb-2`}>
+                  <Text style={tw`text-xl font-bold text-black-600`}>
+                    {workout.title}
+                  </Text>
+                  <View
+                    style={tw`flex-row items-center px-3 py-1 rounded-lg bg-purple-200`}
+                  >
+                    <MaterialIcons
+                      name={
+                        workout.type === "MANUAL"
+                          ? "keyboard"
+                          : "multitrack-audio"
+                      }
                       size={24}
-                      color="gray"
+                      color="purple"
                     />
-                    <Text style={tw`text-sm text-gray-500 ml-2`}>
-                      {formatWorkoutDate(workout.date)}
+                  </View>
+                </View>
+
+                <View style={tw`flex-row items-center mb-8`}>
+                  <MaterialCommunityIcons
+                    name="calendar-clock-outline"
+                    size={24}
+                    color="gray"
+                  />
+                  <Text style={tw`text-sm text-gray-500 ml-2`}>
+                    {formatWorkoutDate(workout.date)}
+                  </Text>
+                </View>
+
+                <View style={tw`flex-row mb-2`}>
+                  <View
+                    style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-23 mr-2`}
+                  >
+                    <Text style={tw`text-gray-600 font-semibold`}>
+                      {workout.type}
+                    </Text>
+                  </View>
+                  <View
+                    style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 mr-2`}
+                  >
+                    <Text style={tw`text-gray-600 font-semibold`}>
+                      {workout.mood}
                     </Text>
                   </View>
 
-                  <View style={tw`flex-row mb-2`}>
-                    <View
-                      style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-23 mr-2`}
-                    >
-                      <Text style={tw`text-gray-600 font-semibold`}>
-                        {workout.type}
-                      </Text>
-                    </View>
-                    <View
-                      style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 mr-2`}
-                    >
-                      <Text style={tw`text-gray-600 font-semibold`}>
-                        {workout.mood}
-                      </Text>
-                    </View>
-
-                    {/* Edit Button */}
-                    <TouchableOpacity
-                      style={tw`absolute top-4 right-4 flex-row items-center`}
-                      onPress={() => {
-                        handleNavigate(workout.id, fetchWorkout);
-                      }}
-                    >
-                      <Text style={tw`text-purple-600 font-semibold ml-1`}>
+                  {/* Edit Button */}
+                  <TouchableOpacity
+                    style={tw`absolute top-4 right-4`}
+                    onPress={() => handleNavigate(workout.id, fetchWorkout)}
+                  >
+                    <View style={tw`flex-row items-center`}>
+                      <Text style={tw`text-purple-600 font-semibold`}>
                         Edit
                       </Text>
                       <MaterialIcons
@@ -434,13 +440,14 @@ export default function Workoutscreen({ navigation, route }: Props) {
                         size={24}
                         color="purple"
                       />
-                    </TouchableOpacity>
-                  </View>
+                    </View>
+                  </TouchableOpacity>
                 </View>
-              </Swipeable>
-            ))}
-          </ScrollView>
-        </View>
+              </View>
+            </Swipeable>
+          ))}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

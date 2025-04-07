@@ -38,6 +38,7 @@ export default function MapScreen() {
 
   // Ref to the MapView
   const mapRef = useRef<MapView | null>(null);
+  const markerRefs = useRef<Record<number, any>>({});
 
   useEffect(() => {
     (async () => {
@@ -237,7 +238,13 @@ export default function MapScreen() {
               const displayNameText = place.displayName?.text ?? 'Unknown Gym';
 
               return (
-                <Marker key={idx} coordinate={coords}>
+                <Marker
+                key={idx}
+                coordinate={coords}
+                ref={ref => {
+                  if (ref) markerRefs.current[idx] = ref;
+                }}
+                >
                   <Callout tooltip>
                     <View style={tw`bg-white p-2 rounded shadow-lg`}>
                       <Text style={tw`font-bold text-base`}>{displayNameText}</Text>
@@ -248,6 +255,26 @@ export default function MapScreen() {
                       )}
                     </View>
                   </Callout>
+
+                {/* <Callout tooltip>
+                  <View style={tw`bg-white p-3 rounded-xl shadow-lg w-56`}>
+                    <Text style={tw`font-bold text-base mb-1`}>{displayNameText}</Text>
+                    {place.formattedAddress && (
+                      <Text style={tw`text-xs text-gray-700 mb-2`}>
+                        {place.formattedAddress}
+                      </Text>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => {
+                        console.log('Preferred gym set:', displayNameText);
+                        // You can store it in state or call an API here
+                      }}
+                      style={tw`bg-purple-500 px-3 py-2 rounded-full mt-1`}
+                    >
+                      <Text style={tw`text-white text-xs text-center`}>Make Preferred Gym</Text>
+                    </TouchableOpacity>
+                  </View>
+                </Callout> */}
                 </Marker>
               );
             })}
@@ -266,6 +293,7 @@ export default function MapScreen() {
                     longitudeDelta: 0.05
                   });
                 }
+                searchNearbyGyms(location)
               }}
             >
               <Icon name="location-arrow" size={18} color="#fff" />
@@ -285,7 +313,19 @@ export default function MapScreen() {
                 <TouchableOpacity
                   key={idx}
                   style={tw`p-4 border-b border-gray-300`}
-                  onPress={() => console.log(`Selected: ${displayNameText}`)}
+                  onPress={() => {
+                    const coords = getCoordinates(place);
+                    if (coords && mapRef.current) {
+                      mapRef.current.animateToRegion({
+                        ...coords,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05
+                      });
+
+                      const marker = markerRefs.current[idx];
+                      if (marker) marker.showCallout();
+                    }
+                  }}
                 >
                   <Text style={tw`font-bold`}>{displayNameText}</Text>
                   {place.formattedAddress && (

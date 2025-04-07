@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserProfile } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
+import { userHealthData } from "@/app/tabs/ProfileApiService/HealthData";
 import { NullStyle } from "twrnc/dist/esm/types";
 // Define navigation types
 type RootStackParamList = {
@@ -40,7 +41,7 @@ export default function ProfileScreen({ navigation }: Props) {
   // state for username and profilepicture
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState<string>("");
-  const [userWeight, setUserWeight] = useState<number|null>(null);
+  const [userWeight, setUserWeight] = useState<number | null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -51,6 +52,54 @@ export default function ProfileScreen({ navigation }: Props) {
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
+  //Health data
+  const {
+    stepCount,
+    caloriesBurned,
+    avgHeartRate,
+    sleepDuration,
+    activeMins,
+    hasConsented,
+    setHasConsented,
+    healthKitAvailable,
+    requestAuthorization,
+    fetchHealthData,
+  } = userHealthData();
+
+  useFocusEffect(
+    useCallback(() => {
+      // Load user profile data
+      loadUserProfile();
+
+      // Fetch user time ranges
+      const getUserTimeRanges = async () => {
+        try {
+          const data = await fetchFunctionWithAuth("avalrange", {
+            method: "GET",
+          });
+          setTimeRanges(data);
+        } catch (error) {
+          console.error("Failed to fetch user time ranges", error);
+        }
+      };
+
+      getUserTimeRanges();
+
+      // Checked stored consent status
+      const checkConsentStatus = async () => {
+        const consent = await AsyncStorage.getItem("hasConsented");
+        console.log("ASYC STATUS:", consent);
+        const hasUserConsented = consent === "true";
+        setHasConsented(hasUserConsented);
+        if (hasConsented && healthKitAvailable) {
+          fetchHealthData();
+        }
+      };
+
+      checkConsentStatus();
+    }, [hasConsented])
+  );
+
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
     try {
@@ -59,7 +108,9 @@ export default function ProfileScreen({ navigation }: Props) {
       if (userProfile && userProfile.user) {
         setUserName(userProfile.user.name || "");
         setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
-        setUserWeight(userProfile.user.weight ? userProfile.user.weight.toString() : "");
+        setUserWeight(
+          userProfile.user.weight ? userProfile.user.weight.toString() : ""
+        );
         setUserSkillLevel(userProfile.user.skill_level || null);
         setProfilePicture(userProfile.user.profile_picture || null);
 
@@ -75,35 +126,6 @@ export default function ProfileScreen({ navigation }: Props) {
       console.error("Error loading user profile:", error);
     }
   };
-
-  useEffect(() => {
-    loadUserProfile(); // Load user data on component mount
-  }, []);
-
-  useEffect(() => {
-    if (modalVisible) {
-      loadUserProfile(); // Fetch user data when modal opens
-    }
-  }, [modalVisible]); // Runs when modalVisible changes
-
-  useFocusEffect(
-    useCallback(() => {
-      const getUserTimeRanges = async () => {
-        try {
-          const data = await fetchFunctionWithAuth("avalrange", {
-            method: "GET",
-          });
-          setTimeRanges(data);
-        } catch (error) {
-          console.error("Failed to fetch user time ranges", error);
-        }
-      };
-
-      getUserTimeRanges();
-
-      return () => {};
-    }, [])
-  );
 
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {
@@ -188,22 +210,21 @@ export default function ProfileScreen({ navigation }: Props) {
     setFitnessGoalsInput(text); // Preserve raw input while typing
   };
 
-  const handleFitnessGoalsSubmit = () => {
-    setFitnessGoals(
-      fitnessGoalsInput
-        .split(",")
-        .map((goal) => goal.trim())
-        .filter((goal) => goal !== "")
-    );
-  };
-
   const updateUserInfo = async () => {
     try {
+      const parsedGoals = fitnessGoalsInput
+        .split(",")
+        .map((goal) => goal.trim())
+        .filter((goal) => goal !== "");
+
+      // Keep UI updated
+      setFitnessGoals(parsedGoals);
+
       const userUpdate = {
         name: userName,
         age: userAge,
         weight: userWeight,
-        preferred_workout_goals: fitnessGoals.join(","),
+        preferred_workout_goals: parsedGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
       // console.log(userUpdate)
@@ -320,12 +341,11 @@ export default function ProfileScreen({ navigation }: Props) {
           <Text style={tw`text-xl font-bold mt-2`}>
             {userName}, {userAge}
           </Text>
-          <Text
-            style={tw`text-purple-500 bg-purple-100 px-3 py-1 rounded-full mt-1`}
-          >
-            {userSkillLevel}
-          </Text>
-          <View style={tw`flex-row mt-3`}>
+          <View style={tw`bg-purple-100 px-3 py-1 rounded-full mt-1`}>
+            <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
+          </View>
+
+          {/* <View style={tw`flex-row mt-3`}>
             <View style={tw`items-center mx-4`}>
               <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Day Streak</Text>
@@ -338,7 +358,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={tw`text-lg font-bold`}>0</Text>
               <Text style={tw`text-xs text-gray-500`}>Buddies</Text>
             </View>
-          </View>
+          </View> */}
         </View>
 
         {/* Workout Preferences */}
@@ -350,13 +370,13 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          <View style={tw`mt-3`}>
+          {/* <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
               <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
             </View>
-          </View>
+          </View> */}
 
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
@@ -368,48 +388,73 @@ export default function ProfileScreen({ navigation }: Props) {
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
                 {fitnessGoals.map((goal, index) => (
-                  <Text
+                  <View
                     key={index}
-                    style={tw`bg-gray-200 px-2 py-1 rounded-full text-xs mr-2`}
+                    style={tw`bg-gray-200 px-2 py-1 rounded-full mr-2`}
                   >
-                    {goal}
-                  </Text>
+                    <Text style={tw`text-xs`}>{goal}</Text>
+                  </View>
                 ))}
               </View>
             </View>
           </View>
         </View>
 
-        {/* Achievements */}
+        {/* Health Data */}
         <View style={tw`bg-white p-4 mt-6 rounded-lg shadow`}>
-          <Text style={tw`text-lg font-bold`}>Achievements</Text>
-          <View style={tw`mt-2`}>
-            <View
-              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
-            >
-              <FontAwesome5 name="dumbbell" size={16} color="purple" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>First Workout</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 1, 2025</Text>
-              </View>
+          <Text style={tw`text-lg font-bold`}>Your Health Data Today</Text>
+
+          {hasConsented && healthKitAvailable ? (
+            <>
+              <Text style={tw`text-sm text-gray-600`}>
+                Steps: {stepCount ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Calories Burned: {caloriesBurned ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Avg Heart Rate: {avgHeartRate ?? "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Sleep Duration:
+                {sleepDuration !== null
+                  ? ` ${Math.floor(sleepDuration)}h ${Math.round(
+                      (sleepDuration % 1) * 60
+                    )}m`
+                  : "N/A"}
+              </Text>
+              <Text style={tw`text-sm text-gray-600`}>
+                Active Minutes:
+                {activeMins !== null
+                  ? ` ${Math.floor(activeMins / 60)}h ${activeMins % 60}m`
+                  : "N/A"}
+              </Text>
+            </>
+          ) : (
+            <View>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Health data is unavailable. Please check your permissions.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                To allow access, go to Settings {" > "} Apps {" > "} Health{" "}
+                {" > "} Data Access & Devices {" > "} GymBudFrontend.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Then, tap "Grant Permission" to enable health data.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Note: You will only be prompted for permissions once. To change
+                them later, update your settings manually.
+              </Text>
+
+              <TouchableOpacity
+                style={tw`bg-blue-500 p-2 mt-2 rounded-lg`}
+                onPress={requestAuthorization}
+              >
+                <Text style={tw`text-white text-center`}>Grant Permission</Text>
+              </TouchableOpacity>
             </View>
-            <View
-              style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-2`}
-            >
-              <FontAwesome5 name="fire" size={20} color="orange" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>Week Streak</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 8, 2025</Text>
-              </View>
-            </View>
-            <View style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg`}>
-              <FontAwesome5 name="user-friends" size={20} color="blue" />
-              <View style={tw`ml-3`}>
-                <Text style={tw`font-bold`}>Matched With a Buddy</Text>
-                <Text style={tw`text-xs text-gray-500`}>Jan 9, 2025</Text>
-              </View>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* Edit Workout Preferences Modal */}
@@ -429,6 +474,7 @@ export default function ProfileScreen({ navigation }: Props) {
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
                     placeholder="Enter your name"
+                    placeholderTextColor="#B5B0B0"
                     value={userName}
                     onChangeText={setUserName}
                   />
@@ -441,6 +487,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
                     placeholder="Enter your age"
+                    placeholderTextColor="#B5B0B0"
                     value={userAge}
                     onChangeText={setUserAge}
                   />
@@ -453,8 +500,12 @@ export default function ProfileScreen({ navigation }: Props) {
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
                     placeholder="Enter your weight"
-                    value={userWeight}
-                    onChangeText={setUserWeight}
+                    placeholderTextColor="#B5B0B0"
+                    value={userWeight !== null ? String(userWeight) : ""}
+                    onChangeText={(text) => {
+                      const parsed = parseFloat(text);
+                      setUserWeight(isNaN(parsed) ? null : parsed);
+                    }}
                   />
                 </View>
 
@@ -484,18 +535,6 @@ export default function ProfileScreen({ navigation }: Props) {
                   </View>
                 </View>
 
-                {/* Preferred Gym */}
-                <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>
-                    Preferred Gym
-                  </Text>
-                  <TextInput
-                    style={tw`border p-2 rounded w-full`}
-                    value={preferredGym}
-                    onChangeText={setPreferredGym}
-                  />
-                </View>
-
                 {/* Fitness Goals */}
                 <View>
                   <Text style={tw`text-xs text-gray-500 mb-1`}>
@@ -503,9 +542,10 @@ export default function ProfileScreen({ navigation }: Props) {
                   </Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
+                    placeholder="Enter your fitness goals (Separate by commas)"
+                    placeholderTextColor="#B5B0B0"
                     value={fitnessGoalsInput}
                     onChangeText={handleFitnessGoalsChange} // Preserve spaces
-                    onBlur={handleFitnessGoalsSubmit}
                   />
                 </View>
 

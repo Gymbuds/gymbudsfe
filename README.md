@@ -16,18 +16,14 @@ Verify the installation:
 
 npx expo --version
 
-Install dependencies using:
+Migrating to Expo Dev Client:
+- Ensure Developer Mode on physical iPhone enabled
 
-npm install
-
-Start projects by running:
-
-cd GymBuds
-
-npx expo start --clear
-
-To run the app on a physical device like your phone, first install Expo Go on your phone, then create an account for Expo and login to the app. In Expo Go, you will get the option to scan a QR code and that QR code will be showing in your terminal after you run "npm expo start --clear".
-
-Then you will be able to test your code in React Native instantenously with the Expo Go app as you save your changes to files in the coding environment.
-
-If you do not want to run the app on your physical device, you are also able to run on a emulator.
+1. Install Expo Dev Client- expo install expo-dev-client
+2. Eject- expo prebuild
+3. Install Dependancies- npm install 
+4. Install CocoaPods- (mac) brew install cocoapods
+5. Intialize CocaPods depdencies- cd ios && pod install && cd ..
+6. Enable HealthKit in Xcode-   Click on gymbudfrontend -> Signing & Capabilities → HealthKit (Enable Development Team in 'Signing')
+- Ensure that bundler identifier is unique !!! 
+7. npx expo start --clear, make build on XCode with your physical device. 

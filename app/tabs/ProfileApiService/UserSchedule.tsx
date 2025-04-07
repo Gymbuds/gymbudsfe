@@ -33,10 +33,6 @@ export default function ScheduleScreen({ navigation }: Props) {
   const [startOpen, setStartOpen] = useState(false);
   const [endTimeAdd, setEndTimeAdd] = useState('');
   const [endOpen, setEndOpen] = useState(false);
-  const [items, setItems] = useState([
-    { label: 'AM', value: 'AM' },
-    { label: 'PM', value: 'PM' }
-  ]);
   const [startTimePeriod, setStartTimePeriod] = useState('AM');
   const [startValue, setStartValue] = useState(null);
   const [endTimePeriod, setEndTimePeriod] = useState('AM');
@@ -44,7 +40,7 @@ export default function ScheduleScreen({ navigation }: Props) {
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
 
   const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-
+  const timePeriod = ['AM','PM']
   const postUserTimeRange = async (day:string,start_hour:number,start_minutes:number,end_hour:number,end_minutes:number) => {
     const start_time = padTime(start_hour, start_minutes);
     const end_time = padTime(end_hour, end_minutes);
@@ -198,21 +194,30 @@ export default function ScheduleScreen({ navigation }: Props) {
               <TextInput
                 style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
                 placeholder="7:00"
+                placeholderTextColor="#B5B0B0"
                 value={startTimeAdd}
                 onChangeText={setStartTimeAdd}
               />
-              <DropDownPicker
-                placeholder='AM/PM'
-                open={startOpen}
-                setOpen={handleStartOpen}
-                containerStyle={tw`h-10 flex-1`}  
-                style={tw`border p-2 rounded bg-white text-black text-base h-10`}  
-                items={items}
-                setItems={setItems}
-                value={startValue}
-                setValue={setStartValue}
-                onChangeValue={setStartTimePeriod}
-              />
+              {!startOpen && (
+              <View style={tw`flex-row justify-center`}>
+              {[
+                { timeType: "AM", label: "AM" },
+                { timeType: "PM", label: "PM" },
+              ].map(({ timeType: timePeriod, label }) => (
+                <TouchableOpacity
+                  key={timePeriod}
+                  onPress={() => setStartTimePeriod(timePeriod as "AM" | "PM")} 
+                  style={tw`p-3 border rounded-lg mx-1 justify-center items-center ${
+                    timePeriod === startTimePeriod
+                      ? "bg-purple-300"
+                      : "bg-gray-100 border-black-300"
+                  }`}
+                >
+                  <Text style={tw`text-xs`}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+              </View>
+            )}
             </View>
 
           <Text style={tw`text-s text-gray-500 mb-2`}>End Time</Text>
@@ -220,22 +225,29 @@ export default function ScheduleScreen({ navigation }: Props) {
             <TextInput
               style={tw`border p-2 rounded flex-1 mr-2 text-base h-10`} 
               placeholder="9:00"
+              placeholderTextColor="#B5B0B0"
               value={endTimeAdd}
               onChangeText={setEndTimeAdd}
             />
             {!startOpen && (
-              <DropDownPicker
-                placeholder='AM/PM'
-                open={endOpen}
-                setOpen={handleEndOpen}
-                containerStyle={tw`h-10 flex-1`}  
-                style={tw`border  rounded bg-white text-black text-base`}  
-                items={items}
-                setItems={setItems}
-                value={endValue}
-                setValue={setEndValue}
-                onChangeValue={setEndTimePeriod}
-              />
+              <View style={tw`flex-row justify-center`}>
+              {[
+                { timeType: "AM", label: "AM" },
+                { timeType: "PM", label: "PM" },
+              ].map(({ timeType: timePeriod, label }) => (
+                <TouchableOpacity
+                  key={timePeriod}
+                  onPress={() => setEndTimePeriod(timePeriod as "AM" | "PM")} 
+                  style={tw`p-3 border rounded-lg mx-1 justify-center items-center ${
+                    timePeriod === endTimePeriod
+                      ? "bg-purple-300"
+                      : "bg-gray-100 border-black-300"
+                  }`}
+                >
+                  <Text style={tw`text-xs`}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+              </View>
             )}
           </View>
 
