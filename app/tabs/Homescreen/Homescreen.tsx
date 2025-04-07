@@ -64,9 +64,11 @@ export default function HomeScreen() {
 
   const recentWorkout = workouts.length > 0 ? workouts[0] : null;
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
+    <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       <ScrollView style={tw`p-4`}>
-        <View style={tw`flex-row justify-between items-center`}>
+        <View
+          style={tw`flex-row justify-between items-center border-b border-gray-300 pb-2`}
+        >
           <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
           <View style={tw`flex-row items-center`}>
             <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
@@ -121,14 +123,12 @@ export default function HomeScreen() {
         {/* Recent Workouts */}
         <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Recent Workouts</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Workouts")}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Workouts")}>
             <Text style={tw`text-purple-500 text-sm`}>View All </Text>
           </TouchableOpacity>
         </View>
         {recentWorkout ? (
-          <View style={tw`bg-gray-100 p-4 rounded-lg mt-2`}>
+          <View style={tw`bg-white p-4 rounded-lg mt-2`}>
             <View style={tw`flex-row items-center justify-between mb-2`}>
               <Text style={tw`text-xl font-bold text-black-600`}>
                 {recentWorkout?.title}
