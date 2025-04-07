@@ -91,7 +91,7 @@ export default function ProfileScreen({ navigation }: Props) {
           console.log("ASYC STATUS:", consent);
           const hasUserConsented = consent === "true"
           setHasConsented(hasUserConsented);
-          if (hasUserConsented && healthKitAvailable) {
+          if (hasConsented && healthKitAvailable) {
             fetchHealthData();
           }
       };

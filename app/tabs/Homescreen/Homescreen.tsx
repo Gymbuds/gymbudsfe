@@ -171,7 +171,7 @@ export default function HomeScreen() {
         )}
 
         {/* Nearby Communities */}
-        <View style={tw`flex-row justify-between items-center mt-6`}>
+        {/* <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Nearby Communities</Text>
           <TouchableOpacity>
             <Text style={tw`text-purple-500 text-sm`}>View Map</Text>
@@ -196,7 +196,7 @@ export default function HomeScreen() {
               <Text style={tw`text-xs text-gray-500 ml-auto`}>235 members</Text>
             </View>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
