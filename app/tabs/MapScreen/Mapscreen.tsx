@@ -293,6 +293,7 @@ export default function MapScreen() {
                     longitudeDelta: 0.05
                   });
                 }
+                searchNearbyGyms(location)
               }}
             >
               <Icon name="location-arrow" size={18} color="#fff" />
