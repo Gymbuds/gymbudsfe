@@ -130,9 +130,6 @@ export default function AiAdviceScreen({ navigation }: Props) {
   )();
   }, []);
 
-  useEffect(()=>{
-    console.log(healthData);
-  },[healthData]);
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -222,7 +219,7 @@ export default function AiAdviceScreen({ navigation }: Props) {
                     contentWidth={Dimensions.get("window").width * 0.4}
                     source={{
                       html: marked(
-                        advice.ai_feedback.substring(0, 200)
+                        advice.ai_feedback.split('\n').slice(1).join('\n').substring(0, 200)
                       ) as string,
                     }}
                   />
@@ -307,8 +304,8 @@ export default function AiAdviceScreen({ navigation }: Props) {
             </View>
 
             {/* Health Data Toggle */}
-            {healthData &&(
-            <View style={tw`mb-8 flex flex-row justify-between items-center`}>
+            {healthData  ? (
+            <View style={tw` flex flex-row justify-between items-center`}>
               <Text style={tw`text-base font-bold mb-4 w-50`}>
                 Do you want to use synced health data?
               </Text>
@@ -318,11 +315,17 @@ export default function AiAdviceScreen({ navigation }: Props) {
                 trackColor={{ false: "#767577", true: "#ad46ff" }}
               ></Switch>
             </View>
+            ):(
+              <View style={tw`text-xs text-gray-300 ml-2`}>
+              <Text style={tw`text-gray-400`}>No Health Data Avaliable.</Text>
+              <Text style={tw`text-gray-400`}>Check your profile to enable/refresh it.</Text>
+            </View>
+
             )
           }
             {/* Generate Button */}
             <TouchableOpacity
-              style={tw`bg-purple-500 p-4 rounded-lg`}
+              style={tw`mt-5 bg-purple-500 p-4 rounded-lg`}
               onPress={handlePressGenerate}
             >
               <Text style={tw`text-white text-center font-medium`}>
