@@ -250,7 +250,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                 flexDirection: "row",
                 alignItems: "center",
               }}
-              onPress={handlePress} // Trigger modal on tap
+              onPress={handlePress} 
             >
               <SimpleLineIcons
                 name="arrow-left-circle"
