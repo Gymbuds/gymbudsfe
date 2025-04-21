@@ -4,7 +4,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import HomeScreen from "../Homescreen/Homescreen";
 import ProfileNavigator from "../ProfileApiService/profile-navigation";
 import WorkoutNavigator from "../WorkOutPage/Workout-navigation";
-import Mapscreen from "../MapScreen/Mapscreen";
+import MapNavigator from "../MapScreen/MapNavigator";
 // import Matchscreen from "../MatchScreen/Matchscreen";
 
 const Tab = createBottomTabNavigator();
@@ -34,7 +34,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Map"
-        component={Mapscreen}
+        component={MapNavigator}
         options={{
           tabBarIcon: ({ color }: { color: string }) => (
             <Icon name="map-marker" size={24} color={color} />

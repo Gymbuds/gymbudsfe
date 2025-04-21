@@ -48,7 +48,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
-  const [preferredGym, setPreferredGym] = useState("");
+  const [preferredGym, setPreferredGym] = useState<string|null>(null);
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
@@ -99,6 +99,14 @@ export default function ProfileScreen({ navigation }: Props) {
       checkConsentStatus();
     }, [hasConsented])
   );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      AsyncStorage.getItem('preferredGym').then(name => {
+        if (name) setPreferredGym(name)
+      })
+    }, [])
+  )
 
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
@@ -370,13 +378,16 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* <View style={tw`mt-3`}>
+          <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
-              <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
+              {preferredGym
+                ? <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
+                : <Text style={tw`italic ml-2 text-sm text-gray-700`}>None set</Text>
+              }
             </View>
-          </View> */}
+          </View>
 
           <View style={tw`mt-3`}>
             <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>

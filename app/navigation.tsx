@@ -9,6 +9,8 @@ import ChangePasswordscreen from "./frontscreen/ChangePasswordscreen";
 import ProfileNavigator from "./tabs/ProfileApiService/profile-navigation";
 import WorkoutNavigator from "./tabs/WorkOutPage/Workout-navigation";
 import MainTabs from "./tabs/MainTab/Maintabs";
+import MapNavigator from "./tabs/MapScreen/MapNavigator"
+
 
 // Define the types for the screens
 type RootStackParamList = {
@@ -20,6 +22,10 @@ type RootStackParamList = {
   ResetCode: undefined;
   ChangePassword: { token: string };
   ProfileNavigator: undefined;
+  Community: undefined;
+  FitnessBoard: undefined;
+  MapScreen: undefined;
+  MapNav: undefined;
   Workouts: undefined;
 };
 
@@ -59,6 +65,7 @@ export default function AppNavigation() {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordscreen} />
       <Stack.Screen name="ResetCode" component={ResetCodescreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
+      <Stack.Screen name="MapNav" component={MapNavigator} />
     </Stack.Navigator>
   );
 }
