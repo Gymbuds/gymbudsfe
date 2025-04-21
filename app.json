@@ -8,8 +8,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.yourcompany.gymbuds",
-      "supportsTablet": true,
-      "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to change your profile picture."
+      "supportsTablet": true
     },
     "android": {
       "package": "com.yourcompany.gymbuds",
