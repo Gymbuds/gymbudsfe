@@ -70,6 +70,8 @@ export default function ProfileScreen({ navigation }: Props) {
     useCallback(() => {
       // Load user profile data
       loadUserProfile();
+      
+      fetchPreferredGym();
 
       // Fetch user time ranges
       const getUserTimeRanges = async () => {
@@ -100,14 +102,6 @@ export default function ProfileScreen({ navigation }: Props) {
     }, [hasConsented])
   );
 
-  useFocusEffect(
-    React.useCallback(() => {
-      AsyncStorage.getItem('preferredGym').then(name => {
-        if (name) setPreferredGym(name)
-      })
-    }, [])
-  )
-
   // Fetch user profile data from backend
   const loadUserProfile = async () => {
     try {
@@ -134,6 +128,16 @@ export default function ProfileScreen({ navigation }: Props) {
       console.error("Error loading user profile:", error);
     }
   };
+
+  const fetchPreferredGym = async () => {
+    try {
+      const gym: { id: number; name: string } =
+        await fetchFunctionWithAuth("users/prefer", { method: "GET" })
+      setPreferredGym(gym.name)
+    } catch (e) {
+      setPreferredGym("N/A")
+    }
+  }
 
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {

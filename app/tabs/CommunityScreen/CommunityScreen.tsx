@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Image, Text, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { SimpleLineIcons, FontAwesome5, Feather, Ionicons } from '@expo/vector-icons'
 import { fetchFunctionWithAuth } from '@/api/auth'
@@ -58,6 +57,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
   const [communityId, setCommunityId] = useState<number|null>(null);
   const [members, setMembers] = useState<Member[]>([])
   const [isMember, setIsMember] = useState(false)
+  const MAX_MEMBERS_DISPLAY = 8;
   const apiKey = 'AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A'
 
   useEffect(() => {
@@ -158,11 +158,11 @@ export default function CommunityScreen({ navigation, route }: Props) {
   };
 
   const setPreferredGym = async () => {
+    if (!communityId) return;
     try {
-      await AsyncStorage.setItem('preferredGym', details.displayName.text)
-      Alert.alert('Preferred gym saved locally:')
+      await fetchFunctionWithAuth(`communities/${communityId}/prefer`, { method:'PATCH' });
+      Alert.alert('Preferred gym set!') 
     } catch (e) {
-      console.error('Failed to save preferred gym', e)
       Alert.alert('Could not save preferred gym.')
     }
   }
@@ -283,7 +283,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
           <View style={tw`flex-row mt-4`}>
             <TouchableOpacity
               style={tw`flex-1 border border-purple-400 rounded-2xl py-2 mr-2 items-center`}
-              onPress={() => {setPreferredGym}}
+              onPress={setPreferredGym}
             >
               <Text style={tw`text-purple-500 font-semibold`}>
                 <FontAwesome5 name="map-marker-alt" size={18} color="purple" />{' '}
@@ -342,13 +342,25 @@ export default function CommunityScreen({ navigation, route }: Props) {
         {/* ——— Members List ——— */}
         <View style={tw`bg-white mx-3 mt-5 p-4 rounded-xl shadow`}>
           <Text style={tw`text-lg font-bold mb-2`}>Members</Text>
-          {members.length
-            ? members.map(m => (
-                <Text key={m.id} style={tw`text-gray-700`}>
-                  • {m.name}
-                </Text>
-              ))
-            : <Text style={tw`text-gray-500 italic`}>No members yet</Text>
+          { members.length
+            ? (
+              <>
+                {members
+                  .slice(0, MAX_MEMBERS_DISPLAY)
+                  .map((m) => (
+                    <Text key={m.id} style={tw`text-gray-700`}>
+                      • {m.name}
+                    </Text>
+                  ))
+                }
+                {members.length >= MAX_MEMBERS_DISPLAY && (
+                  <Text style={tw`text-gray-500 italic mt-2`}>
+                    and {members.length - MAX_MEMBERS_DISPLAY} more…
+                  </Text>
+                )}
+              </>
+            )
+            : (<Text style={tw`text-gray-500 italic`}>No members yet</Text>)
           }
         </View>
       </ScrollView>
