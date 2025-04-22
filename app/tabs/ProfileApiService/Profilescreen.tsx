@@ -383,7 +383,7 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
+            <Text style={tw`text-s font-semibold text-black-500`}>Preferred Gym</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
               {preferredGym
@@ -394,11 +394,11 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
+            <Text style={tw`text-s font-semibold text-black-500`}>Workout Schedule</Text>
             {renderSchedule()}
           </View>
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Fitness Goals</Text>
+            <Text style={tw`text-s font-semibold text-black-500`}>Fitness Goals</Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
@@ -451,15 +451,15 @@ export default function ProfileScreen({ navigation }: Props) {
                 Health data is unavailable. Please check your permissions.
               </Text>
               <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Note: You will only be prompted for permissions once. To change
+                them later, update your settings manually.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
                 To allow access, go to Settings {" > "} Apps {" > "} Health{" "}
                 {" > "} Data Access & Devices {" > "} GymBudFrontend.
               </Text>
               <Text style={tw`text-sm text-gray-500 mt-2`}>
                 Then, tap "Grant Permission" to enable health data.
-              </Text>
-              <Text style={tw`text-sm text-gray-500 mt-2`}>
-                Note: You will only be prompted for permissions once. To change
-                them later, update your settings manually.
               </Text>
 
               <TouchableOpacity
