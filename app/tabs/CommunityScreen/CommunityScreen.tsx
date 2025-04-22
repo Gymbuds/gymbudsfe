@@ -163,7 +163,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
       await fetchFunctionWithAuth(`communities/${communityId}/prefer`, { method:'PATCH' });
       Alert.alert('Preferred gym set!') 
     } catch (e) {
-      Alert.alert('Could not save preferred gym.')
+      Alert.alert('Please join the community first.')
     }
   }
 
