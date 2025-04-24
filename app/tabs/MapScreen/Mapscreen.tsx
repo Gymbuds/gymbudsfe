@@ -3,6 +3,8 @@ import { View, Text , TextInput , ScrollView , TouchableOpacity } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { fetchFunction } from "@/api/auth";
 import { LinearGradient } from 'expo-linear-gradient';
 import tw from 'twrnc';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,7 +30,23 @@ type Place = {
   location?: PlaceLocation;
 };
 
-export default function MapScreen() {
+// Define navigation types
+type RootStackParamList = {
+  Signup: undefined;
+  Login: undefined;
+  Home: undefined;
+  Profile: undefined;
+  ForgotPassword: undefined;
+  ResetCode: undefined;
+  ChangePassword: undefined;
+  MapScreen: undefined;
+  Community: { placeId: string };
+  FitnessBoard: undefined;
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, "MapScreen">;
+
+export default function MapScreen({ navigation }: Props) {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -84,7 +102,7 @@ export default function MapScreen() {
   /** Nearby Search (New) - automatically sorted by distance. */
   const searchNearbyGyms = async (userLocation: Location.LocationObject | null) => {
     if (!userLocation) return;
-    const fieldMask = 'places.displayName,places.formattedAddress,places.location';
+    const fieldMask = 'places.id,places.displayName,places.formattedAddress,places.location';
     const endpoint = 'https://places.googleapis.com/v1/places:searchNearby';
     const { latitude, longitude } = userLocation.coords;
     const radiusMeters = 3000;
@@ -131,7 +149,7 @@ export default function MapScreen() {
   const searchPlacesNew = async (query: string, loc?: Location.LocationObject) => {
     const userLocation = loc || location;
     if (!userLocation) return;
-    const fieldMask = 'places.displayName,places.formattedAddress,places.location';
+    const fieldMask = 'places.id,places.displayName,places.formattedAddress,places.location';
     const endpoint = 'https://places.googleapis.com/v1/places:searchText';
     const { latitude, longitude } = userLocation.coords;
 
@@ -167,6 +185,27 @@ export default function MapScreen() {
     } catch (error) {
       console.error('Error searching places (New):', error);
     }
+  };
+
+  const saveCommunityNav = async (place: Place & { id?: string }) => {
+    const name = place.displayName?.text ?? '';
+    const address = place.formattedAddress ?? '';
+    const { latitude, longitude } = getCoordinates(place)!;
+    const places_id = place.id!;
+
+    const saved = await fetchFunction("communities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+         name,
+         address,
+         latitude,
+         longitude,
+         places_id,
+      }),
+    });
+
+    navigation.navigate('Community', { placeId: place.id! });
   };
 
   /** Fit map to all markers whenever `places` changes. */
@@ -210,7 +249,7 @@ export default function MapScreen() {
       <LinearGradient colors={['#F2ECFF', '#E5D4FF']} style={tw`flex-1`}>
 
         {/* Search Container */}
-        <View style={tw`px-4 pt-4`}>
+        <View style={tw`px-4 pt-4 bg-gray-100`}>
           <Text style={tw`text-base font-bold mb-2`}>Search</Text>
           <TextInput
             style={tw`bg-white rounded-lg px-4 py-2 mb-4`}
@@ -245,7 +284,8 @@ export default function MapScreen() {
                   if (ref) markerRefs.current[idx] = ref;
                 }}
                 >
-                  <Callout tooltip>
+                  <Callout tooltip
+                  onPress={() => saveCommunityNav(place)}>
                     <View style={tw`bg-white p-2 rounded shadow-lg`}>
                       <Text style={tw`font-bold text-base`}>{displayNameText}</Text>
                       {place.formattedAddress && (
@@ -253,28 +293,13 @@ export default function MapScreen() {
                           {place.formattedAddress}
                         </Text>
                       )}
-                    </View>
-                  </Callout>
-
-                {/* <Callout tooltip>
-                  <View style={tw`bg-white p-3 rounded-xl shadow-lg w-56`}>
-                    <Text style={tw`font-bold text-base mb-1`}>{displayNameText}</Text>
-                    {place.formattedAddress && (
-                      <Text style={tw`text-xs text-gray-700 mb-2`}>
-                        {place.formattedAddress}
-                      </Text>
-                    )}
-                    <TouchableOpacity
-                      onPress={() => {
-                        console.log('Preferred gym set:', displayNameText);
-                        // You can store it in state or call an API here
-                      }}
+                      <TouchableOpacity
                       style={tw`bg-purple-500 px-3 py-2 rounded-full mt-1`}
                     >
-                      <Text style={tw`text-white text-xs text-center`}>Make Preferred Gym</Text>
+                      <Text style={tw`text-white text-xs text-center`}>Go to Community Page</Text>
                     </TouchableOpacity>
-                  </View>
-                </Callout> */}
+                    </View>
+                  </Callout>
                 </Marker>
               );
             })}

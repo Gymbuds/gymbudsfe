@@ -52,6 +52,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your camera</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Allow GymBuds to access your health data.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Allow GymBuds to track your health data</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GymBuds needs access to your location to find nearby gyms.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -86,11 +92,5 @@
 	<string>Automatic</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Allow GymBuds to track your health data</string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Allow GymBuds to access your health data.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>GymBuds needs access to your location to find nearby gyms.</string>
 </dict>
 </plist>

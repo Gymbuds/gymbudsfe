@@ -43,12 +43,13 @@ export default function ProfileScreen({ navigation }: Props) {
   const [userAge, setUserAge] = useState<string>("");
   const [userWeight, setUserWeight] = useState<number | null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
+  const [userGender, setUserGender] = useState("");
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
-  const [preferredGym, setPreferredGym] = useState("");
+  const [preferredGym, setPreferredGym] = useState<string | null>(null);
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
   const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
@@ -70,6 +71,8 @@ export default function ProfileScreen({ navigation }: Props) {
     useCallback(() => {
       // Load user profile data
       loadUserProfile();
+
+      fetchPreferredGym();
 
       // Fetch user time ranges
       const getUserTimeRanges = async () => {
@@ -107,6 +110,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       if (userProfile && userProfile.user) {
         setUserName(userProfile.user.name || "");
+        setUserGender(userProfile.user.gender || null);
         setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
         setUserWeight(
           userProfile.user.weight ? userProfile.user.weight.toString() : ""
@@ -124,6 +128,18 @@ export default function ProfileScreen({ navigation }: Props) {
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
+    }
+  };
+
+  const fetchPreferredGym = async () => {
+    try {
+      const gym: { id: number; name: string } = await fetchFunctionWithAuth(
+        "users/prefer",
+        { method: "GET" }
+      );
+      setPreferredGym(gym.name);
+    } catch (e) {
+      setPreferredGym("N/A");
     }
   };
 
@@ -222,6 +238,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       const userUpdate = {
         name: userName,
+        gender: userGender,
         age: userAge,
         weight: userWeight,
         preferred_workout_goals: parsedGoals.join(","),
@@ -341,8 +358,16 @@ export default function ProfileScreen({ navigation }: Props) {
           <Text style={tw`text-xl font-bold mt-2`}>
             {userName}, {userAge}
           </Text>
-          <View style={tw`bg-purple-100 px-3 py-1 rounded-full mt-1`}>
-            <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
+          <View style={tw`flex-row mt-1`}>
+            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
+            </View>
+            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500`}>{userGender}</Text>
+            </View>
+            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500`}>{userWeight} lbs</Text>
+            </View>
           </View>
 
           {/* <View style={tw`flex-row mt-3`}>
@@ -370,20 +395,34 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Preferred Gym</Text>
+          <View style={tw`mt-3`}>
+            <Text style={tw`text-s font-semibold text-black-500`}>
+              Preferred Gym
+            </Text>
             <View style={tw`flex-row items-center mt-1`}>
               <Icon name="map-marker" size={16} color="purple" />
-              <Text style={tw`ml-2 text-sm text-gray-700`}>{preferredGym}</Text>
+              {preferredGym ? (
+                <Text style={tw`ml-2 text-sm text-gray-700`}>
+                  {preferredGym}
+                </Text>
+              ) : (
+                <Text style={tw`italic ml-2 text-sm text-gray-700`}>
+                  None set
+                </Text>
+              )}
             </View>
-          </View> */}
+          </View>
 
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Workout Schedule</Text>
+            <Text style={tw`text-s font-semibold text-black-500`}>
+              Workout Schedule
+            </Text>
             {renderSchedule()}
           </View>
           <View style={tw`mt-3`}>
-            <Text style={tw`text-xs text-black-500`}>Fitness Goals</Text>
+            <Text style={tw`text-s font-semibold text-black-500`}>
+              Fitness Goals
+            </Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
               <View style={tw`ml-2 flex-row flex-wrap`}>
@@ -436,15 +475,15 @@ export default function ProfileScreen({ navigation }: Props) {
                 Health data is unavailable. Please check your permissions.
               </Text>
               <Text style={tw`text-sm text-gray-500 mt-2`}>
+                Note: You will only be prompted for permissions once. To change
+                them later, update your settings manually.
+              </Text>
+              <Text style={tw`text-sm text-gray-500 mt-2`}>
                 To allow access, go to Settings {" > "} Apps {" > "} Health{" "}
                 {" > "} Data Access & Devices {" > "} GymBudFrontend.
               </Text>
               <Text style={tw`text-sm text-gray-500 mt-2`}>
                 Then, tap "Grant Permission" to enable health data.
-              </Text>
-              <Text style={tw`text-sm text-gray-500 mt-2`}>
-                Note: You will only be prompted for permissions once. To change
-                them later, update your settings manually.
               </Text>
 
               <TouchableOpacity
@@ -463,14 +502,12 @@ export default function ProfileScreen({ navigation }: Props) {
             style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
           >
             <View style={tw`bg-white p-6 rounded-lg w-80`}>
-              <Text style={tw`text-lg font-bold mb-4`}>
-                Edit Workout Preferences
-              </Text>
+              <Text style={tw`text-lg font-bold mb-4`}>Edit Profile</Text>
 
               <View style={tw`gap-y-4`}>
                 {/* Name */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>Name</Text>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Name</Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
                     placeholder="Enter your name"
@@ -480,9 +517,32 @@ export default function ProfileScreen({ navigation }: Props) {
                   />
                 </View>
 
+                {/* Gender */}
+                <View>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Gender</Text>
+                  <View style={tw`flex-row justify-center mb-1`}>
+                    {[
+                      { gender: "MALE", label: "MALE" },
+                      { gender: "FEMALE", label: "FEMALE" },
+                    ].map(({ gender, label }) => (
+                      <TouchableOpacity
+                        key={gender}
+                        onPress={() => setUserGender(gender)}
+                        style={tw`p-1.5 border rounded-lg mx-1 justify-center items-center ${
+                          gender === userGender
+                            ? "bg-purple-300"
+                            : "bg-gray-100 border-black-300"
+                        }`}
+                      >
+                        <Text style={tw`text-xs`}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
                 {/* Age */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>Age</Text>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Age</Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
@@ -495,7 +555,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
                 {/* Weight */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>Weight</Text>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Weight</Text>
                   <TextInput
                     style={tw`border p-2 rounded w-full`}
                     keyboardType="numeric"
@@ -511,9 +571,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
                 {/* Skill Level */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>
-                    Skill Level
-                  </Text>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Skill Level</Text>
                   <View style={tw`flex-row justify-center mb-1`}>
                     {[
                       { level: "BEGINNER", label: "BEGINNER" },
@@ -537,7 +595,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
                 {/* Fitness Goals */}
                 <View>
-                  <Text style={tw`text-xs text-gray-500 mb-1`}>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>
                     Fitness Goals (Comma Separated)
                   </Text>
                   <TextInput

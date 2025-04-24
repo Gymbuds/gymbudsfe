@@ -90,7 +90,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <View style={tw`flex-row justify-between items-center mt-6`}>
+        {/* <View style={tw`flex-row justify-between items-center mt-6`}>
           <Text style={tw`text-lg font-bold`}>Today's Progress</Text>
           <TouchableOpacity>
             <Text style={tw`text-purple-500 text-sm`}>View All</Text>
@@ -118,7 +118,7 @@ export default function HomeScreen() {
             <Text style={tw`text-sm font-bold text-green-500`}>Streak</Text>
             <Text style={tw`text-xs text-gray-500`}>8 days</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Recent Workouts */}
         <View style={tw`flex-row justify-between items-center mt-6`}>
