@@ -357,9 +357,9 @@ export default function CommunityScreen({ navigation, route }: Props) {
                   />
                 ) : (
                   <View
-                    style={tw`w-6 h-6 bg-purple-300 rounded-full mr-2 flex items-center justify-center`}
+                    style={tw`w-10 h-10 bg-purple-300 rounded-full mr-2 flex items-center justify-center`}
                   >
-                    <Text style={tw`text-white text-xs`}>U</Text>
+                    <Text style={tw`text-white text-base`}>U</Text>
                   </View>
                 )}
                 <Text style={tw`text-gray-700 text-base`}>{m.name}</Text>
