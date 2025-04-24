@@ -48,6 +48,7 @@ interface PlaceDetails {
 interface Member {
   id: number
   name: string
+  profile_picture?: string | null
 }
 
 export default function CommunityScreen({ navigation, route }: Props) {
@@ -342,26 +343,36 @@ export default function CommunityScreen({ navigation, route }: Props) {
         {/* ——— Members List ——— */}
         <View style={tw`bg-white mx-3 mt-5 p-4 rounded-xl shadow`}>
           <Text style={tw`text-lg font-bold mb-2`}>Members</Text>
-          { members.length
+          {members.length > 0 
             ? (
-              <>
-                {members
-                  .slice(0, MAX_MEMBERS_DISPLAY)
-                  .map((m) => (
-                    <Text key={m.id} style={tw`text-gray-700`}>
-                      • {m.name}
-                    </Text>
-                  ))
-                }
-                {members.length >= MAX_MEMBERS_DISPLAY && (
-                  <Text style={tw`text-gray-500 italic mt-2`}>
-                    and {members.length - MAX_MEMBERS_DISPLAY} more…
-                  </Text>
+            members.slice(0, MAX_MEMBERS_DISPLAY).map((m) => (
+              <View
+                key={m.id}
+                style={tw`flex-row items-center mb-2`}
+              >
+                {m.profile_picture ? (
+                  <Image
+                    source={{ uri: m.profile_picture }}
+                    style={tw`w-10 h-10 rounded-full mr-2`}
+                  />
+                ) : (
+                  <View
+                    style={tw`w-6 h-6 bg-purple-300 rounded-full mr-2 flex items-center justify-center`}
+                  >
+                    <Text style={tw`text-white text-xs`}>U</Text>
+                  </View>
                 )}
-              </>
-            )
-            : (<Text style={tw`text-gray-500 italic`}>No members yet</Text>)
-          }
+                <Text style={tw`text-gray-700 text-base`}>{m.name}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={tw`text-gray-500 italic`}>No members yet</Text>
+          )}
+          {members.length > MAX_MEMBERS_DISPLAY && (
+            <Text style={tw`text-gray-500 italic mt-2`}>
+              and {members.length - MAX_MEMBERS_DISPLAY} more…
+            </Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
