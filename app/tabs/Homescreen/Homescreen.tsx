@@ -43,6 +43,13 @@ export default function HomeScreen() {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [joinedCommunities, setJoinedCommunities] = useState<CommunityList[]>([]);
   const [showAllCommunities, setShowAllCommunities] = useState(false);
+  const [preferredCommunityId, setPreferredCommunityId] = useState<number | null>(null);
+  const sortedCommunities = [...joinedCommunities].sort((a, b) => {
+    if (a.id === preferredCommunityId) return -1;
+    if (b.id === preferredCommunityId) return 1;
+    return 0;
+  });
+
   useFocusEffect(
     useCallback(() => {
       fetchWorkoutLogs()
@@ -85,6 +92,19 @@ export default function HomeScreen() {
         }
       };
       loadJoined();
+
+      const loadPreferred = async () => {
+        try {
+          const preferredRes = await fetchFunctionWithAuth("users/prefer", {
+            method: "GET",
+          });
+          setPreferredCommunityId(preferredRes.id);
+        } catch (err) {
+          console.error("Failed to load preferred gym:", err);
+        }
+      };
+
+      loadPreferred();
     }, [])
   );
 
@@ -208,8 +228,8 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {joinedCommunities.length > 0 ? (
-          (showAllCommunities ? joinedCommunities : joinedCommunities.slice(0, 3)).map((c) => (
+        {sortedCommunities.length > 0 ? (
+          (showAllCommunities ? sortedCommunities : sortedCommunities.slice(0, 3)).map((c) => (
             <TouchableOpacity
               key={c.id}
               style={tw`bg-white p-4 rounded-lg mt-2`}
@@ -218,10 +238,29 @@ export default function HomeScreen() {
                   screen: "Community",
                   params: { placeId: c.places_id }
                 });
-              }}      
+              }}
             >
-              <Text style={tw`font-bold text-black`}>{c.name}</Text>
-              <Text style={tw`text-gray-500 text-sm`}>{c.address}</Text>
+              <View style={tw`flex-row justify-between items-center`}>
+                <View>
+                  <View style={tw`flex-row flex-wrap items-center`}>
+                    <Text style={tw`font-bold text-black`}>{c.name}</Text>
+                    {preferredCommunityId === c.id && (
+                      <View
+                        style={tw`ml-2 bg-purple-100 px-2 py-0.5 rounded-full flex-row items-center`}
+                      >
+                        <Icon name="check" size={10} color="purple" />
+                        <Text
+                          style={tw`text-purple-500 text-xs font-semibold ml-1`}
+                        >
+                          Preferred
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={tw`text-gray-500 text-sm`}>{c.address}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           ))
         ) : (
