@@ -146,19 +146,15 @@ export default function ProfileScreen({ navigation }: Props) {
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {
       let result: ImagePicker.ImagePickerResult;
-
+  
       if (mode === "gallery") {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Please enable gallery permissions to continue."
-          );
+          Alert.alert("Permission Required", "Please enable gallery permissions to continue.");
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [1, 1],
           quality: 1,
@@ -166,10 +162,7 @@ export default function ProfileScreen({ navigation }: Props) {
       } else {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Please enable camera permissions to continue."
-          );
+          Alert.alert("Permission Required", "Please enable camera permissions to continue.");
           return;
         }
         result = await ImagePicker.launchCameraAsync({
@@ -179,18 +172,43 @@ export default function ProfileScreen({ navigation }: Props) {
           quality: 1,
         });
       }
-
-      // Ensure assets exist and handle properly
+  
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedUri = result.assets[0].uri;
-        setProfilePicture(selectedUri); // Update profile picture UI immediately
-        await updateProfileString(selectedUri);
+        const selectedAsset = result.assets[0];
+        const selectedUri = selectedAsset.uri;
+        const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; // "image/jpeg" -> "jpeg"
+  
+        // Request upload URL from the backend
+        const presignedResponse = await fetchFunctionWithAuth(
+          `users/profile/generate-upload-url/?file_extension=${fileType}`,
+          { method: "GET" }
+        );
+  
+        const uploadUrl = presignedResponse.upload_url;
+        const s3FileUrl = presignedResponse.file_url;
+  
+        // Upload file to S3
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": `image/${fileType}` },
+          body: await (await fetch(selectedUri)).blob(),
+        });
+  
+        if (uploadResponse.ok) {
+          console.log("Successfully uploaded image to S3");
+        
+          await updateProfileString(s3FileUrl);  // Saves to DB
+          await loadUserProfile();
+        } else {
+          console.error("Failed to upload image to S3");
+        }
+        
       }
     } catch (error) {
       console.error("Error uploading profile picture:", error);
     }
-  };
-
+  };  
+  
   const updateProfile = async (profilePictureUrl: string | null) => {
     try {
       const userUpdate = {
