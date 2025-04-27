@@ -58,6 +58,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
   const [communityId, setCommunityId] = useState<number|null>(null);
   const [members, setMembers] = useState<Member[]>([])
   const [isMember, setIsMember] = useState(false)
+  const [preferredCommunityId, setPreferredCommunityId] = useState<number | null>(null);
   const MAX_MEMBERS_DISPLAY = 8;
   const apiKey = 'AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A'
 
@@ -123,6 +124,8 @@ export default function CommunityScreen({ navigation, route }: Props) {
         setMembers(list);
         const profile = await fetchUserProfile();
         setIsMember(list.some((m) => m.id === profile.user.id));
+        const preferredRes = await fetchFunctionWithAuth('users/prefer', { method: 'GET' });
+        setPreferredCommunityId(preferredRes.id); 
       } catch (err) {
         console.error('failed loading members', err);
       }
@@ -162,6 +165,8 @@ export default function CommunityScreen({ navigation, route }: Props) {
     if (!communityId) return;
     try {
       await fetchFunctionWithAuth(`communities/${communityId}/prefer`, { method:'PATCH' });
+      const preferredRes = await fetchFunctionWithAuth('users/prefer', { method: 'GET' });
+      setPreferredCommunityId(preferredRes.id);
       Alert.alert('Preferred gym set!') 
     } catch (e) {
       Alert.alert('Please join the community first.')
@@ -282,15 +287,26 @@ export default function CommunityScreen({ navigation, route }: Props) {
 
           {/* Buttons */}
           <View style={tw`flex-row mt-4`}>
-            <TouchableOpacity
-              style={tw`flex-1 border border-purple-400 rounded-2xl py-2 mr-2 items-center`}
-              onPress={setPreferredGym}
-            >
-              <Text style={tw`text-purple-500 font-semibold`}>
-                <FontAwesome5 name="map-marker-alt" size={18} color="purple" />{' '}
-                Set Preferred Gym
-              </Text>
-            </TouchableOpacity>
+          {preferredCommunityId === communityId ? (
+              <View
+                style={tw`flex-1 border border-purple-400 bg-purple-100 rounded-2xl py-2 mr-2 items-center`}
+              >
+                <Text style={tw`text-purple-500 font-semibold`}>
+                  <FontAwesome5 name="check" size={18} color="purple" />{' '}
+                  Preferred Gym
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={tw`flex-1 border border-purple-400 rounded-2xl py-2 mr-2 items-center`}
+                onPress={setPreferredGym}
+              >
+                <Text style={tw`text-purple-500 font-semibold`}>
+                  <FontAwesome5 name="map-marker-alt" size={18} color="purple" />{' '}
+                  Set Preferred Gym
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={tw`flex-1 border bg-purple-500 rounded-2xl py-2 mr-2 items-center`}
               onPress={toggleMembership}

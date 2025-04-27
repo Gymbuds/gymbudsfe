@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
 import { MaterialIcons } from "@expo/vector-icons";
 import { fetchUserProfile } from "../ProfileApiService/ProfileApiService";
+import { fetchFunctionWithAuth } from "@/api/auth";
 
 type logMethod = "MANUAL" | "VOICE";
 type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
@@ -25,12 +26,30 @@ type RootStackParamList = {
   Home: undefined;
   ProfileNavigator: undefined;
   Workouts: undefined;
+  MapNav: undefined;
 };
+
+interface CommunityList {
+  id: number;
+  name: string;
+  address: string;
+  places_id: string;
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const rootNav = navigation.getParent<StackNavigationProp<RootStackParamList>>();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [joinedCommunities, setJoinedCommunities] = useState<CommunityList[]>([]);
+  const [showAllCommunities, setShowAllCommunities] = useState(false);
+  const [preferredCommunityId, setPreferredCommunityId] = useState<number | null>(null);
+  const sortedCommunities = [...joinedCommunities].sort((a, b) => {
+    if (a.id === preferredCommunityId) return -1;
+    if (b.id === preferredCommunityId) return 1;
+    return 0;
+  });
+
   useFocusEffect(
     useCallback(() => {
       fetchWorkoutLogs()
@@ -59,6 +78,33 @@ export default function HomeScreen() {
       };
 
       loadUserProfile();
+
+      // Fetch joined communities
+      const loadJoined = async () => {
+        try {
+          const list: CommunityList[] = await fetchFunctionWithAuth(
+            "users/gyms",
+            { method: "GET" }
+          );
+          setJoinedCommunities(list);
+        } catch (err) {
+          console.error("Failed to load joined communities:", err);
+        }
+      };
+      loadJoined();
+
+      const loadPreferred = async () => {
+        try {
+          const preferredRes = await fetchFunctionWithAuth("users/prefer", {
+            method: "GET",
+          });
+          setPreferredCommunityId(preferredRes.id);
+        } catch (err) {
+          console.error("Failed to load preferred gym:", err);
+        }
+      };
+
+      loadPreferred();
     }, [])
   );
 
@@ -170,33 +216,58 @@ export default function HomeScreen() {
           <Text style={tw`text-gray-500 mt-2`}>No recent workouts found.</Text>
         )}
 
-        {/* Nearby Communities */}
-        {/* <View style={tw`flex-row justify-between items-center mt-6`}>
-          <Text style={tw`text-lg font-bold`}>Nearby Communities</Text>
-          <TouchableOpacity>
-            <Text style={tw`text-purple-500 text-sm`}>View Map</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={tw`bg-white rounded-lg shadow-lg mt-2`}>
-          <Image
-            source={{ uri: "https://source.unsplash.com/featured/?gym" }}
-            style={tw`h-40 w-full rounded-t-lg`}
-          />
-          <View style={tw`p-4`}>
-            <Text style={tw`text-lg font-bold`}>Fitness Hub</Text>
-            <View style={tw`flex-row items-center mt-1`}>
-              <Icon name="map-marker" size={12} color="gray" />
-              <Text style={tw`text-xs text-gray-500 ml-1`}>
-                123 Main St, Los Angeles, CA
+        {/*** Joined Communities ***/}
+        <View style={tw`flex-row justify-between items-center mt-6`}>
+          <Text style={tw`text-lg font-bold`}>Joined Communities</Text>
+          {joinedCommunities.length > 3 && (
+            <TouchableOpacity onPress={() => setShowAllCommunities(!showAllCommunities)}>
+              <Text style={tw`text-purple-500 text-sm`}>
+                {showAllCommunities ? "View Less" : "View All"}
               </Text>
-            </View>
-            <View style={tw`flex-row items-center mt-2`}>
-              <Icon name="star" size={14} color="gold" />
-              <Text style={tw`text-xs ml-1`}>4.8 (124 reviews)</Text>
-              <Text style={tw`text-xs text-gray-500 ml-auto`}>235 members</Text>
-            </View>
-          </View>
-        </View> */}
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {sortedCommunities.length > 0 ? (
+          (showAllCommunities ? sortedCommunities : sortedCommunities.slice(0, 3)).map((c) => (
+            <TouchableOpacity
+              key={c.id}
+              style={tw`bg-white p-4 rounded-lg mt-2`}
+              onPress={() => {
+                rootNav?.navigate("MapNav", {
+                  screen: "Community",
+                  params: { placeId: c.places_id }
+                });
+              }}
+            >
+              <View style={tw`flex-row justify-between items-center`}>
+                <View>
+                  <View style={tw`flex-row flex-wrap items-center`}>
+                    <Text style={tw`font-bold text-black`}>{c.name}</Text>
+                    {preferredCommunityId === c.id && (
+                      <View
+                        style={tw`ml-2 bg-purple-100 px-2 py-0.5 rounded-full flex-row items-center`}
+                      >
+                        <Icon name="check" size={10} color="purple" />
+                        <Text
+                          style={tw`text-purple-500 text-xs font-semibold ml-1`}
+                        >
+                          Preferred
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={tw`text-gray-500 text-sm`}>{c.address}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={tw`text-gray-500 italic mt-2`}>
+            You haven’t joined any communities yet.
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
