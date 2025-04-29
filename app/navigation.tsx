@@ -11,6 +11,7 @@ import WorkoutNavigator from "./tabs/WorkOutPage/Workout-navigation";
 import MainTabs from "./tabs/MainTab/Maintabs";
 import MapNavigator from "./tabs/MapScreen/MapNavigator"
 import SurveyScreen from "./frontscreen/SurveyScreen";
+import MatchNavigator from "./tabs/MatchScreen/MatchNavigator";
 
 
 // Define the types for the screens
@@ -69,6 +70,7 @@ export default function AppNavigation() {
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
       <Stack.Screen name="MapNav" component={MapNavigator} />
       <Stack.Screen name="Survey" component={SurveyScreen} />
+      <Stack.Screen name="MatchNav" component={MatchNavigator} />
     </Stack.Navigator>
   );
 }
