@@ -15,6 +15,7 @@ type RootStackParamList = {
   Profile: undefined;
   ForgotPassword: undefined;
   ChangePassword: undefined;
+  Survey: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Signup">;
@@ -36,7 +37,7 @@ export default function SignupScreen({ navigation }: Props) {
       if (response.success) {
         await AsyncStorage.setItem("userToken", response.access_token); // Store token
         await AsyncStorage.setItem("refreshToken", response.refresh_token);
-        navigation.replace("Home"); // Replace stack to prevent going back
+        navigation.replace("Survey"); // Replace stack to prevent going back
       }
     } catch {
       Alert.alert(

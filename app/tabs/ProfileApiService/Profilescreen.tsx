@@ -44,14 +44,14 @@ export default function ProfileScreen({ navigation }: Props) {
   const [userWeight, setUserWeight] = useState<number | null>(null);
   const [userSkillLevel, setUserSkillLevel] = useState("");
   const [userGender, setUserGender] = useState("");
+  const [userZip, setUserZip] = useState<number | null>(null);
+  const [userFitnessGoals, setUserFitnessGoals] = useState<string[]>([]);
 
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // State for Modal and Form Inputs
   const [modalVisible, setModalVisible] = useState(false);
   const [preferredGym, setPreferredGym] = useState<string | null>(null);
-  const [fitnessGoals, setFitnessGoals] = useState<string[]>([]); // Explicitly declare the type as an array of strings
-  const [fitnessGoalsInput, setFitnessGoalsInput] = useState("");
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   //Health data
   const {
@@ -118,13 +118,13 @@ export default function ProfileScreen({ navigation }: Props) {
         setUserSkillLevel(userProfile.user.skill_level || null);
         setProfilePicture(userProfile.user.profile_picture || null);
 
-        const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
-          ? userProfile.user.preferred_workout_goals
-              .split(",")
-              .map((goal: string) => goal.trim())
-          : [];
-        setFitnessGoals(preferredWorkoutGoals);
-        setFitnessGoalsInput(preferredWorkoutGoals.join(", ")); // Update input field
+        // const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
+        //   ? userProfile.user.preferred_workout_goals
+        //       .split(",")
+        //       .map((goal: string) => goal.trim())
+        //   : [];
+        // setFitnessGoals(preferredWorkoutGoals);
+        // setFitnessGoalsInput(preferredWorkoutGoals.join(", ")); // Update input field
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
@@ -146,11 +146,15 @@ export default function ProfileScreen({ navigation }: Props) {
   const handleProfilePictureUpdate = async (mode: "gallery" | "camera") => {
     try {
       let result: ImagePicker.ImagePickerResult;
-  
+
       if (mode === "gallery") {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert("Permission Required", "Please enable gallery permissions to continue.");
+          Alert.alert(
+            "Permission Required",
+            "Please enable gallery permissions to continue."
+          );
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({
@@ -162,7 +166,10 @@ export default function ProfileScreen({ navigation }: Props) {
       } else {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert("Permission Required", "Please enable camera permissions to continue.");
+          Alert.alert(
+            "Permission Required",
+            "Please enable camera permissions to continue."
+          );
           return;
         }
         result = await ImagePicker.launchCameraAsync({
@@ -172,43 +179,42 @@ export default function ProfileScreen({ navigation }: Props) {
           quality: 1,
         });
       }
-  
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedAsset = result.assets[0];
         const selectedUri = selectedAsset.uri;
         const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; // "image/jpeg" -> "jpeg"
-  
+
         // Request upload URL from the backend
         const presignedResponse = await fetchFunctionWithAuth(
           `users/profile/generate-upload-url/?file_extension=${fileType}`,
           { method: "GET" }
         );
-  
+
         const uploadUrl = presignedResponse.upload_url;
         const s3FileUrl = presignedResponse.file_url;
-  
+
         // Upload file to S3
         const uploadResponse = await fetch(uploadUrl, {
           method: "PUT",
           headers: { "Content-Type": `image/${fileType}` },
           body: await (await fetch(selectedUri)).blob(),
         });
-  
+
         if (uploadResponse.ok) {
           console.log("Successfully uploaded image to S3");
-        
-          await updateProfileString(s3FileUrl);  // Saves to DB
+
+          await updateProfileString(s3FileUrl); // Saves to DB
           await loadUserProfile();
         } else {
           console.error("Failed to upload image to S3");
         }
-        
       }
     } catch (error) {
       console.error("Error uploading profile picture:", error);
     }
-  };  
-  
+  };
+
   const updateProfile = async (profilePictureUrl: string | null) => {
     try {
       const userUpdate = {
@@ -240,26 +246,38 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
-  const handleFitnessGoalsChange = (text: string) => {
-    setFitnessGoalsInput(text); // Preserve raw input while typing
+  const formatGoalText = (goal: string) => {
+    return goal
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const toggleFitnessGoal = (goal: string) => {
+    if (userFitnessGoals.includes(goal)) {
+      setUserFitnessGoals((prevGoals) => prevGoals.filter((g) => g !== goal));
+    } else {
+      setUserFitnessGoals((prevGoals) => [...prevGoals, goal]);
+    }
   };
 
   const updateUserInfo = async () => {
     try {
-      const parsedGoals = fitnessGoalsInput
-        .split(",")
-        .map((goal) => goal.trim())
-        .filter((goal) => goal !== "");
+      // const parsedGoals = fitnessGoalsInput
+      //   .split(",")
+      //   .map((goal) => goal.trim())
+      //   .filter((goal) => goal !== "");
 
-      // Keep UI updated
-      setFitnessGoals(parsedGoals);
+      // // Keep UI updated
+      // setFitnessGoals(parsedGoals);
 
       const userUpdate = {
         name: userName,
         gender: userGender,
         age: userAge,
         weight: userWeight,
-        preferred_workout_goals: parsedGoals.join(","),
+        // preferred_workout_goals: parsedGoals.join(","),
         skill_level: userSkillLevel, // Ensure this is included
       };
       // console.log(userUpdate)
@@ -387,21 +405,6 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={tw`text-purple-500`}>{userWeight} lbs</Text>
             </View>
           </View>
-
-          {/* <View style={tw`flex-row mt-3`}>
-            <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>0</Text>
-              <Text style={tw`text-xs text-gray-500`}>Day Streak</Text>
-            </View>
-            <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>0</Text>
-              <Text style={tw`text-xs text-gray-500`}>Workouts</Text>
-            </View>
-            <View style={tw`items-center mx-4`}>
-              <Text style={tw`text-lg font-bold`}>0</Text>
-              <Text style={tw`text-xs text-gray-500`}>Buddies</Text>
-            </View>
-          </View> */}
         </View>
 
         {/* Workout Preferences */}
@@ -443,7 +446,7 @@ export default function ProfileScreen({ navigation }: Props) {
             </Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
-              <View style={tw`ml-2 flex-row flex-wrap`}>
+              {/* <View style={tw`ml-2 flex-row flex-wrap`}>
                 {fitnessGoals.map((goal, index) => (
                   <View
                     key={index}
@@ -452,7 +455,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     <Text style={tw`text-xs`}>{goal}</Text>
                   </View>
                 ))}
-              </View>
+              </View> */}
             </View>
           </View>
         </View>
@@ -587,6 +590,22 @@ export default function ProfileScreen({ navigation }: Props) {
                   />
                 </View>
 
+                {/* Zip Code */}
+                <View>
+                  <Text style={tw`text-s text-gray-500 mb-1`}>Zipcode</Text>
+                  <TextInput
+                    style={tw`border p-2 rounded w-full`}
+                    keyboardType="numeric"
+                    placeholder="Enter your zipcode"
+                    placeholderTextColor="#B5B0B0"
+                    value={userZip !== null ? String(userZip) : ""}
+                    onChangeText={(text) => {
+                      const parsed = parseFloat(text);
+                      setUserZip(isNaN(parsed) ? null : parsed);
+                    }}
+                  />
+                </View>
+
                 {/* Skill Level */}
                 <View>
                   <Text style={tw`text-s text-gray-500 mb-1`}>Skill Level</Text>
@@ -614,15 +633,30 @@ export default function ProfileScreen({ navigation }: Props) {
                 {/* Fitness Goals */}
                 <View>
                   <Text style={tw`text-s text-gray-500 mb-1`}>
-                    Fitness Goals (Comma Separated)
+                    Fitness Goals
                   </Text>
-                  <TextInput
-                    style={tw`border p-2 rounded w-full`}
-                    placeholder="Enter your fitness goals (Separate by commas)"
-                    placeholderTextColor="#B5B0B0"
-                    value={fitnessGoalsInput}
-                    onChangeText={handleFitnessGoalsChange} // Preserve spaces
-                  />
+                  <View style={tw`flex-row flex-wrap justify-center`}>
+                    {[
+                      "BUILD_MUSCLE",
+                      "LOSE_WEIGHT",
+                      "GAIN_STRENGTH",
+                      "IMPROVE_ENDURANCE",
+                      "IMPROVE_OVERALL_HEALTH",
+                      "IMPROVE_ATHLETIC_PERFORMANCE",
+                    ].map((goal) => (
+                      <TouchableOpacity
+                        key={goal}
+                        onPress={() => toggleFitnessGoal(goal)}
+                        style={tw`px-4 py-2 border rounded-lg mx-1 my-1 ${
+                          userFitnessGoals.includes(goal)
+                            ? "bg-purple-300"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        <Text style={tw`text-xs`}>{formatGoalText(goal)}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
 
                 {/* Edit Workout Schedule Button */}
