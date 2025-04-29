@@ -19,7 +19,7 @@ import { TimeRange } from "@/app/tabs/ProfileApiService/UserSchedule";
 import * as ImagePicker from "expo-image-picker"; // For selecting profile picture
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // Fetch user's profile data
-import { fetchUserProfile } from "./ProfileApiService";
+import { fetchUserProfile, postUserGoals, fetchUserGoals } from "./ProfileApiService";
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
 import { userHealthData } from "@/app/tabs/ProfileApiService/HealthData";
@@ -112,20 +112,14 @@ export default function ProfileScreen({ navigation }: Props) {
         setUserName(userProfile.user.name || "");
         setUserGender(userProfile.user.gender || null);
         setUserAge(userProfile.user.age ? userProfile.user.age.toString() : "");
-        setUserWeight(
-          userProfile.user.weight ? userProfile.user.weight.toString() : ""
-        );
+        setUserWeight(userProfile.user.weight ? userProfile.user.weight.toString() : "");
+        setUserZip(userProfile.user.zip_code ? userProfile.user.zip_code.toString() : "");
         setUserSkillLevel(userProfile.user.skill_level || null);
         setProfilePicture(userProfile.user.profile_picture || null);
-
-        // const preferredWorkoutGoals = userProfile.user.preferred_workout_goals
-        //   ? userProfile.user.preferred_workout_goals
-        //       .split(",")
-        //       .map((goal: string) => goal.trim())
-        //   : [];
-        // setFitnessGoals(preferredWorkoutGoals);
-        // setFitnessGoalsInput(preferredWorkoutGoals.join(", ")); // Update input field
       }
+      const goals = await fetchUserGoals();
+      const formattedGoals = goals.map((g) => (typeof g === "string" ? g : g.goal));
+      setUserFitnessGoals(formattedGoals);
     } catch (error) {
       console.error("Error loading user profile:", error);
     }
@@ -264,21 +258,13 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const updateUserInfo = async () => {
     try {
-      // const parsedGoals = fitnessGoalsInput
-      //   .split(",")
-      //   .map((goal) => goal.trim())
-      //   .filter((goal) => goal !== "");
-
-      // // Keep UI updated
-      // setFitnessGoals(parsedGoals);
-
       const userUpdate = {
         name: userName,
         gender: userGender,
         age: userAge,
         weight: userWeight,
-        // preferred_workout_goals: parsedGoals.join(","),
-        skill_level: userSkillLevel, // Ensure this is included
+        skill_level: userSkillLevel, 
+        zip_code: userZip
       };
       // console.log(userUpdate)
       // Send the PATCH request
@@ -446,16 +432,16 @@ export default function ProfileScreen({ navigation }: Props) {
             </Text>
             <View style={tw`flex-row items-center mt-1`}>
               <FontAwesome5 name="dumbbell" size={16} color="purple" />
-              {/* <View style={tw`ml-2 flex-row flex-wrap`}>
-                {fitnessGoals.map((goal, index) => (
+              <View style={tw`ml-2 flex-row flex-wrap`}>
+                {userFitnessGoals.map((goal, index) => (
                   <View
                     key={index}
-                    style={tw`bg-gray-200 px-2 py-1 rounded-full mr-2`}
+                    style={tw`bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1`}
                   >
-                    <Text style={tw`text-xs`}>{goal}</Text>
+                    <Text style={tw`text-xs`}>{formatGoalText(goal)}</Text>
                   </View>
                 ))}
-              </View> */}
+              </View>
             </View>
           </View>
         </View>
@@ -677,6 +663,7 @@ export default function ProfileScreen({ navigation }: Props) {
                   <TouchableOpacity
                     onPress={() => {
                       updateUserInfo();
+                      postUserGoals(userFitnessGoals)
                       setModalVisible(false);
                     }}
                   >

@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  Alert,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import tw from "twrnc";
@@ -34,12 +42,12 @@ export default function SurveyScreen({ navigation }: Props) {
   const [endTimePeriod, setEndTimePeriod] = useState<"AM" | "PM">("AM");
 
   const updateUserInfo = async () => {
-    try {
       const userUpdate = {
         gender: userGender,
         age: userAge,
         weight: userWeight,
         skill_level: userSkillLevel,
+        zip_code: userZip,
       };
 
       const response = await fetchFunctionWithAuth("users/profile/update", {
@@ -49,9 +57,6 @@ export default function SurveyScreen({ navigation }: Props) {
           "Content-Type": "application/json",
         },
       });
-    } catch (error) {
-      console.error("Error updating info:", error);
-    }
   };
 
   const postUserTimeRange = async (
@@ -72,6 +77,20 @@ export default function SurveyScreen({ navigation }: Props) {
       setModalVisible(false);
     } catch (error) {
       console.error("Failed to create user time range", error);
+    }
+  };
+
+  const postUserGoals = async (goals: string[]) => {
+    try {
+      await fetchFunctionWithAuth("user_goal/goals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ goals }),
+      });
+    } catch (error) {
+      console.error("Failed to submit fitness goals:", error);
     }
   };
 
@@ -214,7 +233,7 @@ export default function SurveyScreen({ navigation }: Props) {
         {timeRanges
           .filter((range) => range.day === selectedDay)
           .map((range, idx) => (
-            <View key={idx} style={tw`bg-white p-3 rounded-lg mb-3 w-full`}>
+            <View key={idx} style={tw`bg-gray-100 p-3 rounded-lg mb-3 w-full`}>
               <View style={tw`flex-row justify-between items-center`}>
                 <Text style={tw`text-sm`}>
                   {range.start} - {range.end}
@@ -240,20 +259,20 @@ export default function SurveyScreen({ navigation }: Props) {
             <View style={tw`bg-white p-6 rounded-lg w-80`}>
               <Text style={tw`text-lg font-bold mb-4`}>Add Time Range</Text>
 
-              {/* Start Time */}
-              <TextInput
-                style={tw`border p-2 rounded mb-4`}
-                placeholder="Start time (e.g., 7:00)"
-                placeholderTextColor="#B5B0B0"
-                value={startTime}
-                onChangeText={setStartTime}
-              />
-              <View style={tw`flex-row mb-4 justify-center`}>
+              <Text style={tw`text-s text-gray-500 mb-2`}>Start Time</Text>
+              <View style={tw`flex-row items-center mb-4`}>
+                <TextInput
+                  style={tw`border p-2 rounded flex-1 mr-2`}
+                  placeholder="7:00"
+                  placeholderTextColor="#B5B0B0"
+                  value={startTime}
+                  onChangeText={setStartTime}
+                />
                 {["AM", "PM"].map((period) => (
                   <TouchableOpacity
                     key={period}
                     onPress={() => setStartTimePeriod(period as "AM" | "PM")}
-                    style={tw`px-3 py-1 rounded-full mx-1 ${
+                    style={tw`border px-3 py-2 rounded-lg mx-1 ${
                       startTimePeriod === period
                         ? "bg-purple-300"
                         : "bg-gray-200"
@@ -264,20 +283,20 @@ export default function SurveyScreen({ navigation }: Props) {
                 ))}
               </View>
 
-              {/* End Time */}
-              <TextInput
-                style={tw`border p-2 rounded mb-4`}
-                placeholder="End time (e.g., 9:00)"
-                placeholderTextColor="#B5B0B0"
-                value={endTime}
-                onChangeText={setEndTime}
-              />
-              <View style={tw`flex-row mb-6 justify-center`}>
+              <Text style={tw`text-s text-gray-500 mb-2`}>End Time</Text>
+              <View style={tw`flex-row items-center mb-6`}>
+                <TextInput
+                  style={tw`border p-2 rounded flex-1 mr-2`}
+                  placeholder="9:00"
+                  placeholderTextColor="#B5B0B0"
+                  value={endTime}
+                  onChangeText={setEndTime}
+                />
                 {["AM", "PM"].map((period) => (
                   <TouchableOpacity
                     key={period}
                     onPress={() => setEndTimePeriod(period as "AM" | "PM")}
-                    style={tw`px-3 py-1 rounded-full mx-1 ${
+                    style={tw`border px-3 py-2 rounded-lg mx-1 ${
                       endTimePeriod === period ? "bg-purple-300" : "bg-gray-200"
                     }`}
                   >
@@ -409,6 +428,7 @@ export default function SurveyScreen({ navigation }: Props) {
                 );
               }
               updateUserInfo();
+              postUserGoals(userFitnessGoals);
               navigation.replace("Home");
             } catch (error) {
               console.error("Failed to submit availability:", error);
