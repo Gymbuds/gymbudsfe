@@ -278,7 +278,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       await loadUserProfile();
     } catch (error) {
-      console.error("❌ Error updating info:", error);
+      // console.error("❌ Error updating info:", error);
     }
   };
 
