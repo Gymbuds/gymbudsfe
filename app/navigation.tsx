@@ -10,6 +10,7 @@ import ProfileNavigator from "./tabs/ProfileApiService/profile-navigation";
 import WorkoutNavigator from "./tabs/WorkOutPage/Workout-navigation";
 import MainTabs from "./tabs/MainTab/Maintabs";
 import MapNavigator from "./tabs/MapScreen/MapNavigator"
+import SurveyScreen from "./frontscreen/SurveyScreen";
 
 
 // Define the types for the screens
@@ -27,6 +28,7 @@ type RootStackParamList = {
   MapScreen: undefined;
   MapNav: undefined;
   Workouts: undefined;
+  Survery: undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -66,6 +68,7 @@ export default function AppNavigation() {
       <Stack.Screen name="ResetCode" component={ResetCodescreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordscreen} />
       <Stack.Screen name="MapNav" component={MapNavigator} />
+      <Stack.Screen name="Survey" component={SurveyScreen} />
     </Stack.Navigator>
   );
 }

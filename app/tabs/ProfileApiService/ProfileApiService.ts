@@ -21,3 +21,26 @@ export const fetchUserHealthDatas = async() =>{
     throw error;
   }
 }
+export const postUserGoals = async (goals: string[]) => {
+  try {
+    await fetchFunctionWithAuth("user_goal/goals", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ goals }),
+    });
+  } catch (error) {
+    console.error("Failed to submit fitness goals:", error);
+  }
+};
+export const fetchUserGoals = async () => {
+  try {
+    const response = await fetchFunctionWithAuth("user_goal/goals", {
+      method: "GET",
+    });
+    return response; // should be an array like ["BUILD_MUSCLE", "GAIN_STRENGTH"]
+  } catch (error) {
+    console.error("Failed to fetch user goals:", error)
+  }
+};

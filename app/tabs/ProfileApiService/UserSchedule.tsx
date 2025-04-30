@@ -155,7 +155,7 @@ export default function ScheduleScreen({ navigation }: Props) {
               onPress={() => setSelectedDay(day)}
             >
               <Text style={tw`text-sm ${selectedDay === day ? 'text-white' : 'text-gray-700'}`}>
-                {day === 'Sunday' || day === 'Saturday' ? day.substring(0, 2) : day.substring(0, 1)}
+                {day.substring(0, 1) + day.substring(1,3).toLowerCase()}
               </Text>
             </TouchableOpacity>
           ))}
