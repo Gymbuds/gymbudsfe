@@ -14,6 +14,7 @@ import tw from "twrnc";
 import { fetchFunctionWithAuth } from "@/api/auth";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { validateTime, convertTo24Hour, padTime } from "@/app/utils/util";
+import { getCoordinatesFromZip } from "@/api/map";
 
 type RootStackParamList = {
   Signup: undefined;
@@ -42,21 +43,25 @@ export default function SurveyScreen({ navigation }: Props) {
   const [endTimePeriod, setEndTimePeriod] = useState<"AM" | "PM">("AM");
 
   const updateUserInfo = async () => {
-      const userUpdate = {
-        gender: userGender,
-        age: userAge,
-        weight: userWeight,
-        skill_level: userSkillLevel,
-        zip_code: userZip,
-      };
+    const coords = await getCoordinatesFromZip(String(userZip));
+    if (!coords) throw new Error("Failed to fetch coordinates");
+    const userUpdate = {
+      gender: userGender,
+      age: userAge,
+      weight: userWeight,
+      skill_level: userSkillLevel,
+      zip_code: userZip,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+    };
 
-      const response = await fetchFunctionWithAuth("users/profile/update", {
-        method: "PATCH",
-        body: JSON.stringify(userUpdate),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    const response = await fetchFunctionWithAuth("users/profile/update", {
+      method: "PATCH",
+      body: JSON.stringify(userUpdate),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   };
 
   const postUserTimeRange = async (
