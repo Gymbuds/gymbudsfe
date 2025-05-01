@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import tw from "twrnc";
@@ -38,93 +39,93 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [image, setImage] = useState("");
   const [posts, setPosts] = useState([]);
   const [userMap, setUserMap] = useState<{ [key: number]: any }>({});
-  const [localMediaUri, setLocalMediaUri] = useState<string | null>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [isPosting, setIsPosting] = useState(false);
+
+  const fetchPosts = async () => {
+    try {
+      const data = await getCommunityPosts(communityId);
+      const sorted = data.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setPosts(sorted);
+
+      // Fetch user info
+      const userIds = [...new Set(data.map((p) => p.user_id))];
+      const map: { [key: number]: any } = {};
+
+      await Promise.all(
+        userIds.map(async (id) => {
+          const user = await getUserInfoById(id);
+          map[id] = user;
+        })
+      );
+
+      setUserMap(map);
+    } catch (err) {
+      console.log("Error", "Failed to load posts or users.");
+    }
+  };
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const data = await getCommunityPosts(communityId);
-        const sorted = data.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setPosts(sorted);
-
-        // Fetch user info
-        const userIds = [...new Set(data.map((p) => p.user_id))];
-        const map: { [key: number]: any } = {};
-
-        await Promise.all(
-          userIds.map(async (id) => {
-            const user = await getUserInfoById(id);
-            map[id] = user;
-          })
-        );
-
-        setUserMap(map);
-      } catch (err) {
-        console.log("Error", "Failed to load posts or users.");
-      }
-    };
-
     fetchPosts();
   }, [communityId]);
 
-  const handleCommunityMediaUpload = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 1,
-      });
+  const handleImageSelect = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
 
-      if (!result.canceled && result.assets?.length > 0) {
-        const selectedAsset = result.assets[0];
-        setLocalMediaUri(selectedAsset.uri); // preview
-        const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; 
+    if (!result.canceled && result.assets?.length > 0) {
+      setPreviewUri(result.assets[0].uri); // local preview only
+    }
+  };
 
-        // Request upload URL from the backend
+  const handlePost = async () => {
+    setIsPosting(true);
+    let imageUrl = "";
+
+    if (previewUri) {
+      try {
+        const fileType = previewUri.split(".").pop()?.toLowerCase() || "jpeg";
+
         const presignedResponse = await fetchFunctionWithAuth(
           `community_posts/generate-upload-url/?file_extension=${fileType}`,
           { method: "GET" }
         );
 
-        const uploadUrl = presignedResponse.upload_url;
-        const s3fileUrl = presignedResponse.file_url;
+        const blob = await (await fetch(previewUri)).blob();
 
-        // Upload file to S3
-        const uploadResponse = await fetch(uploadUrl, {
+        const uploadResponse = await fetch(presignedResponse.upload_url, {
           method: "PUT",
           headers: { "Content-Type": `image/${fileType}` },
-          body: await (await fetch(selectedAsset.uri)).blob(),
+          body: blob,
         });
 
         if (uploadResponse.ok) {
-          console.log("Successfully uploaded media to S3");
-
-          setImage(s3fileUrl);
-        } else {
-          console.error("Failed to upload media to S3");
+          console.log("Successfully uploaded image to S3");
         }
-      }
-    } catch (error) {
-      console.error("Error uploading media:", error);
-    }
-  };
 
-  const handlePost = async () => {
-    await createCommunityPost(communityId, title, content, image);
-    setModalVisible(false);
+        imageUrl = presignedResponse.file_url;
+      } catch (err) {
+        console.error("Upload error:", err);
+        return;
+      } finally {
+        setIsPosting(false);
+      }
+    }
+
+    await createCommunityPost(communityId, title, content, imageUrl);
     setTitle("");
     setContent("");
-    setImage("");
-    const updatePosts = await getCommunityPosts(communityId);
-    const sorted = updatePosts.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-    setPosts(sorted);
+    setPreviewUri(null);
+    setModalVisible(false);
+    fetchPosts();
   };
 
   const formatDate = (isoDate: string) => {
@@ -165,7 +166,7 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
-            setModalVisible(false), setLocalMediaUri(null);
+            setModalVisible(false), setPreviewUri(null);
           }}
         >
           <View
@@ -174,22 +175,21 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
             <View style={tw`bg-white p-4 rounded-xl shadow-md w-11/12`}>
               <View style={tw`flex-row justify-between items-center mb-2`}>
                 <Text style={tw`text-base font-semibold`}>Create a Post</Text>
-                <TouchableOpacity onPress={handleCommunityMediaUpload}>
+                <TouchableOpacity onPress={handleImageSelect}>
                   <Ionicons name="image-outline" size={24} color="#a855f7" />
                 </TouchableOpacity>
               </View>
 
-              {localMediaUri && (
+              {previewUri && (
                 <View style={tw`mb-3 relative`}>
                   <Image
-                    source={{ uri: localMediaUri }}
+                    source={{ uri: previewUri }}
                     style={tw`w-full h-48 rounded-xl`}
                     resizeMode="cover"
                   />
                   <TouchableOpacity
                     onPress={() => {
-                      setLocalMediaUri(null);
-                      setImage("");
+                      setPreviewUri(null);
                     }}
                     style={tw`absolute top-2 right-2 bg-black/60 p-1 rounded-full`}
                   >
@@ -216,17 +216,25 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
               <View style={tw`flex-row justify-end mt-3`}>
                 <TouchableOpacity
                   onPress={() => {
-                    setModalVisible(false), setLocalMediaUri(null);
+                    setModalVisible(false),
+                      setPreviewUri(null),
+                      setTitle(""),
+                      setContent("");
                   }}
                   style={tw`px-4 py-2 rounded-full mr-2`}
                 >
                   <Text style={tw`text-purple-500`}>Discard</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
+                  disabled={isPosting}
                   onPress={handlePost}
-                  style={tw`bg-purple-500 px-4 py-2 rounded-full`}
+                  style={tw`bg-purple-600 px-4 py-2 rounded-full flex-row items-center justify-center`}
                 >
-                  <Text style={tw`text-white font-semibold`}>Post</Text>
+                  {isPosting ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={tw`text-white font-semibold`}>Post</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -252,7 +260,7 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                   {/* Left column: name, avatar, timestamp */}
                   <View style={tw`justify-center items-center mr-3 w-16`}>
                     <Text style={tw`font-bold mb-1`} numberOfLines={1}>
-                      {user?.name ?? "Unknown"}
+                      {user?.name}
                     </Text>
                     {user?.profile_picture ? (
                       <Image
@@ -286,9 +294,6 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                     </Text>
                     <Text style={tw`text-sm text-gray-700 mt-1`}>
                       {post.content}{" "}
-                      {/* <Text style={tw`text-purple-600 font-medium`}>
-                        View More
-                      </Text> */}
                     </Text>
 
                     <View style={tw`flex-row items-center mt-2`}>
