@@ -47,7 +47,10 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
     const fetchPosts = async () => {
       try {
         const data = await getCommunityPosts(communityId);
-        setPosts(data);
+        const sorted = data.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setPosts(sorted);
 
         // Fetch user info
         const userIds = [...new Set(data.map((p) => p.user_id))];
@@ -79,10 +82,10 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
 
       if (!result.canceled && result.assets?.length > 0) {
         const selectedAsset = result.assets[0];
-        setLocalMediaUri(selectedAsset.uri); // <-- this is what shows in the modal
-        const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; // 'jpeg' or 'mp4'
+        setLocalMediaUri(selectedAsset.uri); // preview
+        const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; 
 
-        // Get presigned URL from your community_posts endpoint
+        // Request upload URL from the backend
         const presignedResponse = await fetchFunctionWithAuth(
           `community_posts/generate-upload-url/?file_extension=${fileType}`,
           { method: "GET" }
@@ -91,7 +94,7 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
         const uploadUrl = presignedResponse.upload_url;
         const s3fileUrl = presignedResponse.file_url;
 
-        // Upload media to S3
+        // Upload file to S3
         const uploadResponse = await fetch(uploadUrl, {
           method: "PUT",
           headers: { "Content-Type": `image/${fileType}` },
@@ -101,7 +104,6 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
         if (uploadResponse.ok) {
           console.log("Successfully uploaded media to S3");
 
-          // Use fileUrl in your community post
           setImage(s3fileUrl);
         } else {
           console.error("Failed to upload media to S3");
@@ -119,7 +121,10 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
     setContent("");
     setImage("");
     const updatePosts = await getCommunityPosts(communityId);
-    setPosts(updatePosts);
+    const sorted = updatePosts.sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    setPosts(sorted);
   };
 
   const formatDate = (isoDate: string) => {
@@ -281,9 +286,9 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                     </Text>
                     <Text style={tw`text-sm text-gray-700 mt-1`}>
                       {post.content}{" "}
-                      <Text style={tw`text-purple-600 font-medium`}>
+                      {/* <Text style={tw`text-purple-600 font-medium`}>
                         View More
-                      </Text>
+                      </Text> */}
                     </Text>
 
                     <View style={tw`flex-row items-center mt-2`}>
