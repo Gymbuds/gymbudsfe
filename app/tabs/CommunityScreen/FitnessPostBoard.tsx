@@ -12,6 +12,8 @@ import { Ionicons, AntDesign } from "@expo/vector-icons";
 import tw from "twrnc";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Icon from "react-native-vector-icons/FontAwesome";
+import * as ImagePicker from "expo-image-picker";
+import { fetchFunctionWithAuth } from "@/api/auth";
 import {
   createCommunityPost,
   getCommunityPosts,
@@ -39,6 +41,7 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [image, setImage] = useState("");
   const [posts, setPosts] = useState([]);
   const [userMap, setUserMap] = useState<{ [key: number]: any }>({});
+  const [localMediaUri, setLocalMediaUri] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -65,6 +68,49 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
 
     fetchPosts();
   }, [communityId]);
+
+  const handleCommunityMediaUpload = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const selectedAsset = result.assets[0];
+        setLocalMediaUri(selectedAsset.uri); // <-- this is what shows in the modal
+        const fileType = selectedAsset.type?.split("/")[1] || "jpeg"; // 'jpeg' or 'mp4'
+
+        // Get presigned URL from your community_posts endpoint
+        const presignedResponse = await fetchFunctionWithAuth(
+          `community_posts/generate-upload-url/?file_extension=${fileType}`,
+          { method: "GET" }
+        );
+
+        const uploadUrl = presignedResponse.upload_url;
+        const s3fileUrl = presignedResponse.file_url;
+
+        // Upload media to S3
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": `image/${fileType}` },
+          body: await (await fetch(selectedAsset.uri)).blob(),
+        });
+
+        if (uploadResponse.ok) {
+          console.log("Successfully uploaded media to S3");
+
+          // Use fileUrl in your community post
+          setImage(s3fileUrl);
+        } else {
+          console.error("Failed to upload media to S3");
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading media:", error);
+    }
+  };
 
   const handlePost = async () => {
     await createCommunityPost(communityId, title, content, image);
@@ -113,15 +159,39 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
           animationType="slide"
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
+          onRequestClose={() => {
+            setModalVisible(false), setLocalMediaUri(null);
+          }}
         >
           <View
             style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
           >
             <View style={tw`bg-white p-4 rounded-xl shadow-md w-11/12`}>
-              <Text style={tw`text-base font-semibold mb-2`}>
-                Create a Post
-              </Text>
+              <View style={tw`flex-row justify-between items-center mb-2`}>
+                <Text style={tw`text-base font-semibold`}>Create a Post</Text>
+                <TouchableOpacity onPress={handleCommunityMediaUpload}>
+                  <Ionicons name="image-outline" size={24} color="#a855f7" />
+                </TouchableOpacity>
+              </View>
+
+              {localMediaUri && (
+                <View style={tw`mb-3 relative`}>
+                  <Image
+                    source={{ uri: localMediaUri }}
+                    style={tw`w-full h-48 rounded-xl`}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setLocalMediaUri(null);
+                      setImage("");
+                    }}
+                    style={tw`absolute top-2 right-2 bg-black/60 p-1 rounded-full`}
+                  >
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               <TextInput
                 placeholder="Title"
@@ -140,7 +210,9 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
 
               <View style={tw`flex-row justify-end mt-3`}>
                 <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
+                  onPress={() => {
+                    setModalVisible(false), setLocalMediaUri(null);
+                  }}
                   style={tw`px-4 py-2 rounded-full mr-2`}
                 >
                   <Text style={tw`text-purple-500`}>Discard</Text>
@@ -195,16 +267,18 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                   </View>
 
                   {/* Right column: content */}
-                  <View style={tw`flex-1 justify-center item-center`}>
+                  <View style={tw`flex-1 justify-center`}>
                     {post.image_url ? (
                       <Image
                         source={{ uri: post.image_url }}
-                        style={tw`w-full h-48 rounded-xl mt-3`}
+                        style={tw`w-full h-48 rounded-xl mb-1`}
                         resizeMode="cover"
                       />
                     ) : null}
 
-                    <Text style={tw`font-bold text-sm`} numberOfLines={1}>{post.title}</Text>
+                    <Text style={tw`font-bold text-sm`} numberOfLines={1}>
+                      {post.title}
+                    </Text>
                     <Text style={tw`text-sm text-gray-700 mt-1`}>
                       {post.content}{" "}
                       <Text style={tw`text-purple-600 font-medium`}>
