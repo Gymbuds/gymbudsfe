@@ -23,7 +23,7 @@ import { fetchUserProfile, postUserGoals, fetchUserGoals } from "./ProfileApiSer
 import tw from "twrnc";
 import { formatTime } from "@/app/utils/util";
 import { userHealthData } from "@/app/tabs/ProfileApiService/HealthData";
-import { NullStyle } from "twrnc/dist/esm/types";
+import { getCoordinatesFromZip } from "@/api/map";
 // Define navigation types
 type RootStackParamList = {
   Signup: undefined;
@@ -258,13 +258,17 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const updateUserInfo = async () => {
     try {
+      const coords = await getCoordinatesFromZip(String(userZip));
+      if (!coords) throw new Error("Failed to fetch coordinates");
       const userUpdate = {
         name: userName,
         gender: userGender,
         age: userAge,
         weight: userWeight,
         skill_level: userSkillLevel, 
-        zip_code: userZip
+        zip_code: userZip,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       };
       // console.log(userUpdate)
       // Send the PATCH request
