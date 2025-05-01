@@ -416,20 +416,15 @@ export default function SurveyScreen({ navigation }: Props) {
           onPress={async () => {
             try {
               for (const range of timeRanges) {
-                const startParts = range.start.split(":");
-                const endParts = range.end.split(":");
-
-                const startHour = parseInt(startParts[0]);
-                const startMinutes = parseInt(startParts[1]);
-                const endHour = parseInt(endParts[0]);
-                const endMinutes = parseInt(endParts[1]);
+                const start = convertTo24Hour(range.start); // e.g. "7:00 PM"
+                const end = convertTo24Hour(range.end); // e.g. "9:00 PM"
 
                 await postUserTimeRange(
                   range.day,
-                  startHour,
-                  startMinutes,
-                  endHour,
-                  endMinutes
+                  start.hour,
+                  start.minute,
+                  end.hour,
+                  end.minute
                 );
               }
               updateUserInfo();
