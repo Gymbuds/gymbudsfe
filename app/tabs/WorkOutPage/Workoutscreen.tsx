@@ -236,15 +236,9 @@ export default function Workoutscreen({ navigation, route }: Props) {
             <TouchableOpacity
               onPress={() => navigation.navigate("WorkoutLogPage")}
             >
-              <View
-                style={{
-                  backgroundColor: "purple",
-                  borderRadius: 50,
-                  padding: 3,
-                }}
-              >
-                <AntDesign name="plus" size={24} color="white" />
-              </View>
+            <View style={tw`bg-purple-500 rounded-full p-1`}>
+              <AntDesign name="plus" size={24} color="white" />
+            </View>
             </TouchableOpacity>
           </View>
         </View>

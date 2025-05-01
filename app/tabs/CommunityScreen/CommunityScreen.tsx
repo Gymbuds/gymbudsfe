@@ -343,10 +343,15 @@ export default function CommunityScreen({ navigation, route }: Props) {
               />{' '}
               Community Post Board
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('FitnessBoard')}>
-              <Text style={tw`text-purple-500 text-sm`}>
-                View All
-              </Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('FitnessBoard', {
+                  communityId,
+                  name: details.displayName.text,
+                })
+              }
+            >
+              <Text style={tw`text-purple-500 text-sm`}>View All</Text>
             </TouchableOpacity>
           </View>
           <View style={tw`border border-gray-300 rounded-2xl p-2 mx-3`}>
