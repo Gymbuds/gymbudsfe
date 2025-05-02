@@ -27,6 +27,41 @@ export const createCommunityPost = async (
   }
 };
 
+export const updateCommunityPost = async (
+  postId: number,
+  title: string,
+  content: string,
+  imageUrl: string
+) => {
+  try {
+    const response = await fetchFunctionWithAuth(`community_posts/${postId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        content,
+        image_url: imageUrl,
+      }),
+    });
+
+    return response;
+  } catch (err) {
+    console.error(`Failed to update community post ${postId}:`, err);
+    throw err;
+  }
+};
+
+export const deleteCommunityPost = async (postId: number) => {
+  try {
+    const response = await fetchFunctionWithAuth(`community_posts/${postId}`, {
+      method: "DELETE",
+    });
+    return response;
+  } catch (err) {
+    console.error(`Failed to delete community post`, err);
+  }
+};
+
 export const getCommunityPosts = async (communityId: number) => {
   try {
     const response = await fetchFunctionWithAuth(
@@ -89,5 +124,33 @@ export const createComment = async (postId: number, content: string) => {
     return response;
   } catch (err) {
     console.error(`Failed to create comment`, err);
+  }
+};
+
+export const editComment = async (commentId: number, content: string) => {
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/comments/${commentId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      }
+    );
+    return response;
+  } catch (err) {
+    console.error(`Failed to edit comment`, err);
+  }
+};
+
+export const deleteComment = async (commentId: number) => {
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/comments/${commentId}`,
+      { method: "DELETE" }
+    );
+    return response;
+  } catch (err) {
+    console.error(`Failed to delete comment`, err);
   }
 };

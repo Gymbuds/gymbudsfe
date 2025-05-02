@@ -18,11 +18,15 @@ import * as ImagePicker from "expo-image-picker";
 import { fetchFunctionWithAuth } from "@/api/auth";
 import {
   createCommunityPost,
+  updateCommunityPost,
+  deleteCommunityPost,
   getCommunityPosts,
   getUserInfoById,
   likePost,
   unlikePost,
   createComment,
+  editComment,
+  deleteComment
 } from "@/api/post";
 import { format, parseISO, isToday, isYesterday } from "date-fns";
 
