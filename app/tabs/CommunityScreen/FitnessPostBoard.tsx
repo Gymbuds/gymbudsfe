@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import tw from "twrnc";
@@ -19,6 +20,9 @@ import {
   createCommunityPost,
   getCommunityPosts,
   getUserInfoById,
+  likePost,
+  unlikePost,
+  createComment,
 } from "@/api/post";
 import { format, parseISO, isToday, isYesterday } from "date-fns";
 
@@ -43,6 +47,11 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [userMap, setUserMap] = useState<{ [key: number]: any }>({});
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [isPosting, setIsPosting] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const [commentsVisible, setCommentsVisible] = useState(false);
+  const [comment, setComment] = useState("");
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   const fetchPosts = async () => {
     try {
@@ -70,9 +79,32 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
     }
   };
 
+  const getUserOfComment = async () => {
+    if (!selectedPost?.comments) return;
+
+    const updatedComments = await Promise.all(
+      selectedPost.comments.map(async (comment) => {
+        try {
+          const user = await getUserInfoById(comment.user_id);
+          return { ...comment, user };
+        } catch {
+          return comment;
+        }
+      })
+    );
+
+    setSelectedPost((prev) =>
+      prev ? { ...prev, comments: updatedComments } : prev
+    );
+  };
+
   useEffect(() => {
     fetchPosts();
   }, [communityId]);
+
+  useEffect(() => {
+    getUserOfComment();
+  }, [selectedPost?.id]);
 
   const handleImageSelect = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -137,6 +169,86 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
       return `Yesterday, ${format(date, "h:mm a")}`;
     } else {
       return format(date, "MMMM do, h:mm a");
+    }
+  };
+
+  const toggleLike = async (postId: number) => {
+    const isLiked = likedPosts.has(postId);
+    try {
+      if (isLiked) {
+        await unlikePost(postId);
+        setLikedPosts((prev) => {
+          const updated = new Set(prev);
+          updated.delete(postId);
+          return updated;
+        });
+      } else {
+        await likePost(postId);
+        setLikedPosts((prev) => new Set(prev).add(postId));
+      }
+      fetchPosts();
+    } catch (err) {
+      console.log("Error", "Failed to toggle like.");
+    }
+  };
+
+  const openCommentModal = (postId: number) => {
+    const foundPost = posts.find((p) => p.id === postId);
+    if (foundPost) {
+      setSelectedPost(foundPost);
+      setCommentsVisible(true);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (comment.trim() === "") {
+      Alert.alert("No comment", "Please add a comment.");
+      return;
+    }
+
+    try {
+      const newComment = await createComment(selectedPost.id, comment.trim());
+
+      const userInfo = await getUserInfoById(newComment.user_id);
+      newComment.user = userInfo;
+
+      const updatedComments = [...(selectedPost.comments || []), newComment];
+      setSelectedPost({ ...selectedPost, comments: updatedComments });
+
+      fetchPosts();
+      setComment("");
+    } catch (err) {
+      console.error("Error submitting comment:", err);
+    }
+  };
+
+  const preloadCommentUsers = async (post) => {
+    setCommentsLoading(true);
+    try {
+      const uniqueUserIds = [
+        ...new Set(post.comments?.map((c) => c.user_id).filter(Boolean)),
+      ];
+
+      const userPromises = uniqueUserIds.map((id) => getUserInfoById(id));
+      const userResults = await Promise.all(userPromises);
+
+      const userMap = {};
+      uniqueUserIds.forEach((id, index) => {
+        userMap[id] = userResults[index];
+      });
+
+      // Attach user info to each comment
+      const enrichedComments = post.comments.map((c) => ({
+        ...c,
+        user: userMap[c.user_id] || { name: "User" },
+      }));
+
+      setSelectedPost({ ...post, comments: enrichedComments });
+      setCommentsVisible(true);
+    } catch (err) {
+      console.error("Error preloading comment users:", err);
+    } finally {
+      setCommentsLoading(false);
     }
   };
 
@@ -297,24 +409,124 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                     </Text>
 
                     <View style={tw`flex-row items-center mt-2`}>
-                      <View style={tw`flex-row items-center mr-4`}>
-                        <Icon name="heart-o" size={16} color="gray" />
+                      <TouchableOpacity
+                        style={tw`flex-row items-center mr-4`}
+                        onPress={() => toggleLike(post.id)}
+                      >
+                        <Icon
+                          name={
+                            post.is_liked_by_current_user ? "heart" : "heart-o"
+                          }
+                          size={16}
+                          color={post.is_liked_by_current_user ? "red" : "gray"}
+                        />
+
                         <Text style={tw`text-sm text-gray-600 ml-1`}>
                           {post.like_count} likes
                         </Text>
-                      </View>
-                      <View style={tw`flex-row items-center`}>
-                        <Icon name="comment-o" size={16} color="gray" />
-                        <Text style={tw`text-sm text-gray-600 ml-1`}>
-                          {post.comments?.length} comments
-                        </Text>
-                      </View>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => preloadCommentUsers(post)}
+                      >
+                        <View style={tw`flex-row items-center`}>
+                          <Icon name="comment-o" size={16} color="gray" />
+                          <Text style={tw`text-sm text-gray-600 ml-1`}>
+                            {post.comments?.length} comments
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
               );
             })}
           </ScrollView>
+        )}
+
+        {/* Comments Modal */}
+        {commentsLoading ? (
+          <View style={tw`flex-1 justify-center items-center`}>
+            <ActivityIndicator size="large" color="purple" />
+          </View>
+        ) : (
+          <Modal
+            transparent
+            visible={commentsVisible}
+            animationType="fade"
+            onRequestClose={() => setCommentsVisible(false)}
+          >
+            <View style={tw`flex-1 justify-center items-center bg-black/50`}>
+              <View style={tw`bg-gray-100 p-4 rounded-2xl w-11/12 max-h-[70%]`}>
+                <View style={tw`flex-row justify-between items-center mb-2`}>
+                  <View style={tw`w-12`} />
+                  <Text style={tw`text-lg font-bold`}>Comments</Text>
+                  <TouchableOpacity onPress={() => setCommentsVisible(false)}>
+                    <Text style={tw`text-purple-600`}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TextInput
+                  placeholder="Message"
+                  multiline
+                  style={tw`bg-white border border-gray-300 rounded-xl px-4 py-2 text-sm h-10`}
+                  value={comment}
+                  onChangeText={setComment}
+                />
+
+                <TouchableOpacity
+                  style={tw`bg-purple-600 rounded-xl px-4 py-2 mt-2 mb-2 items-center self-center`}
+                  onPress={handleAddComment}
+                >
+                  <Text style={tw`text-white font-semibold`}>Add Comment</Text>
+                </TouchableOpacity>
+
+                <ScrollView style={tw`mb-2`}>
+                  {selectedPost?.comments?.length > 0 ? (
+                    selectedPost.comments.map((comment, index) => (
+                      <View
+                        key={index}
+                        style={tw`bg-white p-4 rounded-xl shadow-sm mb-3 flex-row`}
+                      >
+                        {/* Left column: avatar + name */}
+                        <View style={tw`justify-center items-center mr-3 w-16`}>
+                          <Text style={tw`font-bold mb-1`} numberOfLines={1}>
+                            {comment.user?.name}
+                          </Text>
+                          {comment.user?.profile_picture ? (
+                            <Image
+                              source={{ uri: comment.user.profile_picture }}
+                              style={tw`w-10 h-10 rounded-full`}
+                            />
+                          ) : (
+                            <View
+                              style={tw`w-10 h-10 bg-purple-300 rounded-full flex items-center justify-center`}
+                            >
+                              <Text style={tw`text-white`}>U</Text>
+                            </View>
+                          )}
+                          <Text style={tw`text-xs text-gray-400 mt-1`}>
+                            {formatDate(comment.created_at)}
+                          </Text>
+                        </View>
+
+                        {/* Right column: comment content */}
+                        <View style={tw`flex-1 justify-center`}>
+                          <Text style={tw`text-sm text-gray-700`}>
+                            {comment.content}
+                          </Text>
+                        </View>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={tw`text-gray-500 italic text-center`}>
+                      No comments yet
+                    </Text>
+                  )}
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
         )}
       </ScrollView>
     </View>

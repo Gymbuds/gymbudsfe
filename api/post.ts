@@ -28,27 +28,66 @@ export const createCommunityPost = async (
 };
 
 export const getCommunityPosts = async (communityId: number) => {
-    try {
-      const response = await fetchFunctionWithAuth(
-        `community_posts/community/${communityId}`,
-        { method: 'GET' }
-      );
-      return response; // should be an array of posts
-    } catch (err) {
-      console.error('Failed to load community posts:', err);
-      throw err;
-    }
-  };
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/community/${communityId}`,
+      { method: "GET" }
+    );
+    return response; // should be an array of posts
+  } catch (err) {
+    //   console.error('Failed to load community posts:', err);
+    throw err;
+  }
+};
 
-  export const getUserInfoById = async (userId: number) => {
-    try {
-      const response = await fetchFunctionWithAuth(`match/user-info/${userId}`, {
-        method: "GET",
-      });
-      return response;
-    } catch (err) {
-      console.error(`Failed to fetch user info for user ${userId}:`, err);
-      throw err;
-    }
-  };
-  
+export const getUserInfoById = async (userId: number) => {
+  try {
+    const response = await fetchFunctionWithAuth(`match/user-info/${userId}`, {
+      method: "GET",
+    });
+    return response;
+  } catch (err) {
+    console.error(`Failed to fetch user info for user ${userId}:`, err);
+    throw err;
+  }
+};
+
+export const likePost = async (postId: number) => {
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/${postId}/like`,
+      { method: "POST" }
+    );
+    return response;
+  } catch (err) {
+    console.error(`Failed to like post`, err);
+  }
+};
+
+export const unlikePost = async (postId: number) => {
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/${postId}/unlike`,
+      { method: "DELETE" }
+    );
+    return response;
+  } catch (err) {
+    console.error(`Failed to unlike post`, err);
+  }
+};
+
+export const createComment = async (postId: number, content: string) => {
+  try {
+    const response = await fetchFunctionWithAuth(
+      `community_posts/${postId}/comment`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      }
+    );
+    return response;
+  } catch (err) {
+    console.error(`Failed to create comment`, err);
+  }
+};
