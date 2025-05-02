@@ -26,8 +26,9 @@ import {
   unlikePost,
   createComment,
   editComment,
-  deleteComment
+  deleteComment,
 } from "@/api/post";
+import { fetchUserProfile } from "../ProfileApiService/ProfileApiService";
 import { format, parseISO, isToday, isYesterday } from "date-fns";
 
 type RootStackParamList = {
@@ -56,6 +57,18 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [commentsVisible, setCommentsVisible] = useState(false);
   const [comment, setComment] = useState("");
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const profile = await fetchUserProfile();
+      setCurrentUserId(profile.user.id);
+    };
+    loadCurrentUser();
+  }, []);
 
   const fetchPosts = async () => {
     try {
@@ -124,9 +137,9 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
 
   const handlePost = async () => {
     setIsPosting(true);
-    let imageUrl = "";
+    let imageUrl = previewUri || "";
 
-    if (previewUri) {
+    if (previewUri && !previewUri.startsWith("https://")) {
       try {
         const fileType = previewUri.split(".").pop()?.toLowerCase() || "jpeg";
 
@@ -143,25 +156,64 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
           body: blob,
         });
 
-        if (uploadResponse.ok) {
-          console.log("Successfully uploaded image to S3");
-        }
-
+        if (!uploadResponse.ok) throw new Error("Upload failed");
         imageUrl = presignedResponse.file_url;
       } catch (err) {
         console.error("Upload error:", err);
-        return;
-      } finally {
         setIsPosting(false);
+        return;
       }
     }
 
-    await createCommunityPost(communityId, title, content, imageUrl);
-    setTitle("");
-    setContent("");
-    setPreviewUri(null);
-    setModalVisible(false);
-    fetchPosts();
+    try {
+      if (isEditing && selectedPostId !== null) {
+        await updateCommunityPost(selectedPostId, title, content, imageUrl);
+      } else {
+        await createCommunityPost(communityId, title, content, imageUrl);
+      }
+
+      setTitle("");
+      setContent("");
+      setPreviewUri(null);
+      setSelectedPostId(null);
+      setIsEditing(false);
+      setModalVisible(false);
+      fetchPosts();
+    } catch (err) {
+      console.error("Failed to submit post", err);
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const handleEdit = (post) => {
+    setIsEditing(true);
+    setSelectedPostId(post.id);
+    setTitle(post.title);
+    setContent(post.content);
+    setPreviewUri(post.image_url || null);
+    setModalVisible(true);
+  };
+
+  const handleDelete = (postId: number) => {
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          setDeletingPostId(postId);
+          try {
+            await deleteCommunityPost(postId);
+            fetchPosts();
+          } catch (err) {
+            console.error("Delete failed", err);
+          } finally {
+            setDeletingPostId(null);
+          }
+        },
+      },
+    ]);
   };
 
   const formatDate = (isoDate: string) => {
@@ -193,14 +245,6 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
       fetchPosts();
     } catch (err) {
       console.log("Error", "Failed to toggle like.");
-    }
-  };
-
-  const openCommentModal = (postId: number) => {
-    const foundPost = posts.find((p) => p.id === postId);
-    if (foundPost) {
-      setSelectedPost(foundPost);
-      setCommentsVisible(true);
     }
   };
 
@@ -336,6 +380,8 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                       setPreviewUri(null),
                       setTitle(""),
                       setContent("");
+                    setIsEditing(false);
+                    setSelectedPostId(null);
                   }}
                   style={tw`px-4 py-2 rounded-full mr-2`}
                 >
@@ -405,9 +451,43 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                       />
                     ) : null}
 
-                    <Text style={tw`font-bold text-sm`} numberOfLines={1}>
-                      {post.title}
-                    </Text>
+                    <View style={tw`flex-row justify-between items-start`}>
+                      <Text style={tw`font-bold text-sm`} numberOfLines={1}>
+                        {post.title}
+                      </Text>
+
+                      {post.user_id === currentUserId && (
+                        <View style={tw`flex-row`}>
+                          <TouchableOpacity onPress={() => handleEdit(post)}>
+                            <Icon
+                              name="pencil"
+                              size={18}
+                              color="gray"
+                              style={tw`ml-2`}
+                            />
+                          </TouchableOpacity>
+                          {deletingPostId === post.id ? (
+                            <ActivityIndicator
+                              size="small"
+                              color="red"
+                              style={tw`ml-2`}
+                            />
+                          ) : (
+                            <TouchableOpacity
+                              onPress={() => handleDelete(post.id)}
+                            >
+                              <Icon
+                                name="trash"
+                                size={18}
+                                color="red"
+                                style={tw`ml-2`}
+                              />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      )}
+                    </View>
+
                     <Text style={tw`text-sm text-gray-700 mt-1`}>
                       {post.content}{" "}
                     </Text>
