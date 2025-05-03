@@ -61,6 +61,11 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editedComment, setEditedComment] = useState("");
+  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const loadCurrentUser = async () => {
@@ -267,6 +272,58 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
       setComment("");
     } catch (err) {
       console.error("Error submitting comment:", err);
+    }
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    Alert.alert(
+      "Delete Comment",
+      "Are you sure you want to delete this comment?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteComment(commentId);
+              const updatedComments = selectedPost.comments.filter(
+                (comment) => comment.id !== commentId
+              );
+              setSelectedPost({ ...selectedPost, comments: updatedComments });
+            } catch (error) {
+              console.error("Failed to delete comment", error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const openEditCommentModal = (commentId: number, content: string) => {
+    setSelectedCommentId(commentId);
+    setEditedComment(content);
+    setEditModalVisible(true);
+  };
+
+  const handleUpdateComment = async () => {
+    if (!editedComment.trim() || selectedCommentId === null) return;
+
+    try {
+      await editComment(selectedCommentId, editedComment.trim());
+
+      const updatedComments = selectedPost.comments.map((comment) =>
+        comment.id === selectedCommentId
+          ? { ...comment, content: editedComment }
+          : comment
+      );
+
+      setSelectedPost({ ...selectedPost, comments: updatedComments });
+      setEditModalVisible(false);
+      setEditedComment("");
+      setSelectedCommentId(null);
+    } catch (error) {
+      console.error("Failed to update comment", error);
     }
   };
 
@@ -595,7 +652,32 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
                         </View>
 
                         {/* Right column: comment content */}
-                        <View style={tw`flex-1 justify-center`}>
+                        <View style={tw`flex-1 justify-center relative`}>
+                          {comment.user_id === currentUserId && (
+                            <View style={tw`absolute top-0 right-0 flex-row`}>
+                              <TouchableOpacity
+                                onPress={() =>
+                                  openEditCommentModal(
+                                    comment.id,
+                                    comment.content
+                                  )
+                                }
+                              >
+                                <Icon
+                                  name="pencil"
+                                  size={18}
+                                  color="gray"
+                                  style={tw`mr-2`}
+                                />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() => handleDeleteComment(comment.id)}
+                              >
+                                <Icon name="trash" size={18} color="red" />
+                              </TouchableOpacity>
+                            </View>
+                          )}
+
                           <Text style={tw`text-sm text-gray-700`}>
                             {comment.content}
                           </Text>
@@ -612,6 +694,35 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
             </View>
           </Modal>
         )}
+
+        {/* Edit Comment */}
+        <Modal visible={editModalVisible} transparent animationType="fade">
+          <View style={tw`flex-1 justify-center items-center bg-black/50`}>
+            <View style={tw`bg-gray-100 p-4 rounded-2xl w-11/12`}>
+              <Text style={tw`text-lg font-bold mb-2`}>Edit Comment</Text>
+              <TextInput
+                value={editedComment}
+                onChangeText={setEditedComment}
+                multiline
+                style={tw`border border-gray-300 rounded-xl px-4 py-2 h-10 text-sm`}
+              />
+              <View style={tw`flex-row justify-end items-center mt-4`}>
+                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                  <Text style={tw`text-purple-500 text-base mr-4`}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleUpdateComment}
+                  style={tw`bg-purple-600 px-2 py-1 rounded-full`}
+                >
+                  <Text style={tw`text-white font-semibold text-base`}>
+                    Update
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
