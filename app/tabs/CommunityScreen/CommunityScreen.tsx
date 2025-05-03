@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Image,
@@ -151,28 +152,32 @@ export default function CommunityScreen({ navigation, route }: Props) {
     })();
   }, [communityId]);
 
-  useEffect(() => {
-    const fetchLatestPost = async () => {
-      try {
-        const posts = await getCommunityPosts(communityId);
-        const sorted = posts.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        const latest = sorted[0] || null;
-        setLatestPost(latest);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLatestPost = async () => {
+        try {
+          const posts = await getCommunityPosts(communityId);
+          const sorted = posts.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+          const latest = sorted[0] || null;
+          setLatestPost(latest);
 
-        if (latest) {
-          const user = await getUserInfoById(latest.user_id);
-          setLatestPostUser(user);
+          if (latest) {
+            const user = await getUserInfoById(latest.user_id);
+            setLatestPostUser(user);
+          }
+        } catch (err) {
+          // console.error("Failed to fetch posts or user", err);
         }
-      } catch (err) {
-        // console.error("Failed to fetch posts or user", err);
-      }
-    };
+      };
 
-    fetchLatestPost();
-  }, [communityId]);
+      fetchLatestPost();
+    }, [communityId])
+  );
+
   if (!details) {
     return (
       <SafeAreaView style={tw`flex-1 justify-center items-center`}>

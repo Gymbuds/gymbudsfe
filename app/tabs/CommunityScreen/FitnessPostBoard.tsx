@@ -43,6 +43,11 @@ type RootStackParamList = {
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "FitnessBoard">;
+
+type Member = {
+  id: number;
+};
+
 export default function FitnessPostBoard({ navigation, route }: Props) {
   const { communityId, name } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
@@ -63,9 +68,8 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editedComment, setEditedComment] = useState("");
-  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(
-    null
-  );
+  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     const loadCurrentUser = async () => {
@@ -127,6 +131,24 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
   useEffect(() => {
     getUserOfComment();
   }, [selectedPost?.id]);
+
+  useEffect(() => {
+    if (!communityId) return;
+
+    (async () => {
+      try {
+        const members: Member[] = await fetchFunctionWithAuth(
+          `communities/${communityId}`,
+          { method: "GET" }
+        );
+
+        const profile = await fetchUserProfile();
+        setIsMember(members.some((m) => m.id === profile.user.id));
+      } catch (err) {
+        console.error("Failed to load community members", err);
+      }
+    })();
+  }, [communityId]);
 
   const handleImageSelect = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -370,7 +392,24 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
           <Text style={tw`flex-1 text-xl font-bold ml-6`}>
             {name} Post Board
           </Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <TouchableOpacity
+            onPress={() => {
+              if (!isMember) {
+                Alert.alert(
+                  "Join Required",
+                  "You must join this community before posting.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => navigation.goBack(),
+                    },
+                  ]
+                );
+              } else {
+                setModalVisible(true);
+              }
+            }}
+          >
             <View style={tw`bg-purple-500 rounded-full p-1`}>
               <AntDesign name="plus" size={24} color="white" />
             </View>
