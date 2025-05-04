@@ -195,7 +195,7 @@ export default function HomeScreen() {
             </View>
             <View style={tw`flex-row items-center mt-2`}>
               <Icon name="calendar" size={12} color="gray" />
-              <Text style={tw`text-xs text-gray-500 ml-1 mt-2`}>
+              <Text style={tw`text-xs text-gray-500 ml-1`}>
                 {recentWorkout?.date
                   ? format(new Date(recentWorkout.date), "EEE, MMM d, h:mm a")
                   : "Unknown Date"}
