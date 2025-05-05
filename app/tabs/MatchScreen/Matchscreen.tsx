@@ -152,6 +152,7 @@ export default function MatchScreen({ navigation }: Props) {
   }
 
   const loadCandidates = async () => {
+    setLoading(true);
     try {
       await fetchFunctionWithAuth('match/find-match', { method: 'POST' });
       const allCands: Candidate[] = await fetchFunctionWithAuth('match_cands', { method: 'GET' });
@@ -280,7 +281,7 @@ export default function MatchScreen({ navigation }: Props) {
                 style={tw`w-full h-full rounded-full`}
               />
             ) : (
-              <Text style={tw`text-3xl font-bold text-purple-600`}>U</Text>
+              <Text style={[tw`text-7xl font-bold text-purple-600`, { lineHeight: 0 }]}>U</Text>
             )}
           </View>
 
