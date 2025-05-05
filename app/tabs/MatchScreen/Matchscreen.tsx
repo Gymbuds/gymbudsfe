@@ -41,11 +41,6 @@ interface Candidate {
     weight: number
   }
 
-const Thumb = (type: "high" | "low") => (
-  <View
-    style={[styles.thumb, { backgroundColor: type === "high" ? "lime" : "purple" }]}
-  />
-);
 const MIN_WEIGHT = 50;
 const MAX_WEIGHT= 500;
 
@@ -234,10 +229,6 @@ export default function MatchScreen({ navigation }: Props) {
     )
   }
 
-  if (!userInfo) {
-    return null
-  }
-
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       {/* Header */}
@@ -281,7 +272,7 @@ export default function MatchScreen({ navigation }: Props) {
 
           {/* Profile Picture */}
           <View style={tw`w-30 h-30 bg-purple-200 rounded-full self-center items-center justify-center relative mt-6`}>
-          {userInfo.profile_picture ? (
+          {userInfo?.profile_picture ? (
               <Image
                 source={{ uri: userInfo.profile_picture }}
                 style={tw`w-full h-full rounded-full`}
@@ -293,12 +284,12 @@ export default function MatchScreen({ navigation }: Props) {
 
           {/* Name & Age */}
           <Text style={tw`text-xl font-bold text-center mt-4`}>
-            {userInfo.name}, {userInfo.age}
+            {userInfo?.name}, {userInfo?.age}
           </Text>
 
           {/* Tags */}
           <View style={tw`flex-row justify-center mt-2`}>
-            {[userInfo.skill_level, userInfo.gender, `${userInfo.weight} lbs`].map(t => (
+            {[userInfo?.skill_level, userInfo?.gender, `${userInfo?.weight} lbs`].map(t => (
               <View key={t} style={tw`bg-purple-100 px-4 py-2 rounded-full mr-2`}>
                 <Text style={tw`text-purple-500 text-xs font-semibold`}>{t}</Text>
               </View>
