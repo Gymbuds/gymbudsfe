@@ -88,17 +88,17 @@ export default function MatchList({ navigation }: Props) {
               }
             >
               {user.profile_picture ? (
-                  <Image
-                    source={{ uri: user.profile_picture }}
-                    style={tw`w-12 h-12 rounded-full mr-2`}
-                  />
-                ) : (
-                  <View
-                    style={tw`w-12 h-12 bg-purple-300 rounded-full mr-2 flex items-center justify-center`}
-                  >
-                    <Text style={tw`text-white text-base`}>U</Text>
-                  </View>
-                )}
+                <Image
+                  source={{ uri: user.profile_picture }}
+                  style={tw`w-12 h-12 rounded-full`}
+                />
+              ) : (
+                <View
+                  style={tw`w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center`}
+                >
+                  <Text style={tw`text-xl font-bold text-purple-600`}>U</Text>
+                </View>
+              )}
               <Text style={tw`ml-4 text-lg font-medium`}>{user.name}</Text>
             </TouchableOpacity>
           ))}

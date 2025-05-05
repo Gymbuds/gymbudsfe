@@ -319,7 +319,7 @@ export default function MatchScreen({ navigation }: Props) {
               {userGoals.map(goal => (
                 <View
                   key={goal}
-                  style={tw`bg-gray-200 px-3 py-1 rounded-full mr-2`}
+                  style={tw`bg-gray-100 px-3 py-1 rounded-full mr-2 mb-1`}
                 >
                   <Text style={tw`text-xs`}>
                     {goal
