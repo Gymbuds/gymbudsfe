@@ -371,7 +371,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 style={tw`w-full h-full rounded-full`}
               />
             ) : (
-              <Text style={[tw`text-6xl font-bold text-purple-600`, { lineHeight: 0 }]}>U</Text>
+              <Text style={[tw`text-7xl font-bold text-purple-600`, { lineHeight: 0 }]}>U</Text>
             )}
             <TouchableOpacity
               style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`}
