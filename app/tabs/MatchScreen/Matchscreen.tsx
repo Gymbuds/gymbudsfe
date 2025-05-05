@@ -144,27 +144,29 @@ export default function MatchScreen({ navigation }: Props) {
         "Content-Type": "application/json",
       },})
       setModalVisible(false)
+      loadCandidates();
     } catch (error) {
       console.error('Error changing match pref:', error);
       throw error;
     }
-    
   }
 
+  const loadCandidates = async () => {
+    try {
+      await fetchFunctionWithAuth('match/find-match', { method: 'POST' });
+      const allCands: Candidate[] = await fetchFunctionWithAuth('match_cands', { method: 'GET' });
+      const pendingCands = allCands.filter(c => c.status === 'PENDING');
+      pendingCands.sort((a, b) => b.score - a.score);
+      setCandidates(pendingCands);
+    } catch (e) {
+      Alert.alert('Error', 'Failed to load matches');
+    } finally {
+      setLoading(false);
+    }
+  };  
+
   useEffect(() => {
-    (async () => {
-      try {
-        await fetchFunctionWithAuth('match/find-match', { method: 'POST' });
-        const allCands: Candidate[] = await fetchFunctionWithAuth('match_cands', { method: 'GET' });
-        const pendingCands = allCands.filter(c => c.status === 'PENDING');
-        pendingCands.sort((a, b) => b.score - a.score);
-        setCandidates(pendingCands);
-      } catch (e) {
-        Alert.alert('Error','Failed to load matches');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    loadCandidates()
   }, []);
 
   useEffect(() => {
