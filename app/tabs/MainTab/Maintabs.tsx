@@ -5,7 +5,7 @@ import HomeScreen from "../Homescreen/Homescreen";
 import ProfileNavigator from "../ProfileApiService/profile-navigation";
 import WorkoutNavigator from "../WorkOutPage/Workout-navigation";
 import MapNavigator from "../MapScreen/MapNavigator";
-// import Matchscreen from "../MatchScreen/Matchscreen";
+import MatchNavigator from "../MatchScreen/MatchNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -41,15 +41,15 @@ export default function MainTabs() {
           ),
         }}
       />
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Match"
-        component={Matchscreen}
+        component={MatchNavigator}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="users" size={24} color={color} />
           ),
         }}
-      /> */}
+      />
       <Tab.Screen
         name="ProfileNavigator"
         component={ProfileNavigator}
