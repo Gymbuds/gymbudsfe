@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity,Modal,TextInput,StyleSheet} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -8,7 +8,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { fetchFunctionWithAuth } from '@/api/auth';
 
 import RangeSlider from "react-native-sticky-range-slider";
-import Slider from '@react-native-community/slider';
+import {Slider} from '@miblanchard/react-native-slider';
 
 
 type RootStackParamList = {
@@ -22,52 +22,19 @@ type RootStackParamList = {
   FitnessBoard: undefined;
   MatchScreen: undefined;
 };
-const Thumb = (type: "high" | "low") => (
-  <View
-    style={[styles.thumb, { backgroundColor: type === "high" ? "lime" : "purple" }]}
-  />
-);
+
 const MIN_WEIGHT = 50;
 const MAX_WEIGHT= 500;
-const Rail = () => <View style={styles.rail} />;
-const RailSelected = () => <View style={styles.railSelected} />;
-const THUMB_RADIUS = 10;
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  slider: {
-    marginVertical: 20,
-  },
-  valueText: {
-    color: "black",
-  },
-  thumb: {
-    width: THUMB_RADIUS * 2,
-    height: THUMB_RADIUS * 2,
-    borderRadius: THUMB_RADIUS,
-    borderWidth: 3,
-    borderColor: "black",
-    backgroundColor: "red",
-  },
-  rail: {
-    flex: 1,
-    height: 3,
-    borderRadius: 3,
-    backgroundColor: "grey",
-  },
-  railSelected: {
-    height: 3,
-    backgroundColor: "red",
-  },
-});
+
+interface MatchPreference {
+  gender : string
+  start_weight: number
+  end_weight: number
+  max_location_distance_miles: number
+  start_age: number
+  end_age: number
+
+}
 type Props = NativeStackScreenProps<RootStackParamList, "MatchScreen">;
 export default function MatchScreen({ navigation }: Props) {
   const [modalVisible,setModalVisible] = useState(false)
@@ -75,18 +42,56 @@ export default function MatchScreen({ navigation }: Props) {
   const [startWeight,setStartWeight] = useState(MIN_WEIGHT)
   const [endWeight,setEndWeight] = useState(MAX_WEIGHT)
   const [distance,setDistance] = useState(10)
+  const [startAge,setStartAge] = useState(18)
+  const [endAge,setEndAge] = useState(100)
+  const [matchPreferences,setMatchPreferences] = useState<MatchPreference | null>(null);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetchMatchPreference();
+        console.log("Fetched Match Preferences:", res);
+        setMatchPreferences(res);
+      } catch (error) {
+        console.error("Failed to fetch match preferences:", error);
+      }
+    }
+  
+    fetchData();
+  }, []);
+  useEffect(()=>{
+    if(matchPreferences){
+      setGender(matchPreferences.gender)
+      setStartAge(matchPreferences.start_age)
+      setEndAge(matchPreferences.end_age)
+      setStartWeight(matchPreferences.start_weight)
+      setEndWeight(matchPreferences.end_weight)
+      setDistance(matchPreferences.max_location_distance_miles)
+    }
+  },[matchPreferences])
+  const fetchMatchPreference = async() => {
+    const res = await fetchFunctionWithAuth("match_pref",{method:"GET"})
+    return await res
+  }
   const handleValueChange = (newLow: number, newHigh: number) => {
     setStartWeight(newLow)
     setEndWeight(newHigh)
+  }
+  
+  const handleAgeChange = (newLow: number, newHigh: number) => {
+    setStartAge(newLow)
+    setEndAge(newHigh)
   }
   const handleUpdate = async()=>{
     try {
       const matchPrefUpdate = {
         gender: gender,
         start_weight:startWeight,
-        endWeight:endWeight,
+        end_weight:endWeight,
         max_location_distance_miles:distance,
+        start_age: startAge,
+        end_age: endAge,
       }
+      console.log(matchPrefUpdate)
       const res = fetchFunctionWithAuth("match_pref", { method: "PATCH" ,body: JSON.stringify(matchPrefUpdate),headers: {
         "Content-Type": "application/json",
       },})
@@ -202,97 +207,114 @@ export default function MatchScreen({ navigation }: Props) {
         </TouchableOpacity>
       </ScrollView>
        {/* Edit Workout Preferences Modal */}
+       
        <Modal visible={modalVisible} transparent={true} animationType="slide">
           <View
             style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
           >
-            <View style={tw`bg-white p-6 rounded-lg w-80`}>
-              <Text style={tw`text-lg font-bold mb-4`}>Match Preferences</Text>
+            <View style={tw`bg-white p-6 rounded-lg w-80 `}>
+              <Text style={tw`text-lg font-bold mb-4 `}>Match Preferences</Text>
 
-              <View style={tw`gap-y-4`}>
+              {matchPreferences ? (
+                <View style={tw`gap-y-4`}>
+                  {/* Gender */}
+                  <View >
+                    <Text style={tw`text-s text-gray-500 mb-1 text-center mb-2`}>Gender</Text>
+                    <View style={tw`flex-row justify-center mb-1`}>
+                      {[
+                        { selected_gender: "MALE", label: "MALE" },
+                        { selected_gender: "FEMALE", label: "FEMALE" },
+                        {selected_gender:"BOTH",label: "BOTH"},
+                      ].map(({ selected_gender, label }) => (
+                        <TouchableOpacity
+                          key={selected_gender}
+                          onPress={() => setGender(selected_gender)}
+                          style={tw`p-1.5 border rounded-lg mx-1 justify-center items-center ${
+                            selected_gender === gender
+                              ? "bg-purple-300"
+                              : "bg-gray-100 border-black-300"
+                          }`}
+                        >
+                          <Text style={tw`text-xs`}>{label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
 
-                {/* Gender */}
-                <View>
-                  <Text style={tw`text-s text-gray-500 mb-1`}>Gender</Text>
-                  <View style={tw`flex-row justify-center mb-1`}>
-                    {[
-                      { selected_gender: "MALE", label: "MALE" },
-                      { selected_gender: "FEMALE", label: "FEMALE" },
-                      {selected_gender:"BOTH",label: "BOTH"},
-                    ].map(({ selected_gender, label }) => (
-                      <TouchableOpacity
-                        key={selected_gender}
-                        onPress={() => setGender(selected_gender)}
-                        style={tw`p-1.5 border rounded-lg mx-1 justify-center items-center ${
-                          selected_gender === gender
-                            ? "bg-purple-300"
-                            : "bg-gray-100 border-black-300"
-                        }`}
-                      >
-                        <Text style={tw`text-xs`}>{label}</Text>
-                      </TouchableOpacity>
-                    ))}
+                  {/* Age */}
+                  <View>
+                  <Text style={tw`text-s text-gray-500 mb-1 text-center`}>Age </Text>
+                  <Text style={tw`text-s text-gray-500 mb-1 text-center`}>{startAge} - {endAge}</Text>
+                    <Slider
+                      value={[startAge,endAge]}
+                      animateTransitions
+                      maximumTrackTintColor="#d3d3d3"
+                      thumbStyle={tw`bg-purple-500`}
+                      onValueChange={value=>handleAgeChange(value[0],value[1])}
+                      maximumValue={100}
+                      minimumTrackTintColor="#9669B0"
+                      minimumValue={18}
+                      step={2}
+                      thumbTintColor="##9669B0"
+                  />
+                  </View>
+
+                  {/* Weight */}
+                  <View>
+                    <Text style={tw`text-s text-gray-500 mb-1 text-center`}>Weight (LBS)</Text>
+                    <Text style={tw`text-s text-gray-500 mb-1 text-center`}>{startWeight} -  {endWeight}</Text>
+                    <Slider
+                      value={[startWeight,endWeight]}
+                      animateTransitions
+                      maximumTrackTintColor="#d3d3d3"
+                      thumbStyle={tw`bg-purple-500`}
+                      onValueChange={value=>handleValueChange(value[0],value[1])}
+                      maximumValue={500}
+                      minimumTrackTintColor="#9669B0"
+                      minimumValue={50}
+                      step={2}
+                      thumbTintColor="##9669B0"
+                  />
+                  </View>
+                  {/* Distance */}
+                  <View>
+                    <Text style={tw`text-s text-gray-500 mb-1 text-center`}>Max Distance (Miles)</Text>
+                    <Text style={tw`text-s text-gray-500 mb-5 text-center`}>{distance} miles</Text>
+                    <View style={tw`flex-1 ml-2.5 mr-2.5 items-stretch justify-center`}>
+
+                        <Slider
+                          value={distance}
+                          minimumValue={5}
+                          maximumValue={1000}
+                          step={10}
+                          minimumTrackTintColor="#9669B0"
+                          thumbStyle= {tw`bg-purple-500`}
+                          onValueChange={value => setDistance(value[0])}
+                      />
+
+                    </View>
+
+                  </View>
+                  {/* Action Buttons */}
+                  <View style={tw`flex-row justify-between`}>
+                    <TouchableOpacity onPress={() => setModalVisible(false)}>
+                      <Text style={tw`text-red-500`}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        handleUpdate();
+                      }}
+                    >
+                      <Text style={tw`text-green-500 font-bold`}>Save</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-
-                {/* Age
-                <View>
-                  <Text style={tw`text-s text-gray-500 mb-1`}>Age</Text>
-                  <TextInput
-                    style={tw`border p-2 rounded w-full`}
-                    keyboardType="numeric"
-                    placeholder="Enter your age"
-                    placeholderTextColor="#B5B0B0"
-                    value={userAge}
-                    onChangeText={setUserAge}
-                  />
-                </View> */}
-
-                {/* Weight */}
-                <View>
-                  <Text style={tw`text-s text-gray-500 mb-1`}>Weight (LBS)</Text>
-                  <RangeSlider
-                    style={styles.slider}
-                    min={MIN_WEIGHT}
-                    max={MAX_WEIGHT}
-                    step={1}
-                    // minRange={5}
-                    low={startWeight}
-                    high={endWeight}
-                    onValueChanged={handleValueChange}
-                    renderLowValue={(value) => <Text style={styles.valueText}>{value}</Text>}
-                    renderHighValue={(value) => (
-                      <Text style={styles.valueText}>{value === MAX_WEIGHT ? `+${value}` : value}</Text>
-                    )}
-                    renderThumb={Thumb}
-                    renderRail={Rail}
-                    renderRailSelected={RailSelected}/>
+               ) : ( 
+                 <View style={tw`items-center`}>
+                  <Text style={tw`mb-4 text-gray-600`}>Loading Preferences...</Text>
+                  <AntDesign name="loading1" size={24} color="purple" />
                 </View>
-                {/* Distance */}
-                <View>
-                  <Text style={tw`text-s text-gray-500 mb-1`}>Max Distance (Miles)</Text>
-                  {/* <Slider
-                    style={{width: 200, height: 40}}
-                    minimumValue={0}
-                    maximumValue={5000}
-                    minimumTrackTintColor="#FFFFFF"
-                    maximumTrackTintColor="#000000"
-                  /> */}
-                </View>
-                {/* Action Buttons */}
-                <View style={tw`flex-row justify-between`}>
-                  <TouchableOpacity onPress={() => setModalVisible(false)}>
-                    <Text style={tw`text-red-500`}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      handleUpdate();
-                    }}
-                  >
-                    <Text style={tw`text-green-500 font-bold`}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              )} 
             </View>
           </View>
         </Modal>
