@@ -287,8 +287,10 @@ export default function FitnessPostBoard({ navigation, route }: Props) {
       const userInfo = await getUserInfoById(newComment.user_id);
       newComment.user = userInfo;
 
-      const updatedComments = [...(selectedPost.comments || []), newComment];
-      setSelectedPost({ ...selectedPost, comments: updatedComments });
+      const updatedComments = [...(selectedPost.comments || []), newComment].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setSelectedPost({ ...selectedPost, comments: updatedComments });      
 
       fetchPosts();
       setComment("");
