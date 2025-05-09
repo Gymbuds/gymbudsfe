@@ -16,7 +16,11 @@ type RootStackParamList = {
   Community: { placeId: string };
   FitnessBoard: undefined;
   MatchList: undefined;
-  MatchChat: undefined;
+  MatchChat: {
+    id: number
+    name: string
+    profile_picture: string
+  };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "MatchList">;
@@ -84,7 +88,11 @@ export default function MatchList({ navigation }: Props) {
               key={user.id}
               style={tw`flex-row items-center bg-white p-4 mb-3 rounded-lg`}
               onPress={() =>
-                navigation.navigate('MatchChat', { userId: user.id })
+                navigation.navigate('MatchChat', {
+                    id: user.id,
+                    name: user.name,
+                    profile_picture: user.profile_picture,
+                })
               }
             >
               {user.profile_picture ? (
