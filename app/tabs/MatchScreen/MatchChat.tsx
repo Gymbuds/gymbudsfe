@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image, TextInput, FlatList, KeyboardAvoidingView, Platform, } from 'react-native'
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect} from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import tw from "twrnc";
 import { SimpleLineIcons } from '@expo/vector-icons'
@@ -30,8 +30,12 @@ interface Message {
     text: string
     fromMe: boolean
 }
+const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
+
 
 export default function MatchChat({ navigation, route }: Props) {
+
+
     const { id, name, profile_picture } = route.params
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', text: 'Hi!', fromMe: false },
@@ -43,7 +47,15 @@ export default function MatchChat({ navigation, route }: Props) {
     useEffect(() => {
         listRef.current?.scrollToEnd({ animated: true })
       }, [messages])    
-
+      useEffect(()=>{
+        const socket =  new WebSocket(`${BASE_URL}/ws`)
+        socket.onopen = () => {
+            console.log("Web socket opened!")
+        }
+        socket.onmessage = e =>{
+            console.log(e.data);
+        }
+      },[])
     const sendMessage = () => {
         if (!input.trim()) return
         setMessages(prev => [
