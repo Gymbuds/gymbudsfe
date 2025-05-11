@@ -5,6 +5,9 @@ import tw from "twrnc";
 import { SimpleLineIcons } from '@expo/vector-icons'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AntDesign } from '@expo/vector-icons'
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchFunctionWithAuth } from '@/api/auth';
+
 
 type RootStackParamList = {
   Signup: undefined;
@@ -26,9 +29,10 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, "MatchChat">;
 
 interface Message {
-    id: string
-    text: string
-    fromMe: boolean
+    chat_id: number
+    sender_id: number
+    content: string
+    timestamp: Date
 }
 const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
 
@@ -37,31 +41,47 @@ export default function MatchChat({ navigation, route }: Props) {
 
 
     const { id, name, profile_picture } = route.params
-    const [messages, setMessages] = useState<Message[]>([
-        { id: '1', text: 'Hi!', fromMe: false },
-        { id: '2', text: 'Hello!', fromMe: true },
-    ])
+    const [messages, setMessages] = useState<Message[]>()
     const [input, setInput] = useState('')
     const listRef = useRef<FlatList>(null)
+    const socket =  new WebSocket(`${BASE_URL}/chats/ws`)
 
     useEffect(() => {
         listRef.current?.scrollToEnd({ animated: true })
       }, [messages])    
-      useEffect(()=>{
-        const socket =  new WebSocket(`${BASE_URL}/ws`)
+      useEffect(()=>{const websocket_func = async()=>{
+        const auth_token = await AsyncStorage.getItem("userToken")
         socket.onopen = () => {
-            console.log("Web socket opened!")
+            socket.send(JSON.stringify({type:"user_setup",auth_token: auth_token}));
         }
         socket.onmessage = e =>{
             console.log(e.data);
         }
+      }
+        fetchMessages()
+        websocket_func()
       },[])
+      useEffect(()=>{
+        console.log(messages)  
+      },[])
+    const fetchMessages = async() => {
+        try {
+            const res :Message[] =  await fetchFunctionWithAuth("workout_logs", { method: "GET" });
+            setMessages(res)
+          } catch (error) {
+            console.error('Error fetching workout logs:', error);
+            throw error;
+          }
+    }
+    
     const sendMessage = () => {
         if (!input.trim()) return
         setMessages(prev => [
             ...prev,
             { id: Date.now().toString(), text: input.trim(), fromMe: true },
+            
         ])
+        socket.send(JSON.stringify({type:"new_message",other_user_id:id,}))
         setInput('')
     }
 
@@ -69,7 +89,7 @@ export default function MatchChat({ navigation, route }: Props) {
         <View
             style={tw.style(
                 'my-2 px-3 py-2 rounded-2xl max-w-3/4',
-                item.fromMe
+                item.sender_id!=id
                     ? 'self-end bg-purple-500'
                     : 'self-start bg-white border border-purple-300'
             )}
@@ -77,10 +97,10 @@ export default function MatchChat({ navigation, route }: Props) {
             <Text
                 style={tw.style(
                     'text-base',
-                    item.fromMe ? 'text-white' : 'text-purple-700'
+                    item.sender_id!=id? 'text-white' : 'text-purple-700'
                 )}
             >
-                {item.text}
+                {item.content}
             </Text>
         </View>
     )    
