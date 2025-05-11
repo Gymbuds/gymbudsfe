@@ -141,7 +141,7 @@ export default function MatchChat({ navigation, route }: Props) {
       <FlatList
         ref={listRef}
         data={messages}
-        keyExtractor={(m) => m.chat_id.toString()}  // Assuming `chat_id` is unique
+        keyExtractor={(m) => m.chat_id.toString()}  
         renderItem={renderItem}
         contentContainerStyle={tw`px-4 pt-4`}
         showsVerticalScrollIndicator={false}
