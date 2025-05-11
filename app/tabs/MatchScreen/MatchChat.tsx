@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AntDesign } from '@expo/vector-icons'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchFunctionWithAuth } from '@/api/auth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type RootStackParamList = {
   Signup: undefined;
@@ -45,6 +46,9 @@ export default function MatchChat({ navigation, route }: Props) {
   const [messages, setMessages] = useState<Message[]>();
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets()
+  const INPUT_BAR_HEIGHT = 60
+  const footerHeight = INPUT_BAR_HEIGHT + insets.bottom
 
   useEffect(() => {
     listRef.current?.scrollToEnd({ animated: true });
@@ -144,6 +148,8 @@ export default function MatchChat({ navigation, route }: Props) {
         keyExtractor={(m) => m.chat_id.toString()}  
         renderItem={renderItem}
         contentContainerStyle={tw`px-4 pt-4`}
+        ListFooterComponent={<View style={{ height: footerHeight }} />}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       />
 
