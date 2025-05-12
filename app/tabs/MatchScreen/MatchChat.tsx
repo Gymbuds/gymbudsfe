@@ -50,9 +50,6 @@ export default function MatchChat({ navigation, route }: Props) {
   const INPUT_BAR_HEIGHT = 60
   const footerHeight = INPUT_BAR_HEIGHT + insets.bottom
 
-  useEffect(() => {
-    listRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
 
   useEffect(() => {
     const websocket_func = async () => {
@@ -137,46 +134,75 @@ export default function MatchChat({ navigation, route }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <SimpleLineIcons name="arrow-left-circle" size={28} color="black" />
         </TouchableOpacity>
-        <Image source={{ uri: profile_picture }} style={tw`w-10 h-10 rounded-full ml-3`} />
+        {profile_picture ? (
+            <Image
+                source={{ uri: profile_picture }}
+                style={tw`w-10 h-10 rounded-full ml-3`}
+            />
+            ) : (
+            <View
+                style={tw`bg-purple-200 w-10 h-10 rounded-full flex items-center justify-center ml-3`}
+            >
+                <Text style={tw`text-purple-600 text-base font-bold`}>U</Text>
+            </View>
+        )}
         <Text style={tw`ml-3 text-xl font-bold`}>{name}</Text>
       </View>
+      <KeyboardAvoidingView
+        style={tw`flex-1`}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
 
       {/* Messages */}
       <FlatList
         ref={listRef}
         data={messages}
-        keyExtractor={(m) => m.chat_id.toString()}  
+        keyExtractor={(_, idx) => idx.toString()}
         renderItem={renderItem}
-        contentContainerStyle={tw`px-4 pt-4`}
-        ListFooterComponent={<View style={{ height: footerHeight }} />}
+        contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 16,
+          }}
+        ListFooterComponent={
+            <View style={{ height: footerHeight + 8 }} />
+        }        
+        onContentSizeChange={() =>
+            listRef.current?.scrollToEnd({ animated: true })
+        }
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        scrollIndicatorInsets={{ bottom: footerHeight }}
       />
 
       {/* Input Bar */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={tw`absolute bottom-0 left-0 right-0`}
-      >
-        <SafeAreaView edges={['bottom']} style={tw`bg-white`}>
-          <View style={tw`flex-row items-center px-4 py-2`}>
-            <TouchableOpacity>
-              <AntDesign name="pluscircleo" size={30} color="#9669B0" />
-            </TouchableOpacity>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Write Something.."
-              placeholderTextColor="#9CA3AF"
-              style={tw`flex-1 mx-3 px-4 py-2 bg-purple-100 rounded-full`}
-            />
-            <TouchableOpacity onPress={sendMessage}>
-              <View style={tw`w-10 h-10 bg-purple-500 rounded-full items-center justify-center`}>
-                <AntDesign name="arrowright" size={20} color="white" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+      <View
+          style={{
+            height: INPUT_BAR_HEIGHT,
+            borderTopWidth: 1,
+            borderColor: '#ddd',
+            backgroundColor: 'white',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+          }}
+        >
+          <TouchableOpacity>
+            <AntDesign name="pluscircleo" size={30} color="#9669B0" />
+          </TouchableOpacity>
+          <TextInput
+            style={{ flex: 1, marginHorizontal: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F3E8FF', borderRadius: 25 }}
+            placeholder="Write Something…"
+            placeholderTextColor="#9CA3AF"
+            value={input}
+            onChangeText={setInput}
+          />
+          <TouchableOpacity onPress={sendMessage}>
+            <View style={tw`w-10 h-10 bg-purple-500 rounded-full items-center justify-center`}>
+              <AntDesign name="arrowright" size={20} color="white" />
+            </View>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
