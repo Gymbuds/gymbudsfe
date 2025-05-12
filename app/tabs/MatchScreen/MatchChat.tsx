@@ -25,7 +25,6 @@ type RootStackParamList = {
     profile_picture: string
   };
 };
-const socket = useRef<WebSocket | null>(null);
 
 type Props = NativeStackScreenProps<RootStackParamList, "MatchChat">;
 type MatchChatParams = {
@@ -43,12 +42,15 @@ const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
 
 export default function MatchChat({ navigation, route }: Props) {
   const { id, name, profile_picture } = route.params as MatchChatParams;
+  const [chatId,setChatId] = useState<number>();
   const [messages, setMessages] = useState<Message[]>();
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets()
   const INPUT_BAR_HEIGHT = 60
   const footerHeight = INPUT_BAR_HEIGHT + insets.bottom
+  const socket = useRef<WebSocket | null>(null);
+
 
 
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function MatchChat({ navigation, route }: Props) {
       socket.current.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.type === "new_message" && data.message) {
+          if (data.type === "new_message" && data.message && data.chat_id==chatId) {
             setMessages(prev => [...(prev ?? []), data.message]);
           }
         } catch (err) {
@@ -71,9 +73,9 @@ export default function MatchChat({ navigation, route }: Props) {
         }
       };
     };
-
-    fetchMessages();
-    websocket_func();
+    fetchChatId()
+    fetchMessages()
+    websocket_func()
 
     return () => {
       if (socket.current) {
@@ -91,7 +93,19 @@ export default function MatchChat({ navigation, route }: Props) {
       throw error;
     }
   };
-
+  const fetchChatId = async()=>{
+    try{
+        const res: number = await fetchFunctionWithAuth(`chats/${id}`,{method:"GET"})
+        setChatId(res)
+    }
+    catch(error){
+        console.error('Error fetching chat_id:',error)
+        throw error;
+    }
+  }
+  useEffect(()=>{
+    console.log(chatId)
+  },[chatId])
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -101,7 +115,6 @@ export default function MatchChat({ navigation, route }: Props) {
       content: input.trim(),
     };
 
-    console.log(messageToSend);
     socket.current?.send(JSON.stringify(messageToSend));
 
     setInput('');
