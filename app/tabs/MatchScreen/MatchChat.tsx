@@ -123,9 +123,9 @@ export default function MatchChat({ navigation, route }: Props) {
   const renderItem = ({ item }: { item: Message }) => (
     <View
       style={tw.style(
-        'my-2 px-3 py-2 rounded-2xl max-w-3/4',
+        'my-2 px-3 py-2 rounded-2xl max-w-3/4 border',
         item.sender_id !== id
-          ? 'self-end bg-purple-500'
+          ? 'self-end bg-purple-500 border-transparent'
           : 'self-start bg-white border border-purple-300'
       )}
     >
