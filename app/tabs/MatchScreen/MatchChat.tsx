@@ -54,34 +54,8 @@ export default function MatchChat({ navigation, route }: Props) {
 
 
   useEffect(() => {
-    const websocket_func = async () => {
-      const auth_token = await AsyncStorage.getItem("userToken");
-      socket.current = new WebSocket(`${BASE_URL}/chats/ws`);
-
-      socket.current.onopen = () => {
-        socket.current?.send(JSON.stringify({ type: "user_setup", auth_token: auth_token }));
-      };
-
-      socket.current.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type === "new_message" && data.message && data.chat_id==chatId) {
-            setMessages(prev => [...(prev ?? []), data.message]);
-          }
-        } catch (err) {
-          console.error("Invalid WebSocket message:", e.data);
-        }
-      };
-    };
     fetchChatId()
     fetchMessages()
-    websocket_func()
-
-    return () => {
-      if (socket.current) {
-        socket.current.close();
-      }
-    };
   }, []);
 
   const fetchMessages = async () => {
@@ -104,7 +78,37 @@ export default function MatchChat({ navigation, route }: Props) {
     }
   }
   useEffect(()=>{
-    console.log(chatId)
+    const websocket_func = async () => {
+        const auth_token = await AsyncStorage.getItem("userToken");
+        socket.current = new WebSocket(`${BASE_URL}/chats/ws`);
+  
+        socket.current.onopen = () => {
+          socket.current?.send(JSON.stringify({ type: "user_setup", auth_token: auth_token }));
+        };
+  
+        socket.current.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            console.log(data["message"]["chat_id"],"data_chat_id")
+            console.log(chatId,"chat_id")
+            console.log(data["message"]["chat_id"]==chatId)
+            if (data.type === "new_message" && data.message && data["message"]["chat_id"]==chatId) {
+              setMessages(prev => [...(prev ?? []), data.message]);
+            }
+          } catch (err) {
+            console.error("Invalid WebSocket message:", e.data);
+          }
+        };
+      };
+      
+    if (chatId){
+        websocket_func()
+    }
+    return () => {
+        if (socket.current) {
+          socket.current.close();
+        }
+      };
   },[chatId])
   const sendMessage = async () => {
     if (!input.trim()) return;
