@@ -2,9 +2,10 @@ import { View, Text, TouchableOpacity, Image, TextInput, FlatList, KeyboardAvoid
 import React, { useState, useRef, useEffect } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import tw from "twrnc";
+import * as ImagePicker from "expo-image-picker";
 import { SimpleLineIcons } from '@expo/vector-icons'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AntDesign } from '@expo/vector-icons'
+import { Ionicons, AntDesign } from '@expo/vector-icons'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchFunctionWithAuth } from '@/api/auth';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -37,6 +38,7 @@ interface Message {
   sender_id: number;
   content: string;
   timestamp: Date;
+  image_url :string;
 }
 const BASE_URL = process.env.EXPO_PUBLIC_DB_URL;
 
@@ -44,19 +46,35 @@ export default function MatchChat({ navigation, route }: Props) {
   const { id, name, profile_picture } = route.params as MatchChatParams;
   const [chatId,setChatId] = useState<number>();
   const [messages, setMessages] = useState<Message[]>();
+    const [previewUri, setPreviewUri] = useState<string | null>(null);
+  
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets()
   const INPUT_BAR_HEIGHT = 60
   const footerHeight = INPUT_BAR_HEIGHT + insets.bottom
   const socket = useRef<WebSocket | null>(null);
+  
+const handleImageSelect = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
 
+    if (!result.canceled && result.assets?.length > 0) {
+      setPreviewUri(result.assets[0].uri); // local preview only
+    }
+  };
 
 
   useEffect(() => {
     fetchChatId()
     fetchMessages()
   }, []);
+  useEffect(()=>{
+    console.log(previewUri)
+  },[previewUri])
 
   const fetchMessages = async () => {
     try {
@@ -110,40 +128,77 @@ export default function MatchChat({ navigation, route }: Props) {
         }
       };
   },[chatId])
+  
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    let imageUrl = null
+    
+    if (previewUri && !previewUri.startsWith("https://")) {
+        try {
+            const fileType = previewUri.split(".").pop()?.toLowerCase() || "jpeg";
+            
+            const presignedResponse = await fetchFunctionWithAuth(
+                `chats/generate-upload-url/?file_extension=${fileType}`,
+                { method: "GET" }
+            );
+            const blob = await (await fetch(previewUri)).blob();
+
+            const uploadResponse = await fetch(presignedResponse.upload_url, {
+                method: "PUT",
+                headers: { "Content-Type": `image/${fileType}` },
+                body: blob,
+              });
+            imageUrl = presignedResponse.file_url
+
+        }
+        catch(error){
+            console.error(error)
+        }
+    }
+
+    if (!input.trim() && !imageUrl) return;
 
     const messageToSend = {
       type: "new_message",
       other_user_id: id,
-      content: input.trim(),
+      image_url: imageUrl ? imageUrl : null,
+      content: input.trim() ? input.trim() : null,
     };
-
+    console.log(messageToSend)
     socket.current?.send(JSON.stringify(messageToSend));
-
+    setPreviewUri(null);
     setInput('');
   };
 
-  const renderItem = ({ item }: { item: Message }) => (
-    <View
-      style={tw.style(
-        'my-2 px-3 py-2 rounded-2xl max-w-3/4 border',
-        item.sender_id !== id
-          ? 'self-end bg-purple-500 border-transparent'
-          : 'self-start bg-white border border-purple-300'
-      )}
-    >
-      <Text
+  const renderItem = ({ item }: { item: Message }) => {
+    return (
+      <View
         style={tw.style(
-          'text-base',
-          item.sender_id !== id ? 'text-white' : 'text-purple-700'
+          'my-2 px-3 py-2 rounded-2xl max-w-3/4 border',
+          item.sender_id !== id
+            ? 'self-end bg-purple-500 border-transparent'
+            : 'self-start bg-white border border-purple-300'
         )}
       >
-        {item.content}
-      </Text>
-    </View>
-  );
-
+        {item.image_url && (
+          <Image
+            source={{ uri: item.image_url }}
+            style={tw`w-48 h-48 rounded-md mb-2`} // Adjust size as needed
+            resizeMode="cover"
+          />
+        )}
+        {item.content && (
+          <Text
+            style={tw.style(
+              'text-base',
+              item.sender_id !== id ? 'text-white' : 'text-purple-700'
+            )}
+          >
+            {item.content}
+          </Text>
+        )}
+      </View>
+    );
+  };
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`} edges={['top']}>
       {/* Header */}
@@ -191,7 +246,25 @@ export default function MatchChat({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         scrollIndicatorInsets={{ bottom: footerHeight }}
       />
+        {previewUri && (
+                <View style={tw`mb-3 relative`}>
+                  <Image
+                    source={{ uri: previewUri }}
+                    style={tw`w-full h-48 rounded-xl`}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setPreviewUri(null);
+                    }}
+                    style={tw`absolute top-2 right-2 bg-black/60 p-1 rounded-full`}
+                  >
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+            )
 
+            }
       {/* Input Bar */}
       <View
           style={{
@@ -204,9 +277,10 @@ export default function MatchChat({ navigation, route }: Props) {
             paddingHorizontal: 12,
           }}
         >
-          <TouchableOpacity>
-            <AntDesign name="pluscircleo" size={30} color="#9669B0" />
-          </TouchableOpacity>
+            
+          <TouchableOpacity onPress={handleImageSelect}>
+                <Ionicons name="image-outline" size={24} color="#a855f7" />
+            </TouchableOpacity>
           <TextInput
             style={{ flex: 1, marginHorizontal: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F3E8FF', borderRadius: 25 }}
             placeholder="Write Something…"
