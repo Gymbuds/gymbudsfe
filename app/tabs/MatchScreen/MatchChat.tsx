@@ -215,7 +215,7 @@ const handleImageSelect = async () => {
             <View
                 style={tw`bg-purple-200 w-10 h-10 rounded-full flex items-center justify-center ml-3`}
             >
-                <Text style={tw`text-purple-600 text-base font-bold`}>U</Text>
+                <Text style={tw`text-white text-base font-bold`}>U</Text>
             </View>
         )}
         <Text style={tw`ml-3 text-xl font-bold`}>{name}</Text>
@@ -237,7 +237,7 @@ const handleImageSelect = async () => {
             paddingTop: 16,
           }}
         ListFooterComponent={
-            <View style={{ height: footerHeight + 8 }} />
+            <View style={{ height: 4 }} />
         }        
         onContentSizeChange={() =>
             listRef.current?.scrollToEnd({ animated: true })

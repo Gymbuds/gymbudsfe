@@ -70,11 +70,14 @@ export default function MatchList({ navigation }: Props) {
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       {/* Header */}
-      <View style={tw`bg-gray-100 flex-row items-center px-4 py-3`}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <SimpleLineIcons name="arrow-left-circle" size={28} color="black" />
-        </TouchableOpacity>
-        <Text style={tw`ml-2 text-2xl font-bold text-black`}>Match List</Text>
+      <View style={tw`px-4`}>
+        <View style={tw`bg-gray-100 flex-row items-center px-4 py-3`}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <SimpleLineIcons name="arrow-left-circle" size={28} color="black" />
+          </TouchableOpacity>
+          <Text style={tw`ml-2 text-2xl font-bold text-black`}>Match List</Text>
+        </View>
+        <View style={tw`border-b border-gray-300`} />
       </View>
 
       {matchedUsers.length === 0 ? (
@@ -104,7 +107,7 @@ export default function MatchList({ navigation }: Props) {
                 <View
                   style={tw`w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center`}
                 >
-                  <Text style={tw`text-xl font-bold text-purple-600`}>U</Text>
+                  <Text style={tw`text-xl font-bold text-white`}>U</Text>
                 </View>
               )}
               <Text style={tw`ml-4 text-lg font-medium`}>{user.name}</Text>

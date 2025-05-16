@@ -316,7 +316,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
               />
             </View>
             {/* Log Method */}
-            <Text style={tw`mb-2 text-lg font-semibold`}>
+            {/* <Text style={tw`mb-2 text-lg font-semibold`}>
               Select Log Method
             </Text>
             <View style={tw`flex-row justify-center mb-2`}>
@@ -336,7 +336,7 @@ export default function ExistingWorkoutLog({ route, navigation }: Props) {
                   <Text style={tw`text-xs`}>{label}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </View> */}
             {/* Exercise Input */}
             <Text style={tw`text-lg font-semibold mb-2`}>Exercises:</Text>
             <TextInput

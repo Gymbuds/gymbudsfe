@@ -234,14 +234,18 @@ export default function MatchScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-      {/* Header */}
-      <View style={tw`flex-row justify-between items-center px-4 py-3`}>  
+      <View style={tw`px-4 py-3`}>
+      {/* Header Row */}
+      <View style={tw`flex-row justify-between items-center mb-2`}>
         <Text style={tw`text-2xl font-bold text-black`}>Find Gym Buddies</Text>
-        <TouchableOpacity onPress={()=>setModalVisible(true)}>
-            <AntDesign name="filter" size={20} color="purple" />
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <AntDesign name="filter" size={24} color="purple" />
         </TouchableOpacity>
       </View>
-
+      <View style={tw`flex-row justify-between items-center mt-1`}>
+        <View style={tw`flex-1 border-b border-gray-300`} />
+      </View>
+      </View>
       {/* Match List Button */}
       <TouchableOpacity
         style={tw`bg-purple-500 rounded-full py-3 mt-2 mb-2 mx-4 items-center`}
@@ -257,22 +261,6 @@ export default function MatchScreen({ navigation }: Props) {
       ) : (
       <ScrollView contentContainerStyle={tw`p-4`}>
         <View style={tw`bg-white rounded-2xl shadow p-6`}>
-            {/* Action Buttons */}
-          <View style={tw`flex-row justify-between`}>            
-            <TouchableOpacity
-              onPress={handleSkip}
-              style={tw`flex-1 border border-purple-500 rounded-xl py-3 mr-2 items-center`}
-            >
-              <Text style={tw`text-purple-500 font-semibold`}>Skip</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleConnect}
-              style={tw`flex-1 bg-purple-500 rounded-xl py-3 ml-2 items-center`}
-            >
-              <Text style={tw`text-white font-semibold`}>Connect</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Profile Picture */}
           <View style={tw`w-30 h-30 bg-purple-200 rounded-full self-center items-center justify-center relative mt-6`}>
           {userInfo?.profile_picture ? (
@@ -281,7 +269,7 @@ export default function MatchScreen({ navigation }: Props) {
                 style={tw`w-full h-full rounded-full`}
               />
             ) : (
-              <Text style={[tw`text-7xl font-bold text-purple-600`, { lineHeight: 0 }]}>U</Text>
+              <Text style={[tw`text-7xl font-bold text-white`, { lineHeight: 0 }]}>U</Text>
             )}
           </View>
 
@@ -322,9 +310,9 @@ export default function MatchScreen({ navigation }: Props) {
               {userGoals.map(goal => (
                 <View
                   key={goal}
-                  style={tw`bg-gray-100 px-3 py-1 rounded-full mr-2 mb-1`}
+                  style={tw`bg-gray-100 px-3 py-2 rounded-full mr-2 mb-1`}
                 >
-                  <Text style={tw`text-xs`}>
+                  <Text style={tw`text-xs text-gray-600 font-semibold`}>
                     {goal
                       .toLowerCase()
                       .split('_')
@@ -334,6 +322,22 @@ export default function MatchScreen({ navigation }: Props) {
                 </View>
               ))}
             </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={tw`mt-6 flex-row justify-between`}>            
+            <TouchableOpacity
+              onPress={handleSkip}
+              style={tw`flex-1 border border-purple-500 rounded-xl py-3 mr-2 items-center`}
+            >
+              <Text style={tw`text-purple-500 font-semibold`}>Skip</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleConnect}
+              style={tw`flex-1 bg-purple-500 rounded-xl py-3 ml-2 items-center`}
+            >
+              <Text style={tw`text-white font-semibold`}>Connect</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
