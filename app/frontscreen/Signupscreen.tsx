@@ -39,12 +39,9 @@ export default function SignupScreen({ navigation }: Props) {
         await AsyncStorage.setItem("refreshToken", response.refresh_token);
         navigation.replace("Survey"); // Replace stack to prevent going back
       }
-    } catch {
-      Alert.alert(
-        "Invalid Password",
-        "Passwords must have at least 8 digits, 1 uppercase and lowercase letter, 1 digit, and 1 special character."
-      );
-    }
+    } catch (err: any) {
+      Alert.alert("Error", err?.message || "Something went wrong.");
+    }    
   };
 
   return (
