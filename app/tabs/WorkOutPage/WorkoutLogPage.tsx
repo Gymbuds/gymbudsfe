@@ -11,6 +11,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SimpleLineIcons, MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
 import { createWorkoutLog } from "./WorkoutApiService";
@@ -171,7 +172,12 @@ export default function WorkoutLogPage({ navigation }: Props) {
   return (
     <SafeAreaView style={tw`flex-1 bg-white`}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
+          enableOnAndroid={true}
+          extraScrollHeight={20}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={tw`flex-1 p-4 bg-gray-100`}>
             <TouchableOpacity
               style={{
@@ -543,7 +549,7 @@ export default function WorkoutLogPage({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );
