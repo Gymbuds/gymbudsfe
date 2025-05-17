@@ -70,7 +70,12 @@ export default function MatchList({ navigation }: Props) {
             })
           );
   
-          if (isActive) setMatchedUsers(matchesWithContent);
+          if (isActive) {
+            const deduped = Array.from(
+              new Map(matchesWithContent.map((m) => [m.chat_id, m])).values()
+            );
+            setMatchedUsers(deduped);
+          }          
         } catch (err) {
           console.error('Failed to load match list', err);
         } finally {
@@ -149,28 +154,27 @@ export default function MatchList({ navigation }: Props) {
                   <Text style={tw`text-xl font-bold text-white`}>U</Text>
                 </View>
               )}
-<View style={tw`ml-4 flex-1 flex-row justify-between items-center`}>
-  <View style={tw`flex-1`}>
-    <Text style={tw`text-lg font-medium`}>{user.other_user.name}</Text>
-    <Text
-      style={tw.style(
-        'text-sm text-gray-500',
-        !user.last_message_content && 'italic'
-      )}
-      numberOfLines={1}
-    >
-      {user.last_message_content ?? "Start the conversation"}
-    </Text>
-  </View>
-  
-  {/* Time aligned to right */}
-  {user.last_message_time && (
-    <Text style={tw`text-xs text-gray-400 ml-2`}>
-      {formatDate(user.last_message_time)}
-    </Text>
-  )}
-</View>
-
+              <View style={tw`ml-4 flex-1 flex-row justify-between items-center`}>
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-lg font-medium`}>{user.other_user.name}</Text>
+                  <Text
+                    style={tw.style(
+                      'text-sm text-gray-500',
+                      !user.last_message_content && 'italic'
+                    )}
+                    numberOfLines={1}
+                  >
+                    {user.last_message_content ?? "Start the conversation"}
+                  </Text>
+                </View>
+                
+                {/* Time aligned to right */}
+                {user.last_message_time && (
+                  <Text style={tw`text-xs text-gray-400 ml-2`}>
+                    {formatDate(user.last_message_time)}
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </View>
