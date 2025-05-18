@@ -91,7 +91,12 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
             </View>
   
             <Text style={tw`text-gray-600`}>
-              <Text style={tw`font-semibold`}>Date Range for Workouts:</Text> {currentAIAdvice.workout_earliest_date.split("T")[0]} - {currentAIAdvice.workout_latest_date.split("T")[0]}
+              { currentAIAdvice.workout_earliest_date && currentAIAdvice.workout_latest_date &&(
+                <Text>
+                <Text style={tw`font-semibold`}>Date Range for Workouts:</Text> {currentAIAdvice.workout_earliest_date.split("T")[0]} - {currentAIAdvice.workout_latest_date.split("T")[0]}
+                </Text>
+              )
+              }
             </Text>
           </View>
   
