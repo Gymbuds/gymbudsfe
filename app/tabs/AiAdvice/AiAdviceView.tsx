@@ -1,11 +1,11 @@
 import React,{useEffect,useState} from  "react";
+import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
     View,
     Text,
     TouchableOpacity,
     Modal,
-    SafeAreaView,
     Switch,
     ScrollView,
     Dimensions, 
@@ -37,6 +37,7 @@ type RootStackParamList = {
 
 export default function AiAdviceViewScreen({navigation,route}: Props){
   const [currentAIAdvice,setCurrentAIAdvice] = useState<AIAdvice>()
+  const insets = useSafeAreaInsets();
   
   useEffect(()=>{
     (async()=>{
@@ -47,9 +48,9 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
   
     
   return (
-    <SafeAreaView style={tw`flex-1 bg-gray-100`}>
+    <SafeAreaView style={tw`flex-1 bg-gray-100`} edges={["top","bottom"]}>
       {currentAIAdvice && (
-        <View style={tw`p-4 bg-gray-100`}>
+        <View style={tw`flex-1 p-4 bg-gray-100`}>
           {/* Header */}
           <View style={tw`flex-row justify-between items-center mb-4`}>
             <View style={tw`flex-row items-center`}>
@@ -101,13 +102,18 @@ export default function AiAdviceViewScreen({navigation,route}: Props){
           </View>
   
           {/* AI Feedback */}
-          <SafeAreaView style ={tw`flex-1`}>
-            <ScrollView style={tw` bg-white p-4 rounded-lg shadow pb-140 h-auto`}>  
-              <RenderHTML
-                contentWidth={Dimensions.get("window").width * 0.9}
-                source={{ html: (marked(currentAIAdvice.ai_feedback.split('\n').slice(1).join('\n')) +`<div style = "margin-bottom: 6rem;"/>` ) }}              />
-            </ScrollView>
-          </SafeAreaView>
+          <ScrollView
+            style={tw`flex-1 bg-white p-4 rounded-lg shadow`}
+            contentContainerStyle={{
+              paddingBottom: insets.bottom,
+            }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <RenderHTML
+              contentWidth={Dimensions.get("window").width * 0.9}
+              source={{ html: marked(currentAIAdvice.ai_feedback.split('\n').slice(1).join('\n')) }}              />
+          </ScrollView>
         </View>
       )}
     </SafeAreaView>

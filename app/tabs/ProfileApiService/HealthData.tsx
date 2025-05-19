@@ -277,7 +277,13 @@ export const userHealthData = () => {
   };
 
   const sendHealthDataToBackend = async (healthData: any) => {
-    const today = new Date().toISOString().split("T")[0];
+    const localToday = new Date();
+    const offsetToday = new Date(
+      localToday.getFullYear(),
+      localToday.getMonth(),
+      localToday.getDate()
+    );
+    const today = offsetToday.toISOString().split("T")[0];    
     console.log("Checking existing health data for:", today);
 
     try {

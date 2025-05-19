@@ -147,7 +147,7 @@ export default function AiAdviceScreen({ navigation }: Props) {
                 color="black"
               />
             </TouchableOpacity>
-            <Text style={tw`text-xl font-bold`}>Your AI Recommendations</Text>
+            <Text style={tw`text-2xl font-bold`}>Your AI Recommendations</Text>
           </View>
         </View>
         <View style={tw`border-b border-gray-300 mb-2`} />
@@ -213,7 +213,7 @@ export default function AiAdviceScreen({ navigation }: Props) {
 
               <View style={tw`flex-row mb-2 mr-2 `}>
                 <View
-                  style={tw`shrink-2 items-center bg-gray-300 p-5 rounded-3xl mr-3`}
+                  style={tw`shrink-2 items-center bg-gray-200 p-5 rounded-3xl mr-3`}
                 >
                   <RenderHTML
                     contentWidth={Dimensions.get("window").width * 0.4}

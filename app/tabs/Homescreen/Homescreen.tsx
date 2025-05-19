@@ -5,11 +5,12 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StackNavigationProp } from "@react-navigation/stack";
 import tw from "twrnc";
-import { format } from "date-fns";
+import { format, parseISO, isToday, isYesterday } from "date-fns";
 import { fetchWorkoutLogs } from "../WorkOutPage/WorkoutApiService";
 import { MaterialIcons } from "@expo/vector-icons";
 import { fetchUserProfile } from "../ProfileApiService/ProfileApiService";
 import { fetchFunctionWithAuth } from "@/api/auth";
+
 
 type logMethod = "MANUAL" | "VOICE";
 type Mood = "ENERGIZED" | "TIRED" | "MOTIVATED" | "STRESSED" | "NEUTRAL";
@@ -19,6 +20,7 @@ type Workout = {
   date: string;
   type: logMethod;
   mood: Mood;
+  duration_minutes: number;
   id: number;
 };
 
@@ -108,6 +110,18 @@ export default function HomeScreen() {
     }, [])
   );
 
+  const formatWorkoutDate = (isoDate: string) => {
+    const date = parseISO(isoDate);
+
+    if (isToday(date)) {
+      return `Today, ${format(date, "h:mm a")}`;
+    } else if (isYesterday(date)) {
+      return `Yesterday, ${format(date, "h:mm a")}`;
+    } else {
+      return format(date, "MMMM do, h:mm a");
+    }
+  };
+
   const recentWorkout = workouts.length > 0 ? workouts[0] : null;
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
@@ -117,7 +131,7 @@ export default function HomeScreen() {
         >
           <Text style={tw`text-3xl font-bold text-purple-500`}>GymBuds</Text>
           <View style={tw`flex-row items-center`}>
-            <Icon name="bell" size={20} color="gray" style={tw`mr-3`} />
+            {/* <Icon name="bell" size={20} color="gray" style={tw`mr-3`} /> */}
             <TouchableOpacity
               onPress={() => navigation.navigate("ProfileNavigator")}
             >
@@ -196,18 +210,16 @@ export default function HomeScreen() {
             <View style={tw`flex-row items-center mt-2`}>
               <Icon name="calendar" size={12} color="gray" />
               <Text style={tw`text-xs text-gray-500 ml-1`}>
-                {recentWorkout?.date
-                  ? format(new Date(recentWorkout.date), "EEE, MMM d, h:mm a")
-                  : "Unknown Date"}
+                {formatWorkoutDate(recentWorkout?.date)}
               </Text>
             </View>
             <View style={tw`flex-row justify-between items-center mt-3`}>
               <View style={tw`flex-row`}>
-                <View style={tw`bg-gray-300 p-2 rounded-lg mr-2`}>
-                  <Text style={tw`text-xs`}>{recentWorkout?.type}</Text>
+                <View style={tw`bg-gray-200 p-2 rounded-xl mr-2`}>
+                  <Text style={tw`text-xs text-gray-600 font-semibold`}>{recentWorkout?.duration_minutes} MINS</Text>
                 </View>
-                <View style={tw`bg-gray-300 p-2 rounded-lg`}>
-                  <Text style={tw`text-xs`}>{recentWorkout?.mood}</Text>
+                <View style={tw`bg-gray-200 p-2 rounded-xl`}>
+                  <Text style={tw`text-xs text-gray-600 font-semibold`}>{recentWorkout?.mood}</Text>
                 </View>
               </View>
             </View>

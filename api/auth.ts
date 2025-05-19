@@ -35,11 +35,16 @@ export const fetchFunctionWithAuth = async(endpoint:string,options) => {
 
     return response.json();
 };
-export const fetchFunction = async(endpoint: string, options: any) => {
+export const fetchFunction = async (endpoint: string, options: any) => {
     const response = await fetch(`${BASE_URL}/${endpoint}`, options);
+  
     if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      let errorMessage = `HTTP error! Status: ${response.status}`;
+      try {
+        const data = await response.json();
+        if (data?.detail) errorMessage = data.detail;
+      } catch {}
+      throw new Error(errorMessage);
     }
-    // console.log(response.json())
-    return response.json();
-};
+    return await response.json();
+  };

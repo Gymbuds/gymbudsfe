@@ -371,7 +371,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 style={tw`w-full h-full rounded-full`}
               />
             ) : (
-              <Text style={[tw`text-7xl font-bold text-purple-600`, { lineHeight: 0 }]}>U</Text>
+              <Text style={[tw`text-7xl font-bold text-white`, { lineHeight: 0 }]}>U</Text>
             )}
             <TouchableOpacity
               style={tw`absolute bottom-0 right-0 bg-white p-1 rounded-full shadow`}
@@ -385,14 +385,14 @@ export default function ProfileScreen({ navigation }: Props) {
             {userName}, {userAge}
           </Text>
           <View style={tw`flex-row mt-1`}>
-            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
-              <Text style={tw`text-purple-500`}>{userSkillLevel}</Text>
+            <View style={tw`bg-purple-100 px-4 py-2 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500 text-xs font-semibold`}>{userSkillLevel}</Text>
             </View>
-            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
-              <Text style={tw`text-purple-500`}>{userGender}</Text>
+            <View style={tw`bg-purple-100 px-4 py-2 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500 text-xs font-semibold`}>{userGender}</Text>
             </View>
-            <View style={tw`bg-purple-100 px-3 py-1 rounded-full mr-2`}>
-              <Text style={tw`text-purple-500`}>{userWeight} lbs</Text>
+            <View style={tw`bg-purple-100 px-4 py-2 rounded-full mr-2`}>
+              <Text style={tw`text-purple-500 text-xs font-semibold`}>{userWeight} lbs</Text>
             </View>
           </View>
         </View>
@@ -440,9 +440,9 @@ export default function ProfileScreen({ navigation }: Props) {
                 {userFitnessGoals.map((goal, index) => (
                   <View
                     key={index}
-                    style={tw`bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1`}
+                    style={tw`bg-gray-100 px-3 py-2 rounded-full mr-2 mb-1`}
                   >
-                    <Text style={tw`text-xs`}>{formatGoalText(goal)}</Text>
+                    <Text style={tw`text-xs text-gray-600 font-semibold`}>{formatGoalText(goal)}</Text>
                   </View>
                 ))}
               </View>

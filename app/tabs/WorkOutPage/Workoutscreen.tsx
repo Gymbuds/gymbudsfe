@@ -113,21 +113,23 @@ export default function Workoutscreen({ navigation, route }: Props) {
   );
 
   useEffect(() => {
-    const filteredByMonth = fetchWorkout.filter((workout) => {
-      const workoutDate = new Date(workout.date);
-      return (
-        workoutDate.getMonth() === date.getMonth() &&
-        workoutDate.getFullYear() === date.getFullYear()
-      );
-    });
-    setFilteredWorkouts(
-      filteredByMonth.filter(
+    const filteredByMonth = fetchWorkout
+      .filter((workout) => {
+        const workoutDate = new Date(workout.date);
+        return (
+          workoutDate.getMonth() === date.getMonth() &&
+          workoutDate.getFullYear() === date.getFullYear()
+        );
+      })
+      .filter(
         (workout) =>
           selectedOption === "all" ||
           workout.type.toLowerCase() === selectedOption
       )
-    );
-  }, [fetchWorkout, selectedOption, date]); // Runs every time fetchWorkout or selectedOption changes
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // sort by most recent
+  
+    setFilteredWorkouts(filteredByMonth);
+  }, [fetchWorkout, selectedOption, date]);  
 
   useEffect(() => {
     if (updatedWorkoutLog) {
@@ -159,7 +161,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
     } else if (isYesterday(date)) {
       return `Yesterday, ${format(date, "h:mm a")}`;
     } else {
-      return format(date, "EEE, MMMM do, h:mm a");
+      return format(date, "MMMM do, h:mm a");
     }
   };
 
@@ -195,7 +197,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
   const renderRightActions = (index: number, logId: number) => (
     <TouchableOpacity
       onPress={() => handleDelete(index, logId)}
-      style={tw`bg-red-500 justify-center items-center h-43 w-15 rounded-lg`}
+      style={tw`bg-red-500 justify-center items-center h-38 w-15 rounded-lg`}
     >
       <MaterialIcons name="delete" size={24} color="white" />
     </TouchableOpacity>
@@ -225,13 +227,13 @@ export default function Workoutscreen({ navigation, route }: Props) {
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
       <View style={tw`flex-1 p-4 bg-gray-100`}>
         {/* Header */}
-        <View style={tw`flex-row justify-between items-center mb-4`}>
-          <Text style={tw`text-xl font-bold`}>Your Workouts</Text>
+        <View style={tw`flex-row justify-between items-center mb-2`}>
+          <Text style={tw`text-2xl font-bold`}>Your Workouts</Text>
           <View style={tw`flex-row gap-4`}>
             {/* Filter Button */}
-            <TouchableOpacity onPress={sortWorkouts}>
+            {/* <TouchableOpacity onPress={sortWorkouts}>
               <AntDesign name="filter" size={24} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               onPress={() => navigation.navigate("WorkoutLogPage")}
@@ -244,6 +246,21 @@ export default function Workoutscreen({ navigation, route }: Props) {
         </View>
         {/* Horizontal Line */}
         <View style={tw`border-b border-gray-300 mb-4`} />
+
+        {/* AI Recommendations */}
+        <TouchableOpacity
+          style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
+          onPress={() => {
+            navigation.navigate("AiAdvice");
+          }}
+        >
+          <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
+            <Feather name="zap" size={16} color="white" />
+          </View>
+          <Text style={tw`text-white text-center font-regular`}>
+            See your AI Recommendations
+          </Text>
+        </TouchableOpacity>
 
         {/* Date */}
         <View style={tw`relative flex-row items-center justify-center mb-2`}>
@@ -269,25 +286,10 @@ export default function Workoutscreen({ navigation, route }: Props) {
             <FontAwesome5 name="chevron-right" size={15} color="black" />
           </TouchableOpacity>
         </View>
-        <View style={tw` border-gray-300 mb-4`} />
-
-        {/* AI Recommendations */}
-        <TouchableOpacity
-          style={tw`flex-row items-center justify-center bg-purple-500 p-2 rounded-3xl mb-4`}
-          onPress={() => {
-            navigation.navigate("AiAdvice");
-          }}
-        >
-          <View style={tw`bg-purple-500 p-1 rounded-full mr-2`}>
-            <Feather name="zap" size={16} color="white" />
-          </View>
-          <Text style={tw`text-white text-center font-regular`}>
-            See your AI Recommendations
-          </Text>
-        </TouchableOpacity>
+        <View style={tw` border-gray-300`} />
 
         {/* Filter Buttons */}
-        <View style={tw`flex-row justify-around mb-4`}>
+        {/* <View style={tw`flex-row justify-around mb-4`}>
           <TouchableOpacity
             style={tw`flex-row items-center bg-gray-300 rounded-3xl w-28 justify-center ${
               selectedOption === "all" ? "bg-purple-500" : "bg-gray-300"
@@ -307,9 +309,9 @@ export default function Workoutscreen({ navigation, route }: Props) {
             >
               All
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* Manual Button with Keyboard Icon */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 justify-center ${
               selectedOption === "manual" ? "bg-purple-500" : "bg-gray-300"
             }`}
@@ -329,10 +331,10 @@ export default function Workoutscreen({ navigation, route }: Props) {
             >
               Manual
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Voice Button with Multi-Audio Icon */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={tw`flex-row items-center px-6 py-3 rounded-3xl ${
               selectedOption === "voice" ? "bg-purple-500" : "bg-gray-300"
             }`}
@@ -352,7 +354,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
               Voice
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Workout List */}
         <Text style={tw`text-gray-600 text-lg font-semibold`}>
@@ -393,7 +395,7 @@ export default function Workoutscreen({ navigation, route }: Props) {
                   </View>
                 </View>
 
-                <View style={tw`flex-row items-center mb-8`}>
+                <View style={tw`flex-row items-center mb-4`}>
                   <MaterialCommunityIcons
                     name="calendar-clock-outline"
                     size={24}
@@ -404,36 +406,27 @@ export default function Workoutscreen({ navigation, route }: Props) {
                   </Text>
                 </View>
 
-                <View style={tw`flex-row mb-2`}>
-                  <View
-                    style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-23 mr-2`}
-                  >
-                    <Text style={tw`text-gray-600 font-semibold`}>
-                      {workout.type}
-                    </Text>
-                  </View>
-                  <View
-                    style={tw`flex-row items-center bg-gray-300 p-3 rounded-3xl w-28 mr-2`}
-                  >
-                    <Text style={tw`text-gray-600 font-semibold`}>
-                      {workout.mood}
-                    </Text>
+                <View style={tw`flex-row justify-between items-center mb-2`}>
+                  <View style={tw`flex-row flex-wrap gap-2`}>
+                    <View style={tw`bg-gray-200 px-4 py-2 rounded-2xl`}>
+                      <Text style={tw`text-gray-600 font-semibold text-center`}>
+                        {workout.duration_minutes} MINS
+                      </Text>
+                    </View>
+                    <View style={tw`bg-gray-200 px-4 py-2 rounded-2xl`}>
+                      <Text style={tw`text-gray-600 font-semibold text-center`}>
+                        {workout.mood}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Edit Button */}
                   <TouchableOpacity
-                    style={tw`absolute top-4 right-4`}
                     onPress={() => handleNavigate(workout.id, fetchWorkout)}
                   >
                     <View style={tw`flex-row items-center`}>
-                      <Text style={tw`text-purple-600 font-semibold`}>
-                        Edit
-                      </Text>
-                      <MaterialIcons
-                        name="chevron-right"
-                        size={24}
-                        color="purple"
-                      />
+                      <Text style={tw`text-purple-600 font-semibold`}>Edit</Text>
+                      <MaterialIcons name="chevron-right" size={24} color="purple" />
                     </View>
                   </TouchableOpacity>
                 </View>
