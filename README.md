@@ -1,29 +1,95 @@
-# gymbudsfe
-Front end for GymBuds
+# GymBuds FE
+Frontend for GymBuds, built with React Native using Expo Dev Client. This mobile app is tailored specifically for iOS, and handles the entire mobile user interface, including:
+- User authentication and profile management
+- Workout logging and health data tracking using Apple HealthKit
+- Map to explore and join nearby gym communities using Google Places API
+- Communities post creation and interaction features
+- Partner matching based on user preferences and availability
+- In-app chat with matched partners
 
-Install Node.js and npm.
-Verify the installation by using:
+# Technologies Used + Packages Used
+## Technology
+- React Native: Mobile App Framework
+- Expo Dev Client: Native development environment for React Native
+- Apple HealthKit API: Health data integration (iOS only)
+- Google Places API: Fetch nearby gyms and their information
+- twrnc: Tailwind CSS for React Native
+## Packages
+Core Frameworks & Navigation:
+- expo
+- react-native
+- expo-router
+- @react-navigation/native
+- @react-navigation/native-stack
+- @react-navigation/bottom-tabs
 
-node -v
+UI & Styling:
+- twrnc
+- react-native-safe-area-context
+- react-native-vector-icons
+- expo-linear-gradient
+- react-native-elements
 
-npm -v
+Forms & Inputs:
+- @react-native-picker/picker
+- @miblanchard/react-native-slider
+- react-native-dropdown-picker
+- react-native-modal-selector
 
-Install Expo CLI through: 
+Utilities & Async:
+- @react-native-async-storage/async-storage
+- axios
+- date-fns
 
-npm install --global expo
+Health & Device Features:
+- react-native-health
+- expo-location
+- expo-image-picker
 
-Verify the installation:
+Maps & Media:
+- react-native-maps
+- react-native-svg
+- react-native-webview
 
-npx expo --version
+# Frontend Dependencies
+- Node.js and npm
+- Expo CLI
+- Xcode (required for iOS build and HealthKit integration)
+- Homebrew (for installing CocoaPods on macOS)
+- CocoaPods (for native module linking)
+- Physical iPhone (to run app)
 
-Migrating to Expo Dev Client:
+# Steps to Install and Run
+## Install Node.js and npm:
+https://nodejs.org/
+### Open up a zsh or terminal
+#### Verify the installation:
+- node -v
+- npm -v
+
+## Install Expo CLI: 
+- npm install --global expo
+#### Verify the installation:
+- npx expo --version
+
+## Migrate to Expo Dev Client:
+- expo install expo-dev-client
+- expo prebuild
+- npm install
+
+## iOS Setup (HealthKit Support)
+#### Install CocoaPods:
+- brew install cocoapods
+- cd ios && pod install && cd ..
+#### Xcode Configuration:
+- Open the 'ios' folder with Xcode
+- Go to gymbudfrontend → Signing & Capabilities
+- Enable HealthKit
+- Ensure Bundle Identifier is unique
+- Add your Development Team
 - Ensure Developer Mode on physical iPhone enabled
 
-1. Install Expo Dev Client- expo install expo-dev-client
-2. Eject- expo prebuild
-3. Install Dependancies- npm install 
-4. Install CocoaPods- (mac) brew install cocoapods
-5. Intialize CocaPods depdencies- cd ios && pod install && cd ..
-6. Enable HealthKit in Xcode-   Click on gymbudfrontend -> Signing & Capabilities → HealthKit (Enable Development Team in 'Signing')
-- Ensure that bundler identifier is unique !!! 
-7. npx expo start --clear, make build on XCode with your physical device. 
+## Run Project
+#### To start the dev server and clear cache:
+- npx expo start --clear
+- Use Xcode to build and run on a physical iPhone.
