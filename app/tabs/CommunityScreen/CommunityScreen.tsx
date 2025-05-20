@@ -80,7 +80,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
   const [latestPost, setLatestPost] = useState(null);
   const [latestPostUser, setLatestPostUser] = useState(null);
   const MAX_MEMBERS_DISPLAY = 8;
-  const apiKey = "AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A";
+  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
 
   useEffect(() => {
     if (!placeId) return;
