@@ -1,4 +1,4 @@
-const apiKey = "AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A";
+const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
 
 export const getCoordinatesFromZip = async (zipCode: string) => {
   try {

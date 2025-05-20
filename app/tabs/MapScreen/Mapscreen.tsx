@@ -52,7 +52,7 @@ export default function MapScreen({ navigation }: Props) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [mapkey, setMapKey] = useState(0);
-  const apiKey = 'AIzaSyCv0H_JQ1RwiISCjUMq48rmnBs4FMmUG3A';
+  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
 
   // Ref to the MapView
   const mapRef = useRef<MapView | null>(null);
