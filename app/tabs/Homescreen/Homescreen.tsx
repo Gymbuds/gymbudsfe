@@ -102,7 +102,7 @@ export default function HomeScreen() {
           });
           setPreferredCommunityId(preferredRes.id);
         } catch (err) {
-          console.error("Failed to load preferred gym:", err);
+          // console.error("Failed to load preferred gym:", err);
         }
       };
 

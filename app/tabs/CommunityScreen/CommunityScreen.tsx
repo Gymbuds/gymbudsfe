@@ -147,7 +147,7 @@ export default function CommunityScreen({ navigation, route }: Props) {
         });
         setPreferredCommunityId(preferredRes.id);
       } catch (err) {
-        console.error("failed loading members", err);
+        // console.error("failed loading members", err);
       }
     })();
   }, [communityId]);
